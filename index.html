@@ -5867,6 +5867,9 @@ function weeklyReview(){
 
 /* One lever, chosen by size of effect - not by what is easiest to say. */
 function _wrAction(habits, sleep, focus){
+  if(!habits.length && !sleep.n && !focus.mins)
+    return {tone:'info', text:'Nothing logged yet. Add a habit or record a night’s sleep, and this fills itself in — give it about a week before it can tell you anything you did not already know.'};
+
   if(sleep.spread!==null && sleep.spread>75)
     return {tone:'warn', text:'Your sleep midpoint moved by '+_slpFmtM(sleep.spread)+
       ' a night on average. Anchoring your wake time is the single highest-leverage change here \u2014 timing regularity tracks health outcomes more closely than hours slept.'};
@@ -5883,8 +5886,9 @@ function _wrAction(habits, sleep, focus){
       '. Either shrink it until it is trivially doable, or drop it \u2014 a habit you keep failing costs more than it returns.'};
 
   if(sleep.n<4)
-    return {tone:'info', text:'Only '+sleep.n+' night'+(sleep.n===1?'':'s')+
-      ' logged this week. Log the rest \u2014 the sleep score needs at least a few nights before it can tell you anything useful.'};
+    return {tone:'info', text:(sleep.n===0 ? 'No sleep logged this week.'
+      : 'Only '+sleep.n+' night'+(sleep.n===1?'':'s')+' logged this week.')+
+      ' The sleep score needs three nights before it has a baseline to judge you against \u2014 until then it is guessing.'};
 
   if(focus.mins===0)
     return {tone:'info', text:'No focus sessions this week. One 25-minute session on the thing you are avoiding is worth more than an hour of intending to.'};
