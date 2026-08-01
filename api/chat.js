@@ -16,10 +16,12 @@
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-/* Tried in order, so a key without access to the newest model still works
-   instead of failing with an opaque 404. */
+/* Tried in order, so a key without access to a given model still works
+   instead of failing with an opaque 404. `gemini-flash-latest` leads
+   because it is an alias Google repoints at the current flash model —
+   pinning a version just means it quietly 404s the day it is retired. */
 const MODELS = (process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : [])
-  .concat(['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.0-flash']);
+  .concat(['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']);
 
 /* Gemini's REST Schema.type is an enum of STRING/NUMBER/OBJECT/... */
 function upperTypes(schema) {
