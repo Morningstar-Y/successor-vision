@@ -3538,6 +3538,7 @@ let S=JSON.parse(localStorage.getItem('sv3')||'null')||{
   vy:new Date().getFullYear(),vm:new Date().getMonth(),
 };
 const save=()=>{
+  if(typeof syncSoon==='function') syncSoon();
   try{ localStorage.setItem('sv3',JSON.stringify(S)); }
   catch(e){
     // localStorage full or unavailable — notify user once
@@ -3814,6 +3815,358 @@ function applyTheme(dark){
 const st=localStorage.getItem('sv-theme')||'light';
 document.documentElement.setAttribute('data-theme',st);
 if(st==='dark')document.getElementById('thm').checked=true;
+
+/* ══════════════════════════════════════════════════════════════════
+   SYNC
+   Local-first. localStorage stays the working copy so the app is
+   instant and works with no connection; Postgres is the shared copy
+   that makes a second device possible.
+
+   Merging is three-way against a snapshot of the last successful sync,
+   which acts as the common ancestor. That is what lets us tell "this
+   row is new here" apart from "this row was deleted there" - without
+   an ancestor those look identical, and a two-way merge either
+   resurrects deleted rows forever or quietly eats new ones.
+
+   No mutation site in the app had to change: sync diffs whole state
+   against the snapshot and is triggered from the existing save().
+   ══════════════════════════════════════════════════════════════════ */
+const SNAP_KEY = 'sv-sync-snap';
+let syncBusy = false, syncQueued = false, syncTimer = null;
+
+function _snapLoad(){ try{ return JSON.parse(localStorage.getItem(SNAP_KEY) || 'null'); }catch(e){ return null; } }
+function _snapSave(v){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(v)); }catch(e){} }
+function _snapClear(){ try{ localStorage.removeItem(SNAP_KEY); }catch(e){} }
+
+/* The local world, flattened into the same keyed shape the server uses
+   so the two can be compared key by key. */
+function _localState(){
+  const habits = {};
+  (S.habits || []).forEach((h, i) => {
+    habits[h.id] = { id:h.id, name:h.name, emoji:h.emoji || '\u2705', sort_order:i };
+  });
+
+  const checks = {};
+  Object.entries(S.checks || {}).forEach(([k, v]) => {
+    if(v !== true && v !== 'x') return;
+    const cut = String(k).lastIndexOf('_');
+    if(cut < 1) return;
+    const habit_id = k.slice(0, cut), day = k.slice(cut + 1);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+    checks[k] = { habit_id, day, state: v === true ? 'done' : 'skip' };
+  });
+
+  const sleep = {};
+  (S.sleepLog || []).forEach(e => {
+    if(!e || !e.date || !e.bed || !e.wake) return;
+    sleep[e.date] = { day:e.date, bed:e.bed, wake:e.wake,
+      hrs: e.hrs == null ? null : Number(e.hrs),
+      score: e.total == null ? null : Math.round(e.total),
+      grade: e.grade || null, label: e.label || null };
+  });
+
+  const focus = {};
+  Object.entries(S.focusLog || {}).forEach(([day, m]) => {
+    if(/^\d{4}-\d{2}-\d{2}$/.test(day)) focus[day] = { day, minutes: Number(m) || 0, sessions: 0 };
+  });
+
+  const tasks = {};
+  (S.tasks || []).forEach((t, i) => {
+    if(!t || !t.text) return;
+    tasks[t.id] = { id:t.id, title:t.text, done:!!t.done,
+      day: t.date || null, tag: t.tag || null, sort_order:i };
+  });
+
+  const journal = {};
+  Object.entries(typeof diarEntries === 'object' && diarEntries ? diarEntries : {}).forEach(([day, e]) => {
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(day) || !e) return;
+    /* An untouched day is a blank template, not an entry. Syncing those
+       would fill the server with empty rows for every day ever opened. */
+    const written = (e.text || '').trim() || (e.gratitude || '').trim() ||
+                    (e.highlight || '').trim() || e.mood;
+    if(!written) return;
+    journal[day] = { day, body:e.text || '', mood:e.mood || null,
+      tags: e.tag ? [e.tag] : [], data: e };
+  });
+
+  return { habits, checks, sleep, focus, tasks, journal,
+    profile:{ theme: document.documentElement.getAttribute('data-theme') || 'light',
+              sleep_profile_age: S.sleepAge || null } };
+}
+
+const _eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/* Three-way merge of one keyed collection.
+   Conflicts resolve to local: the device in front of the user reflects
+   their most recent intent, and losing what someone just typed is worse
+   than losing what another device changed while they were away. */
+function _merge3(base, local, remote){
+  const keys = new Set([...Object.keys(base || {}), ...Object.keys(local), ...Object.keys(remote)]);
+  const out = {}, push = [], drop = [];
+  for(const k of keys){
+    const b = base ? base[k] : undefined, l = local[k], r = remote[k];
+    const lChanged = !_eq(l, b), rChanged = !_eq(r, b);
+
+    if(!lChanged && !rChanged){ if(l !== undefined) out[k] = l; continue; }
+    if(lChanged && !rChanged){                       // only we moved
+      if(l === undefined){ drop.push(k); }           // deleted here -> delete there
+      else { out[k] = l; push.push(k); }
+      continue;
+    }
+    if(!lChanged && rChanged){                       // only they moved
+      if(r !== undefined) out[k] = r;                // deleted there -> drop here
+      continue;
+    }
+    if(l === undefined && r === undefined) continue; // both deleted
+    if(l === undefined){ out[k] = r; continue; }     // deleted here, edited there -> keep the edit
+    out[k] = l; if(!_eq(l, r)) push.push(k);         // both edited -> local wins
+  }
+  return { merged: out, push, drop };
+}
+
+function _sbErr(e, what){ throw new Error(what + ': ' + (e.message || JSON.stringify(e))); }
+
+/* Note: when a sync is already running this coalesces and returns
+   immediately, so `await syncNow()` does NOT guarantee a sync finished -
+   the queued one runs shortly after. Nothing in the app awaits it, but
+   it will mislead you when writing tests. */
+async function syncNow(reason){
+  if(!sb || !SVUser){ return; }
+  if(syncBusy){ syncQueued = true; return; }
+  syncBusy = true;
+  acctRender('Syncing\u2026');
+  try{
+    const uid = SVUser.id;
+    const L = _localState();
+    let  B = _snapLoad();
+    /* A snapshot from another account would make that account's rows
+       look like local deletions. Treat it as a first sync instead. */
+    if(B && B._uid && B._uid !== uid) B = null;
+
+    // ── pull ───────────────────────────────────────────────────────
+    const [rh, rc, rs, rf, rt, rj, rp] = await Promise.all([
+      sb.from('habits').select('id,name,emoji,sort_order').is('archived_at', null),
+      sb.from('habit_checks').select('habit_id,day,state'),
+      sb.from('sleep_log').select('day,bed,wake,hrs,score,grade,label'),
+      sb.from('focus_log').select('day,minutes,sessions'),
+      sb.from('tasks').select('id,title,done,day,tag,sort_order'),
+      sb.from('journal_entries').select('day,body,mood,tags,data'),
+      sb.from('profiles').select('theme,sleep_profile_age').eq('id', uid).maybeSingle()
+    ]);
+    for(const [r, n] of [[rh,'habits'],[rc,'checks'],[rs,'sleep'],[rf,'focus'],[rt,'tasks'],[rj,'journal'],[rp,'profile']])
+      if(r.error) _sbErr(r.error, 'pull ' + n);
+
+    const R = { habits:{}, checks:{}, sleep:{}, focus:{}, tasks:{}, journal:{} };
+    rh.data.forEach(h => R.habits[h.id] = { id:h.id, name:h.name, emoji:h.emoji, sort_order:h.sort_order });
+    rc.data.forEach(c => R.checks[c.habit_id + '_' + c.day] = { habit_id:c.habit_id, day:c.day, state:c.state });
+    rs.data.forEach(e => R.sleep[e.day] = { day:e.day, bed:(e.bed||'').slice(0,5), wake:(e.wake||'').slice(0,5),
+      hrs: e.hrs == null ? null : Number(e.hrs), score:e.score, grade:e.grade, label:e.label });
+    rf.data.forEach(e => R.focus[e.day] = { day:e.day, minutes:e.minutes, sessions:e.sessions });
+    rt.data.forEach(t => R.tasks[t.id] = { id:t.id, title:t.title, done:t.done, day:t.day, tag:t.tag, sort_order:t.sort_order });
+    rj.data.forEach(e => R.journal[e.day] = { day:e.day, body:e.body, mood:e.mood, tags:e.tags || [], data:e.data || {} });
+
+    // ── habits first: local numeric ids must become server uuids ────
+    const hm = _merge3(B && B.habits, L.habits, R.habits);   // mutated below after id remap
+    const isUuid = v => /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String(v));
+    const idMap = {};
+
+    for(const k of Object.keys(hm.merged)){
+      const h = hm.merged[k];
+      if(isUuid(h.id)) continue;
+      /* Same habit by name, already on the server (another device made
+         it): adopt that row rather than creating a duplicate. */
+      const twin = Object.values(R.habits).find(x =>
+        x.name.trim().toLowerCase() === String(h.name).trim().toLowerCase());
+      if(twin){ idMap[h.id] = twin.id; continue; }
+      const ins = await sb.from('habits')
+        .insert({ user_id:uid, name:h.name, emoji:h.emoji, sort_order:h.sort_order })
+        .select('id').single();
+      if(ins.error) _sbErr(ins.error, 'create habit');
+      idMap[h.id] = ins.data.id;
+    }
+
+    if(Object.keys(idMap).length){
+      /* Rewrite the local id space once, so from here on there is one
+         set of ids everywhere and no translation layer to keep right. */
+      (S.habits || []).forEach(h => { if(idMap[h.id]) h.id = idMap[h.id]; });
+      const nc = {};
+      Object.entries(S.checks || {}).forEach(([k, v]) => {
+        const cut = String(k).lastIndexOf('_');
+        const id = k.slice(0, cut), day = k.slice(cut + 1);
+        nc[(idMap[id] || id) + '_' + day] = v;
+      });
+      S.checks = nc;
+      if(S.pomoHabit && idMap[S.pomoHabit]) S.pomoHabit = idMap[S.pomoHabit];
+      save();
+
+      /* The merge result is still keyed by the ids it was computed with.
+         Leaving it that way writes the snapshot in the old id space, so
+         on the next sync base[uuid] is undefined - which makes a local
+         deletion look like a remote addition and quietly resurrects the
+         row. Move the whole result into the new id space here. */
+      const nm = {};
+      Object.entries(hm.merged).forEach(([k, h]) => {
+        const nid = idMap[h.id] || h.id;
+        nm[nid] = Object.assign({}, h, { id: nid });
+      });
+      hm.merged = nm;
+      hm.push = hm.push.map(k => idMap[k] || k);
+      hm.drop = hm.drop.map(k => idMap[k] || k);
+    }
+
+    const remap = k => { const c = String(k).lastIndexOf('_');
+      const id = k.slice(0, c), d = k.slice(c + 1); return (idMap[id] || id) + '_' + d; };
+    const L2 = _localState();   // re-read: ids have moved
+
+    // ── the rest ───────────────────────────────────────────────────
+    const cm = _merge3(B && B.checks  ? _remapKeys(B.checks, remap, idMap) : null, L2.checks,  R.checks);
+    const sm = _merge3(B && B.sleep,   L2.sleep,   R.sleep);
+    const fm = _merge3(B && B.focus,   L2.focus,   R.focus);
+    const tm = _merge3(B && B.tasks,   L2.tasks,   R.tasks);
+    const jm = _merge3(B && B.journal, L2.journal, R.journal);
+
+    // ── push ───────────────────────────────────────────────────────
+    const habitRows = Object.values(hm.merged).map(h => ({
+      id: idMap[h.id] || h.id, user_id:uid, name:h.name, emoji:h.emoji, sort_order:h.sort_order }));
+    if(habitRows.length){
+      const e = (await sb.from('habits').upsert(habitRows, { onConflict:'id' })).error;
+      if(e) _sbErr(e, 'push habits');
+    }
+    if(hm.drop.length){
+      const ids = hm.drop.map(k => idMap[k] || k).filter(isUuid);
+      if(ids.length){ const e = (await sb.from('habits').delete().in('id', ids)).error; if(e) _sbErr(e, 'delete habits'); }
+    }
+
+    await _pushSet('habit_checks', uid, cm, k => ({ habit_id:cm.merged[k].habit_id, day:cm.merged[k].day, state:cm.merged[k].state }),
+      'habit_id,day', k => ({ habit_id:k.slice(0, k.lastIndexOf('_')), day:k.slice(k.lastIndexOf('_') + 1) }));
+    await _pushSet('sleep_log', uid, sm, k => sm.merged[k], 'user_id,day', k => ({ day:k }));
+    await _pushSet('focus_log', uid, fm, k => fm.merged[k], 'user_id,day', k => ({ day:k }));
+    await _pushSet('journal_entries', uid, jm, k => jm.merged[k], 'user_id,day', k => ({ day:k }));
+
+    const taskRows = tm.push.map(k => ({ ...tm.merged[k], user_id:uid }))
+      .filter(r => isUuid(r.id) || (delete r.id, true));
+    if(taskRows.length){ const e = (await sb.from('tasks').upsert(taskRows)).error; if(e) _sbErr(e, 'push tasks'); }
+    if(tm.drop.length){
+      const ids = tm.drop.filter(isUuid);
+      if(ids.length){ const e = (await sb.from('tasks').delete().in('id', ids)).error; if(e) _sbErr(e, 'delete tasks'); }
+    }
+
+    // profile: theme and age follow the person, not the browser
+    const pr = rp.data || {};
+    const wantTheme = (B && B.profile && B.profile.theme === L.profile.theme && pr.theme) ? pr.theme : L.profile.theme;
+    const wantAge   = L.profile.sleep_profile_age || pr.sleep_profile_age || null;
+    const pe = (await sb.from('profiles').upsert({ id:uid, theme:wantTheme, sleep_profile_age:wantAge })).error;
+    if(pe) _sbErr(pe, 'push profile');
+
+    // ── land the merged result locally ─────────────────────────────
+    _applyMerged({ habits:hm.merged, checks:cm.merged, sleep:sm.merged, focus:fm.merged,
+                   tasks:tm.merged, journal:jm.merged, theme:wantTheme, age:wantAge });
+
+    const finalState = _localState();
+    finalState._uid = uid;
+    _snapSave(finalState);
+    acctRender('Synced');
+    syncFailures = 0;
+  }catch(err){
+    console.warn('[sync]', err);
+    syncFailures++;
+    acctRender(navigator.onLine ? 'Sync failed' : 'Offline');
+  }finally{
+    syncBusy = false;
+    if(syncQueued){ syncQueued = false; setTimeout(() => syncNow('queued'), 400); }
+  }
+}
+let syncFailures = 0;
+
+function _remapKeys(obj, fn, idMap){
+  if(!Object.keys(idMap || {}).length) return obj;
+  const out = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    const nk = fn(k);
+    out[nk] = v && v.habit_id && idMap[v.habit_id] ? { ...v, habit_id: idMap[v.habit_id] } : v;
+  });
+  return out;
+}
+
+async function _pushSet(table, uid, m, row, conflict, keyToFilter){
+  if(m.push.length){
+    const rows = m.push.map(k => ({ ...row(k), user_id: uid }));
+    const e = (await sb.from(table).upsert(rows, { onConflict: conflict })).error;
+    if(e) _sbErr(e, 'push ' + table);
+  }
+  for(const k of m.drop){
+    let q = sb.from(table).delete().eq('user_id', uid);
+    Object.entries(keyToFilter(k)).forEach(([c, v]) => { q = q.eq(c, v); });
+    const e = (await q).error;
+    if(e) _sbErr(e, 'delete ' + table);
+  }
+}
+
+function _applyMerged(m){
+  S.habits = Object.values(m.habits).sort((a, b) => a.sort_order - b.sort_order)
+    .map(h => ({ id:h.id, name:h.name, emoji:h.emoji }));
+  S.checks = {};
+  Object.values(m.checks).forEach(c => { S.checks[c.habit_id + '_' + c.day] = c.state === 'done' ? true : 'x'; });
+
+  const prev = {}; (S.sleepLog || []).forEach(e => prev[e.date] = e);
+  S.sleepLog = Object.values(m.sleep)
+    .sort((a, b) => b.day.localeCompare(a.day))
+    .map(e => Object.assign({}, prev[e.day] || {}, {
+      date:e.day, bed:e.bed, wake:e.wake, hrs:e.hrs, total:e.score, grade:e.grade, label:e.label }));
+
+  S.focusLog = {};
+  Object.values(m.focus).forEach(f => { S.focusLog[f.day] = f.minutes; });
+
+  S.tasks = Object.values(m.tasks).sort((a, b) => a.sort_order - b.sort_order)
+    .map(t => ({ id:t.id, text:t.title, tag:t.tag || '', date:t.day, done:!!t.done }));
+
+  if(typeof diarEntries === 'object' && diarEntries){
+    Object.values(m.journal).forEach(e => {
+      const d = e.data && Object.keys(e.data).length ? e.data : { text:e.body, mood:e.mood, tag:(e.tags||[])[0] || '' };
+      diarEntries[e.day] = Object.assign(diarMakeEntry(), diarEntries[e.day] || {}, d);
+    });
+    diarSave();
+  }
+
+  if(m.age) S.sleepAge = m.age;
+  save();
+  if(m.theme && m.theme !== document.documentElement.getAttribute('data-theme')){
+    applyTheme(m.theme === 'dark');
+    const t = document.getElementById('thm'); if(t) t.checked = (m.theme === 'dark');
+  }
+  if(typeof syncUI === 'function') syncUI();
+  if(typeof renderHome === 'function') renderHome();
+  if(typeof buildGrid === 'function' && document.getElementById('pg-dashboard').classList.contains('on')) buildGrid();
+}
+
+/* ── triggers ─────────────────────────────────────────────────────
+   save() already runs on every mutation, so hooking it is enough to
+   cover the whole app without touching a single call site. */
+function syncSoon(){
+  if(!sb || !SVUser) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => syncNow('edit'), 2500);
+}
+/* save() is declared with const, so it is not a window property and
+   cannot be wrapped from outside - the wrapper would be a different
+   binding and every internal save() call would bypass it. The trigger
+   is called from inside save() and diarSave() instead. */
+
+function onAuthChanged(user, event){
+  if(user){
+    if(event === 'SIGNED_IN' || event === 'INIT') syncNow('auth:' + event);
+  }else{
+    /* Signing out leaves the local copy alone - it is still their data
+       on their machine - but drops the snapshot so a different account
+       signing in here is treated as a first sync, not as mass deletion. */
+    _snapClear();
+    acctRender();
+  }
+}
+
+document.addEventListener('visibilitychange', () => { if(!document.hidden) syncNow('focus'); });
+window.addEventListener('online',  () => syncNow('online'));
+window.addEventListener('offline', () => acctRender('Offline'));
 
 /* ══════════════════════════════════════════════════════════════════
    AUTH SCREENS
@@ -7218,6 +7571,7 @@ let diarCurView='write';
    had no guard, so a full or unavailable localStorage threw on each save and
    broke typing. Warn once, keep the editor usable. */
 function diarSave(){
+  if(typeof syncSoon==='function') syncSoon();
   try{ localStorage.setItem('diar1',JSON.stringify(diarEntries)); }
   catch(e){
     if(!diarSave._warned){
