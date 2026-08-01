@@ -7058,6 +7058,11 @@ async function _aiFetch(systemPrompt, msgs){
       body:JSON.stringify(body)
     });
     if(res.status===404) throw new Error('NO_PROXY');
+    /* The edge rate limiter denies with 403 and an HTML block page, and
+       the generic handler below treats a bare 403 as "unreachable" —
+       which sends the user off debugging their connection. Name it. */
+    if(res.status===403 || res.status===429) throw new Error('RATE_LIMITED');
+    if(res.status===413) throw new Error('TOO_LARGE');
     const txt=await res.text();
     let data=null; try{ data=JSON.parse(txt); }catch(e){}
     if(!res.ok){
@@ -7090,6 +7095,15 @@ async function _aiFetch(systemPrompt, msgs){
    works and their data is safe on this device. */
 function _aiErrorMessage(err){
   const m=(err&&err.message)||String(err||'');
+  if(m==='RATE_LIMITED'){
+    return `**Slow down a moment — that's the rate limit.**\n\n`+
+      `The coach accepts 12 messages a minute, which stops anyone who finds this endpoint from running up the bill. Wait about a minute and it will answer again.\n\n`+
+      `Everything else keeps working normally.`;
+  }
+  if(m==='TOO_LARGE'){
+    return `**This conversation has got too long to send.**\n\n`+
+      `Hit **Clear chat** and ask again — the coach reads your current habits and sleep fresh each time, so you lose nothing by starting a new thread.`;
+  }
   if(m==='NO_SERVER_KEY'){
     return `**The AI coach is wired up, but the server has no key yet.**\n\n`+
       `Set GEMINI_API_KEY on the deployment and it starts thinking immediately. Everything else — habits, sleep, the planner, timers, analytics and your journal — is unaffected.`;

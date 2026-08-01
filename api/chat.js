@@ -109,6 +109,18 @@ module.exports = async (req, res) => {
     return;
   }
 
+  /* Per-request cost ceiling. The edge rate limit caps how MANY requests
+     get through; this caps how expensive any one of them can be, so the
+     two together bound the spend. Without it a single allowed request
+     could carry a megabyte of context.
+     A real chat turn is a handful of messages and a few KB. */
+  const size = JSON.stringify(body.messages).length;
+  if (body.messages.length > 40 || size > 60000) {
+    res.status(413).json({ error: { code: 'TOO_LARGE',
+      message: 'That conversation is too long. Clear the chat and start again.' } });
+    return;
+  }
+
   const payload = {
     contents: toGemini(body.messages),
     generationConfig: { maxOutputTokens: Math.min(body.max_tokens || 1000, 4000) }
