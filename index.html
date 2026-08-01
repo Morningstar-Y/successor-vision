@@ -7042,7 +7042,31 @@ function _aiExecTool(name, input){
 const AI_MODEL='claude-sonnet-4-6';
 function _aiKey(){ try{ return localStorage.getItem('sv-ai-key')||''; }catch(e){ return ''; } }
 
+/* Served over http(s) there is a proxy at /api/chat that holds the key
+   server-side; opened as a plain file there is not, so fall back to a
+   key the user has put in their own browser. A key must never be written
+   into this file - it is served publicly and View Source would leak it. */
+const _aiHosted = location.protocol==='http:' || location.protocol==='https:';
+
 async function _aiFetch(systemPrompt, msgs){
+  const body={max_tokens:1000,system:systemPrompt,tools:_aiTools,messages:msgs};
+
+  if(_aiHosted){
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(res.status===404) throw new Error('NO_PROXY');
+    const txt=await res.text();
+    let data=null; try{ data=JSON.parse(txt); }catch(e){}
+    if(!res.ok){
+      if(data && data.error && data.error.code==='NO_SERVER_KEY') throw new Error('NO_SERVER_KEY');
+      throw new Error(`API ${res.status}: ${(data&&data.error&&data.error.message)||txt}`);
+    }
+    return data;
+  }
+
   const key=_aiKey();
   if(!key) throw new Error('NO_API_KEY');
   const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -7053,7 +7077,7 @@ async function _aiFetch(systemPrompt, msgs){
       'anthropic-version':'2023-06-01',
       'anthropic-dangerous-direct-browser-access':'true'
     },
-    body:JSON.stringify({model:AI_MODEL,max_tokens:1000,system:systemPrompt,tools:_aiTools,messages:msgs})
+    body:JSON.stringify({model:AI_MODEL,...body})
   });
   if(!res.ok){ const err=await res.text(); throw new Error(`API ${res.status}: ${err}`); }
   return res.json();
@@ -7066,12 +7090,19 @@ async function _aiFetch(systemPrompt, msgs){
    works and their data is safe on this device. */
 function _aiErrorMessage(err){
   const m=(err&&err.message)||String(err||'');
+  if(m==='NO_SERVER_KEY'){
+    return `**The AI coach is wired up, but the server has no key yet.**\n\n`+
+      `Set GEMINI_API_KEY on the deployment and it starts thinking immediately. Everything else — habits, sleep, the planner, timers, analytics and your journal — is unaffected.`;
+  }
+  if(m==='NO_PROXY'){
+    return `**This copy has no /api/chat endpoint.**\n\n`+
+      `That endpoint is what holds the API key server-side and keeps it off the page. Open the hosted version to use the coach.\n\n`+
+      `Everything else keeps working, and your data stays on this device.`;
+  }
   if(m==='NO_API_KEY'){
-    return `**The AI coach needs an API key before it can think.**\n\n`+
-      `Nothing else is affected — habits, sleep, the planner, timers, analytics and your journal all keep working, and your data stays on this device.\n\n`+
-      `To enable it, open your browser console on this page and run:\n\n`+
-      `localStorage.setItem('sv-ai-key', 'YOUR_KEY')\n\n`+
-      `Be aware that a key stored in a browser is visible to anyone using this device. For anything beyond personal use, put the key behind a small server-side proxy instead.`;
+    return `**The AI coach needs a key before it can think.**\n\n`+
+      `You are running this as a local file, so there is no server here to hold one. Open the hosted version instead — there the key lives server-side and never reaches the page.\n\n`+
+      `Nothing else is affected — habits, sleep, the planner, timers, analytics and your journal all keep working, and your data stays on this device.`;
   }
   const unreachable=/Failed to fetch|NetworkError|load failed|ERR_|CORS|\b40[13]\b/i.test(m);
   if(unreachable){
@@ -7194,7 +7225,7 @@ RESPONSE STYLE:
         for(const tu of toolBlocks){
           const result=_aiExecTool(tu.name,tu.input);
           actionsDone.push(result);
-          results.push({type:'tool_result',tool_use_id:tu.id,content:result});
+          results.push({type:'tool_result',tool_use_id:tu.id,_name:tu.name,content:result});
         }
         msgs.push({role:'assistant',content:data.content});
         msgs.push({role:'user',content:results});
@@ -7335,7 +7366,7 @@ RESPONSE STYLE:
         for(const tu of toolBlocks){
           const result = _aiExecTool(tu.name, tu.input);
           actionsDone.push(result);
-          results.push({type:'tool_result',tool_use_id:tu.id,content:result});
+          results.push({type:'tool_result',tool_use_id:tu.id,_name:tu.name,content:result});
         }
         msgs.push({role:'assistant',content:data.content});
         msgs.push({role:'user',content:results});
