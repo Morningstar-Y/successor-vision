@@ -234,6 +234,210 @@ button,input,select{font-family:'Outfit',sans-serif}
 .swt input:checked+.swts{background:var(--accent)}
 .swt input:checked+.swts:before{transform:translateX(16px)}
 
+/* ══════════════════════════════════════════════════════════════════
+   AUTH SCREEN
+   The signature is the lattice behind the card: the habit grid, alive.
+   A wave of completion moves through it and deliberately leaves cells
+   empty, because this app's whole argument is that a missed day is
+   survivable. A dot grid would be decoration; this is the thesis.
+   ══════════════════════════════════════════════════════════════════ */
+#auth{
+  position:fixed;inset:0;z-index:4000;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--bg);overflow-y:auto;
+}
+#auth.on{display:flex}
+#auth-canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+
+
+.auth-card{
+  position:relative;z-index:2;width:100%;max-width:404px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);padding:38px 36px 30px;
+  box-shadow:var(--shadow3);
+}
+
+/* Live eyebrow. Reads the real clock and names the circadian phase from
+   the app's own sleep model — the product thinking before you sign up. */
+.auth-eyebrow{
+  display:flex;align-items:center;gap:8px;margin-bottom:26px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:1.1px;text-transform:uppercase;color:var(--text2);
+}
+.auth-eyebrow b{color:var(--text);font-weight:700}
+.auth-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;
+  box-shadow:0 0 0 0 var(--accent-dim);animation:authPulse 3.4s ease-out infinite;
+}
+@keyframes authPulse{
+  0%{box-shadow:0 0 0 0 var(--accent-dim)}
+  70%{box-shadow:0 0 0 7px transparent}
+  100%{box-shadow:0 0 0 0 transparent}
+}
+
+.auth-h{
+  font-size:31px;font-weight:800;letter-spacing:-.9px;line-height:1.08;
+  color:var(--text);margin-bottom:9px;
+}
+.auth-sub{font-size:13.5px;line-height:1.55;color:var(--text2);margin-bottom:24px}
+
+.auth-oauth{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:var(--surface);color:var(--text);
+  border:1.5px solid var(--border2);border-radius:var(--r-md);
+  padding:12px 16px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;
+  cursor:pointer;transition:border-color .18s, background .18s, transform .12s;
+}
+.auth-oauth:hover{background:var(--surface2);border-color:var(--text4)}
+.auth-oauth:active{transform:translateY(1px)}
+.auth-oauth svg{width:17px;height:17px;flex-shrink:0}
+
+.auth-or{
+  display:flex;align-items:center;gap:12px;margin:20px 0;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+  letter-spacing:1.2px;text-transform:uppercase;color:var(--text2);
+}
+.auth-or::before,.auth-or::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.auth-field{margin-bottom:15px}
+.auth-lab{
+  display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+  letter-spacing:1.1px;text-transform:uppercase;color:var(--text2);
+}
+.auth-in{
+  width:100%;background:var(--surface2);color:var(--text);
+  border:1.5px solid var(--border);border-radius:var(--r-md);
+  padding:12px 14px;font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:500;
+  outline:none;transition:border-color .18s, box-shadow .18s, background .18s;
+}
+.auth-in::placeholder{color:var(--text2);opacity:.62}
+.auth-in:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-dim)}
+.auth-in.bad{border-color:var(--red)}
+
+.auth-link{
+  background:none;border:none;padding:0;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+  letter-spacing:1.1px;text-transform:uppercase;color:var(--accent-txt);
+  text-decoration:none;
+}
+.auth-link:hover{text-decoration:underline}
+
+.auth-go{
+  width:100%;margin-top:8px;background:var(--accent);color:#fff;border:none;
+  border-radius:var(--r-md);padding:13px 18px;
+  font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:700;letter-spacing:.1px;
+  cursor:pointer;box-shadow:var(--elev-accent-sm);
+  transition:background .18s, transform .12s, box-shadow .18s;
+}
+.auth-go:hover:not(:disabled){background:var(--accent-h);box-shadow:var(--elev-accent-md)}
+.auth-go:active:not(:disabled){transform:translateY(1px)}
+.auth-go:disabled{opacity:.6;cursor:default}
+.auth-go.busy{font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:1.4px}
+
+/* Errors state the problem and the fix; they never apologise and never
+   just say something went wrong. */
+.auth-msg{
+  margin-top:14px;padding:11px 13px;border-radius:var(--r-md);
+  font-size:12.5px;line-height:1.5;
+  display:none;
+}
+.auth-msg.on{display:block}
+.auth-msg.err{background:var(--red-dim);color:var(--red-txt);border-left:3px solid var(--red)}
+.auth-msg.ok{background:var(--green-dim);color:var(--green-txt);border-left:3px solid var(--green)}
+.auth-msg.info{background:var(--blue-dim);color:var(--blue-txt);border-left:3px solid var(--blue)}
+
+.auth-foot{
+  margin-top:22px;padding-top:18px;border-top:1px solid var(--border);
+  font-size:12.5px;color:var(--text2);text-align:center;
+}
+.auth-foot button{
+  background:none;border:none;padding:0;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;color:var(--accent-txt);
+}
+.auth-foot button:hover{text-decoration:underline}
+
+/* The escape hatch. An account is optional here, and the door out should
+   be as findable as the door in. */
+.auth-skip{
+  position:absolute;top:22px;right:24px;z-index:3;
+  background:none;border:none;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+  letter-spacing:1.1px;text-transform:uppercase;color:var(--text2);
+  padding:9px 14px;border-radius:var(--r-pill);transition:color .18s, background .18s;
+  background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);
+}
+.auth-skip:hover{color:var(--text);background:var(--surface2)}
+
+/* One orchestrated entrance, not scattered effects. */
+@keyframes authRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+#auth.on .auth-card{animation:authRise .46s cubic-bezier(.16,1,.3,1) both;animation-delay:.08s}
+#auth.on .auth-skip{animation:authRise .4s ease-out both;animation-delay:.3s}
+
+/* Mode switches cross-fade rather than snapping. */
+@keyframes authSwap{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.auth-body.swap{animation:authSwap .28s cubic-bezier(.16,1,.3,1) both}
+
+.auth-pw-wrap{position:relative}
+.auth-pw-see{
+  position:absolute;right:4px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;padding:8px 10px;
+  font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;font-weight:700;
+  letter-spacing:.6px;
+}
+.auth-pw-see:hover{color:var(--text)}
+
+/* Password strength: three segments, because a 0-100 meter implies a
+   precision that no strength estimator actually has. */
+.auth-str{display:flex;gap:4px;margin-top:7px}
+.auth-str i{
+  flex:1;height:3px;border-radius:var(--r-pill);background:var(--border);
+  transition:background .3s;
+}
+.auth-str.s1 i:nth-child(1){background:var(--red)}
+.auth-str.s2 i:nth-child(-n+2){background:var(--amber)}
+.auth-str.s3 i{background:var(--green)}
+.auth-str-l{
+  margin:5px 0 16px;font-family:'JetBrains Mono',monospace;font-size:10px;
+  font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--text2);
+}
+
+@media (max-width:480px){
+  #auth{padding:0;align-items:stretch}
+  .auth-card{max-width:none;border:none;border-radius:0;min-height:100vh;
+    padding:76px 24px 40px;box-shadow:none;background:transparent}
+  .auth-h{font-size:27px}
+}
+
+/* Accessibility floor: motion is a garnish, never the mechanism. */
+@media (prefers-reduced-motion:reduce){
+  #auth.on .auth-card,#auth.on .auth-skip,.auth-body.swap{animation:none}
+  .auth-dot{animation:none}
+}
+
+/* Signed-in chip in the sidebar foot. */
+.acct-row{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;margin-bottom:6px;
+  border-radius:var(--r-md);cursor:pointer;transition:background .18s;
+  background:var(--surface2);border:1px solid var(--border);width:100%;
+  font-family:'Outfit',sans-serif;text-align:left;
+}
+.acct-row:hover{background:var(--surface3)}
+.acct-av{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;
+}
+.acct-txt{flex:1;min-width:0;overflow:hidden}
+.acct-name{font-size:12.5px;font-weight:700;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-state{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;
+  letter-spacing:.7px;text-transform:uppercase;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acct-state.syncing{color:var(--accent-txt)}
+.acct-state.err{color:var(--red-txt)}
+#sb.slim .acct-txt{display:none}
+
 /* ── WEEKLY REVIEW ── */
 .wr-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:26px;align-items:start}
 .wr-col-wide{min-width:0}
@@ -2068,6 +2272,13 @@ canvas{max-width:100%}
     </button>
   </nav>
   <div class="sb-foot">
+    <button class="acct-row" id="acct-row" onclick="acctClick()" title="Account">
+      <span class="acct-av" id="acct-av">☁</span>
+      <span class="acct-txt">
+        <span class="acct-name" id="acct-name">Sign in to sync</span>
+        <span class="acct-state" id="acct-state">On this device only</span>
+      </span>
+    </button>
     <div class="theme-row">
       <span class="ico" style="font-size:16px;width:22px;text-align:center">🎨</span>
       <span class="lbl">Dark Mode</span>
@@ -2086,6 +2297,18 @@ canvas{max-width:100%}
         onmouseover="this.style.background='var(--surface3)';this.style.color='var(--text)'"
         onmouseout="this.style.background='var(--surface2)';this.style.color='var(--text2)'">📂 Import</button>
     </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth" role="dialog" aria-modal="true" aria-labelledby="auth-h">
+  <canvas id="auth-canvas" aria-hidden="true"></canvas>
+  <button class="auth-skip" onclick="authClose()">Keep using it offline &rarr;</button>
+  <div class="auth-card">
+    <div class="auth-eyebrow">
+      <span class="auth-dot"></span><span id="auth-clock">—</span>
+    </div>
+    <div class="auth-body" id="auth-body"></div>
   </div>
 </div>
 
@@ -3162,6 +3385,137 @@ canvas{max-width:100%}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ACCOUNTS
+   The key below is the Supabase *publishable* key and is meant to ship
+   in client code. It grants nothing on its own: every table has Row
+   Level Security, so without a valid session the database returns
+   nothing. That is a different class of secret from an API key, which
+   must never appear here.
+   ══════════════════════════════════════════════════════════════════ */
+const SB_URL = 'https://zdlfusikfbdchpwulhgs.supabase.co';
+const SB_KEY = 'sb_publishable_FVC9XSj4S3S9YwdJHdKAmw_GjiMYu4o';
+
+let sb = null, SVUser = null;
+try{
+  if(window.supabase && location.protocol !== 'file:'){
+    sb = window.supabase.createClient(SB_URL, SB_KEY, {
+      auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    });
+  }
+}catch(e){ console.warn('Accounts unavailable:', e.message); }
+
+/* ── The lattice ──────────────────────────────────────────────────
+   The app's own habit grid, running as ambient motion. A wave of
+   completion crosses it and skips a fixed set of cells, so gaps stay
+   visible as the wave passes. That is the product's argument made
+   visual: a missed day is survivable, and the grid is never full.  */
+let _latRAF = null, _latCells = [], _latW = 0, _latH = 0, _latT = 0;
+const LAT_PITCH = 30, LAT_SIZE = 10;
+
+function _latBuild(cv){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  _latW = cv.clientWidth; _latH = cv.clientHeight;
+  cv.width = _latW * dpr; cv.height = _latH * dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const cols = Math.ceil(_latW / LAT_PITCH) + 1;
+  const rows = Math.ceil(_latH / LAT_PITCH) + 1;
+  _latCells = [];
+  for(let y = 0; y < rows; y++){
+    for(let x = 0; x < cols; x++){
+      /* Deterministic hash, not Math.random, so the pattern of gaps is
+         stable across resizes instead of reshuffling as you rotate. */
+      const h = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
+      _latCells.push({ x: x * LAT_PITCH, y: y * LAT_PITCH, gap: h < 0.26, j: h });
+    }
+  }
+  return ctx;
+}
+
+function _latPaint(ctx, t){
+  const css = getComputedStyle(document.documentElement);
+  const accent = css.getPropertyValue('--accent').trim() || '#4f46e5';
+  const empty  = css.getPropertyValue('--border').trim() || '#e1e4ee';
+  ctx.clearRect(0, 0, _latW, _latH);
+  const cx = _latW / 2, cy = _latH / 2;
+  /* Falloff lives here rather than in a CSS overlay: the card must always
+     sit on quiet ground, and doing it in the paint avoids depending on
+     color-mix resolving against a themed variable. */
+  const reach = Math.hypot(cx, cy);
+  const clear = Math.min(300, reach * 0.42);
+  for(const c of _latCells){
+    const d = Math.hypot(c.x - cx, c.y - cy);
+    const fade = Math.min(1, Math.max(0, (d - clear) / (reach - clear)));
+    if(fade <= 0.01) continue;
+    /* One slow diagonal band, not a repeating checker. */
+    const phase = (c.x * 0.0020 + c.y * 0.0031) - t * 0.13;
+    let v = Math.sin(phase * Math.PI * 2);
+    v = Math.max(0, (v - 0.62) / 0.38);
+    const lit = c.gap ? 0 : v * (0.55 + c.j * 0.45);
+    ctx.globalAlpha = (c.gap ? 0.10 : 0.10 + lit * 0.55) * fade;
+    ctx.fillStyle   = lit > 0.05 ? accent : empty;
+    ctx.beginPath();
+    ctx.roundRect(c.x, c.y, LAT_SIZE, LAT_SIZE, 2.5);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function latStart(){
+  const cv = document.getElementById('auth-canvas');
+  if(!cv) return;
+  let ctx = _latBuild(cv);
+  const still = _reduceMotion();
+  const draw = () => {
+    _latT += 1 / 60;
+    _latPaint(ctx, _latT);
+    _latRAF = requestAnimationFrame(draw);
+  };
+  latStop();
+  _latPaint(ctx, _latT);
+  if(!still) _latRAF = requestAnimationFrame(draw);
+  clearTimeout(latStart._rz);
+  window.addEventListener('resize', latStart._h = () => {
+    clearTimeout(latStart._rz);
+    latStart._rz = setTimeout(() => {
+      if(!document.getElementById('auth').classList.contains('on')) return;
+      ctx = _latBuild(cv); _latPaint(ctx, _latT);
+    }, 140);
+  });
+}
+function latStop(){ if(_latRAF){ cancelAnimationFrame(_latRAF); _latRAF = null; } }
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) latStop();
+  else if(document.getElementById('auth') &&
+          document.getElementById('auth').classList.contains('on')) latStart();
+});
+
+/* ── Live eyebrow ─────────────────────────────────────────────────
+   Names the circadian phase from the same model the sleep score uses,
+   so the front door is already doing the thing the product does. */
+function _authPhase(h){
+  if(h >= 23 || h < 2)  return 'Deep night';
+  if(h < 5)             return 'Lowest ebb';
+  if(h < 7)             return 'Pre-dawn';
+  if(h < 11)            return 'Morning peak';
+  if(h < 14)            return 'Midday';
+  if(h < 17)            return 'Afternoon dip';
+  if(h < 21)            return 'Evening';
+  return 'Wind-down';
+}
+let _authClockT = null;
+function authClockTick(){
+  const el = document.getElementById('auth-clock');
+  if(!el) return;
+  const d = new Date();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  el.innerHTML = hh + ':' + mm + ' <b>\u00b7 ' + esc(_authPhase(d.getHours())) + '</b>';
+}
+</script>
 <script>
 /* ──────── STATE ──────── */
 const EMOJIS=['💪','📚','🏃','🧘','💧','🎯','🌅','🍎','💻','✍️','🎸','🌿',
@@ -3460,6 +3814,315 @@ function applyTheme(dark){
 const st=localStorage.getItem('sv-theme')||'light';
 document.documentElement.setAttribute('data-theme',st);
 if(st==='dark')document.getElementById('thm').checked=true;
+
+/* ══════════════════════════════════════════════════════════════════
+   AUTH SCREENS
+   Four modes in one card. An account is optional here - the app works
+   fully without one - so the copy sells the actual benefit (your
+   history stops being trapped in one browser) rather than demanding
+   a signup, and the way out is always visible.
+   ══════════════════════════════════════════════════════════════════ */
+let authMode = 'signin', authBusy = false;
+
+const GOOGLE_SVG =
+  '<svg viewBox="0 0 48 48" aria-hidden="true">'+
+  '<path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-2.8-.4-4H24v7.3h12.1c-.2 2-1.6 5-4.5 7l-.1.3 6.5 5 .5.1c4.1-3.8 6.6-9.4 6.6-15.7"/>'+
+  '<path fill="#34A853" d="M24 46c5.9 0 10.9-2 14.5-5.3l-6.9-5.4c-1.8 1.3-4.3 2.2-7.6 2.2-5.8 0-10.7-3.8-12.5-9.1l-.3.1-6.7 5.2-.1.3C8 43 15.4 46 24 46"/>'+
+  '<path fill="#FBBC05" d="M11.5 28.4c-.5-1.4-.8-2.9-.8-4.4s.3-3 .7-4.4v-.3l-6.8-5.3-.2.1C2.9 17 2 20.4 2 24s.9 7 2.4 10z"/>'+
+  '<path fill="#EA4335" d="M24 10.7c4.1 0 6.9 1.8 8.5 3.3l6.2-6C34.9 4.5 29.9 2 24 2 15.4 2 8 7 4.4 14l7.1 5.6c1.8-5.3 6.7-9.1 12.5-9.1"/></svg>';
+
+function authOpen(mode){
+  authMode = mode || 'signin';
+  const el = document.getElementById('auth');
+  el.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  authRender();
+  latStart();
+  authClockTick();
+  clearInterval(_authClockT);
+  _authClockT = setInterval(authClockTick, 20000);
+}
+
+function authClose(){
+  document.getElementById('auth').classList.remove('on');
+  document.body.style.overflow = '';
+  latStop();
+  clearInterval(_authClockT);
+  /* A recovery link leaves its token in the hash; drop it so a refresh
+     does not drop the user back into the reset form. */
+  if(location.hash) history.replaceState(null, '', location.pathname + location.search);
+}
+
+function authGo(mode){
+  authMode = mode;
+  authRender();
+  const b = document.getElementById('auth-body');
+  b.classList.remove('swap'); void b.offsetWidth; b.classList.add('swap');
+}
+
+function _authField(id, label, type, ph, extra){
+  return '<div class="auth-field">'+
+    '<label class="auth-lab" for="'+id+'">'+label+(extra||'')+'</label>'+
+    (type === 'password'
+      ? '<div class="auth-pw-wrap"><input class="auth-in" id="'+id+'" type="password" placeholder="'+ph+'" autocomplete="'+(id==='au-pw2'||authMode==='signup'?'new-password':'current-password')+'">'+
+        '<button type="button" class="auth-pw-see" onclick="authPeek(\'' + id + '\',this)" aria-label="Show password">Show</button></div>'
+      : '<input class="auth-in" id="'+id+'" type="'+type+'" placeholder="'+ph+'" autocomplete="email" inputmode="email">')+
+  '</div>';
+}
+
+function authPeek(id, btn){
+  const f = document.getElementById(id);
+  const show = f.type === 'password';
+  f.type = show ? 'text' : 'password';
+  btn.textContent = show ? 'Hide' : 'Show';
+}
+
+function authRender(){
+  const b = document.getElementById('auth-body');
+  const oauth = '<button class="auth-oauth" onclick="authGoogle()">'+GOOGLE_SVG+'Continue with Google</button>'+
+                '<div class="auth-or">or</div>';
+
+  if(authMode === 'signin'){
+    b.innerHTML =
+      '<h1 class="auth-h" id="auth-h">Welcome back</h1>'+
+      '<p class="auth-sub">Your habits, sleep and focus are exactly where you left them.</p>'+
+      oauth+
+      _authField('au-em','Email','email','you@example.com')+
+      _authField('au-pw','Password','password','Your password',
+        '<button class="auth-link" onclick="authGo(\'forgot\')" type="button">Forgot?</button>')+
+      '<button class="auth-go" id="au-go" onclick="authSignIn()">Sign in</button>'+
+      '<div class="auth-msg" id="au-msg"></div>'+
+      '<div class="auth-foot">New here? <button onclick="authGo(\'signup\')">Create an account</button></div>';
+  }
+
+  else if(authMode === 'signup'){
+    b.innerHTML =
+      '<h1 class="auth-h" id="auth-h">Never lose a day</h1>'+
+      '<p class="auth-sub">Right now your history lives in this browser alone \u2014 clear it and it is gone. '+
+        'An account keeps it safe and in sync everywhere you use it.</p>'+
+      oauth+
+      _authField('au-em','Email','email','you@example.com')+
+      _authField('au-pw','Password','password','At least 8 characters')+
+      '<div class="auth-str" id="au-str"><i></i><i></i><i></i></div>'+
+      '<div class="auth-str-l" id="au-str-l">Use 8 or more characters</div>'+
+      '<button class="auth-go" id="au-go" onclick="authSignUp()">Create account</button>'+
+      '<div class="auth-msg" id="au-msg"></div>'+
+      '<div class="auth-foot">Already have one? <button onclick="authGo(\'signin\')">Sign in</button></div>';
+    const pw = document.getElementById('au-pw');
+    pw.addEventListener('input', () => authStrength(pw.value));
+  }
+
+  else if(authMode === 'forgot'){
+    b.innerHTML =
+      '<h1 class="auth-h" id="auth-h">Reset your password</h1>'+
+      '<p class="auth-sub">Enter the email you signed up with and we will send a link. '+
+        'It works once and expires in an hour.</p>'+
+      _authField('au-em','Email','email','you@example.com')+
+      '<button class="auth-go" id="au-go" onclick="authForgot()">Send reset link</button>'+
+      '<div class="auth-msg" id="au-msg"></div>'+
+      '<div class="auth-foot">Remembered it? <button onclick="authGo(\'signin\')">Back to sign in</button></div>';
+  }
+
+  else if(authMode === 'reset'){
+    b.innerHTML =
+      '<h1 class="auth-h" id="auth-h">Choose a new password</h1>'+
+      '<p class="auth-sub">Pick something you do not use anywhere else. '+
+        'You will stay signed in on this device once it is saved.</p>'+
+      _authField('au-pw','New password','password','At least 8 characters')+
+      '<div class="auth-str" id="au-str"><i></i><i></i><i></i></div>'+
+      '<div class="auth-str-l" id="au-str-l">Use 8 or more characters</div>'+
+      _authField('au-pw2','Confirm it','password','Type it again')+
+      '<button class="auth-go" id="au-go" onclick="authResetSave()">Save new password</button>'+
+      '<div class="auth-msg" id="au-msg"></div>';
+    const pw = document.getElementById('au-pw');
+    pw.addEventListener('input', () => authStrength(pw.value));
+  }
+
+  /* Enter submits from any field, as the form element would. */
+  b.querySelectorAll('.auth-in').forEach(f => {
+    f.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('au-go').click(); }
+    });
+  });
+  const first = b.querySelector('.auth-in');
+  if(first) setTimeout(() => first.focus(), 120);
+}
+
+/* Three segments, not a percentage: no strength estimator is precise
+   enough to justify a 0-100 number. */
+function authStrength(v){
+  const bar = document.getElementById('au-str'), lab = document.getElementById('au-str-l');
+  if(!bar) return;
+  /* Length first. A long passphrase beats a short scramble, which is
+     both current guidance and what the label below already tells the
+     user - the old version said that and then marked passphrases down
+     for having no punctuation. */
+  const mixed = /[a-z]/.test(v) && /[A-Z]/.test(v) && /\d/.test(v);
+  let n = 0;
+  if(v.length >= 8)  n = 1;
+  if(v.length >= 11) n = 2;
+  if(v.length >= 16 || (v.length >= 12 && mixed)) n = 3;
+  if(!v.length) n = 0;
+  bar.className = 'auth-str' + (n ? ' s' + n : '');
+  lab.textContent = !v.length ? 'Use 8 or more characters'
+    : v.length < 8 ? 'Too short \u2014 8 characters minimum'
+    : n === 1 ? 'Workable — a few more characters would help.'
+    : n === 2 ? 'Good. Longer beats more complicated.' : 'Strong.';
+}
+
+function authMsg(kind, text){
+  const m = document.getElementById('au-msg');
+  if(!m) return;
+  m.className = 'auth-msg on ' + kind;
+  m.textContent = text;
+}
+function authBusyState(on, label){
+  authBusy = on;
+  const g = document.getElementById('au-go');
+  if(!g) return;
+  g.disabled = on;
+  g.classList.toggle('busy', on);
+  if(on){ g.dataset.was = g.textContent; g.textContent = label || 'Working\u2026'; }
+  else if(g.dataset.was){ g.textContent = g.dataset.was; }
+}
+
+/* Supabase error strings are written for developers. Say what happened
+   and what to do instead. */
+function authNice(e){
+  const m = ((e && e.message) || String(e || '')).toLowerCase();
+  if(m.includes('invalid login'))        return 'That email and password do not match. Check both, or reset the password.';
+  if(m.includes('email not confirmed'))  return 'Confirm your email first \u2014 check your inbox for the link we sent.';
+  if(m.includes('already registered') ||
+     m.includes('already been registered')) return 'That email already has an account. Sign in instead, or reset the password.';
+  if(m.includes('rate limit') || m.includes('too many'))
+                                          return 'Too many attempts. Wait a minute and try again.';
+  if(m.includes('password') && m.includes('least')) return 'That password is too short. Use at least 8 characters.';
+  if(m.includes('failed to fetch') || m.includes('networkerror'))
+                                          return 'Could not reach the server. Check your connection and try again.';
+  return (e && e.message) || 'That did not go through. Try again.';
+}
+
+function _authNoBackend(){
+  if(!sb){ authMsg('err', 'Accounts need the hosted version \u2014 this copy is running as a local file.'); return true; }
+  return false;
+}
+
+async function authSignIn(){
+  if(authBusy || _authNoBackend()) return;
+  const em = document.getElementById('au-em').value.trim();
+  const pw = document.getElementById('au-pw').value;
+  if(!em || !pw){ authMsg('err','Enter your email and password.'); return; }
+  authBusyState(true, 'Signing in\u2026');
+  const { error } = await sb.auth.signInWithPassword({ email: em, password: pw });
+  authBusyState(false);
+  if(error){ authMsg('err', authNice(error)); return; }
+  authClose();
+}
+
+async function authSignUp(){
+  if(authBusy || _authNoBackend()) return;
+  const em = document.getElementById('au-em').value.trim();
+  const pw = document.getElementById('au-pw').value;
+  if(!em){ authMsg('err','Enter your email.'); return; }
+  if(pw.length < 8){ authMsg('err','Use a password of at least 8 characters.'); return; }
+  authBusyState(true, 'Creating\u2026');
+  const { data, error } = await sb.auth.signUp({
+    email: em, password: pw,
+    options:{ emailRedirectTo: location.origin }
+  });
+  authBusyState(false);
+  if(error){ authMsg('err', authNice(error)); return; }
+  if(data.session){ authClose(); return; }           // confirmation disabled
+  authMsg('ok', 'Check ' + em + ' for a confirmation link. You can close this and come back once you have clicked it.');
+}
+
+async function authGoogle(){
+  if(_authNoBackend()) return;
+  const { error } = await sb.auth.signInWithOAuth({
+    provider:'google',
+    options:{ redirectTo: location.origin }
+  });
+  if(error) authMsg('err', authNice(error));
+}
+
+async function authForgot(){
+  if(authBusy || _authNoBackend()) return;
+  const em = document.getElementById('au-em').value.trim();
+  if(!em){ authMsg('err','Enter your email.'); return; }
+  authBusyState(true, 'Sending\u2026');
+  const { error } = await sb.auth.resetPasswordForEmail(em, { redirectTo: location.origin });
+  authBusyState(false);
+  /* Deliberately the same message either way: telling a stranger whether
+     an address has an account here leaks who our users are. */
+  authMsg('ok', 'If ' + em + ' has an account, a reset link is on its way. It expires in an hour.');
+}
+
+async function authResetSave(){
+  if(authBusy || _authNoBackend()) return;
+  const pw  = document.getElementById('au-pw').value;
+  const pw2 = document.getElementById('au-pw2').value;
+  if(pw.length < 8){ authMsg('err','Use a password of at least 8 characters.'); return; }
+  if(pw !== pw2){ authMsg('err','Those two do not match.'); return; }
+  authBusyState(true, 'Saving\u2026');
+  const { error } = await sb.auth.updateUser({ password: pw });
+  authBusyState(false);
+  if(error){ authMsg('err', authNice(error)); return; }
+  authMsg('ok','Password saved. You are signed in.');
+  setTimeout(authClose, 1100);
+}
+
+async function authSignOut(){
+  if(!sb) return;
+  await sb.auth.signOut();
+}
+
+/* ── Account row in the sidebar ───────────────────────────────── */
+function acctClick(){
+  if(!SVUser){ authOpen('signin'); return; }
+  const out = confirm('Sign out of ' + SVUser.email + '?\n\nYour data stays synced and will be here when you sign back in.');
+  if(out) authSignOut();
+}
+
+function acctRender(state){
+  const av = document.getElementById('acct-av');
+  const nm = document.getElementById('acct-name');
+  const st = document.getElementById('acct-state');
+  const row = document.getElementById('acct-row');
+  if(!av) return;
+  if(SVUser){
+    const label = (SVUser.email || '?').trim();
+    av.textContent = label.charAt(0).toUpperCase();
+    nm.textContent = label;
+    st.textContent = state || 'Synced';
+    st.className = 'acct-state' + (state === 'Syncing\u2026' ? ' syncing' : state === 'Sync failed' ? ' err' : '');
+    row.title = 'Signed in as ' + label + ' \u2014 click to sign out';
+  }else{
+    av.textContent = '\u2601';
+    nm.textContent = 'Sign in to sync';
+    st.textContent = 'On this device only';
+    st.className = 'acct-state';
+    row.title = 'Sign in to sync across devices';
+  }
+}
+
+/* ── Session wiring ───────────────────────────────────────────── */
+if(sb){
+  sb.auth.onAuthStateChange((event, session) => {
+    if(event === 'PASSWORD_RECOVERY'){ authOpen('reset'); return; }
+    SVUser = session ? session.user : null;
+    acctRender();
+    if(typeof onAuthChanged === 'function') onAuthChanged(SVUser, event);
+  });
+  sb.auth.getSession().then(({ data }) => {
+    SVUser = data.session ? data.session.user : null;
+    acctRender();
+    if(typeof onAuthChanged === 'function') onAuthChanged(SVUser, 'INIT');
+  });
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape' && document.getElementById('auth').classList.contains('on') && authMode !== 'reset') authClose();
+});
 
 /* ── STREAKS ───────────────────────────────────────────────────────
    All-or-nothing streaks are the reason habit trackers get abandoned:
