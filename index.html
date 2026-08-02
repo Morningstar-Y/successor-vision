@@ -17,9 +17,9 @@
   --dur-fast:120ms;--dur-state:200ms;--dur-layout:340ms;--dur-reveal:440ms;
 }
 [data-theme="light"]{
-  --bg:#f0f2f7;--surface:#fff;--surface2:#f6f7fa;--surface3:#eceef4;
-  --border:#e1e4ee;--border2:#d0d4e0;
-  --text:#111827;--text2:#5a6277;--text3:#5e667c;--text4:#c8cde0;
+  --bg:#f4f2ed;--surface:#fffdf9;--surface2:#faf7f1;--surface3:#efebe3;
+  --border:#e7e2d8;--border2:#d6cfc2;
+  --text:#191612;--text2:#5d574d;--text3:#615a50;--text4:#cbc4b7;
   --accent:#4f46e5;--accent-dim:rgba(79,70,229,.1);--accent-h:#4338ca;
   --green:#16a34a;--green-dim:rgba(22,163,74,.1);--green-bright:#22c55e;
   --amber:#d97706;--amber-dim:rgba(217,119,6,.1);
@@ -54,15 +54,15 @@
   --excellent-txt:#0f7234;--good-txt:#167f3d;--fair-txt:#a55a05;
   --poor-txt:#b9460a;--critical-txt:#ca2121;--extended-txt:#02648f;
   --shadow3:0 20px 60px rgba(0,0,0,.15);
-  --prog-bg:#e1e4ee;--prog-fill:#22c55e;
+  --prog-bg:#e7e2d8;--prog-fill:#22c55e;
   --pomo-work:#4f46e5;--pomo-break:#16a34a;
   --sw-ring:#4f46e5;
-  --tr-h:#f6f7fa;
+  --tr-h:#faf7f1;
 }
 [data-theme="dark"]{
-  --bg:#0c0e14;--surface:#131720;--surface2:#181d28;--surface3:#1e2535;
-  --border:#1f2638;--border2:#263045;
-  --text:#e8edf8;--text2:#838ca8;--text3:#828daa;--text4:#2d3650;
+  --bg:#12100e;--surface:#1a1714;--surface2:#211d19;--surface3:#2a2521;
+  --border:#282320;--border2:#342e29;
+  --text:#f0eae0;--text2:#a89e90;--text3:#a69c8e;--text4:#3a342e;
   /* One shade darker than #6366f1 so white text on accent-filled buttons clears
      4.5:1 (it sat at 4.47:1). Safe now that --accent is fills only — text uses
      --accent-txt. */
@@ -87,10 +87,10 @@
   --excellent-txt:#22c55e;--good-txt:#4ade80;--fair-txt:#f59e0b;
   --poor-txt:#fb923c;--critical-txt:#f87171;--extended-txt:#38bdf8;
   --shadow3:0 20px 60px rgba(0,0,0,.8);
-  --prog-bg:#1f2638;--prog-fill:#4ade80;
+  --prog-bg:#282320;--prog-fill:#4ade80;
   --pomo-work:#6366f1;--pomo-break:#4ade80;
   --sw-ring:#6366f1;
-  --tr-h:#181d28;
+  --tr-h:#211d19;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
@@ -768,7 +768,8 @@ button,input,select{font-family:'Outfit',sans-serif}
 .stats-val-td.pct-none{color:var(--text3)}
 .stats-val-td.done-cell{color:var(--accent-txt)}
 .stats-val-td.nd-cell{color:var(--text3)}
-.stats-val-td.nd-missed{color:var(--red-txt);font-weight:600}
+/* Planned rest, not failure - matches how the streak engine counts it. */
+.stats-val-td.nd-missed{color:var(--blue-txt);font-weight:600}
 .stats-val-td.nd-mixed{color:var(--amber-txt);font-weight:600}
 .stats-val-td.fut-stat{color:var(--text4);font-weight:400}
 
