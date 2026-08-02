@@ -507,6 +507,22 @@ button,input,select{font-family:'Outfit',sans-serif}
 .ge-b:hover{background:var(--accent-h)}
 .ge-b:active{transform:translateY(1px)}
 
+/* Legend for the three cell states. Without it the cycle is a guessing
+   game - the states were previously reachable only by right-click. */
+.hcb-legend{display:flex;align-items:center;gap:14px;margin-right:14px;
+  font-size:11.5px;font-weight:600;color:var(--text2);flex-wrap:wrap}
+.hcb-legend span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.hcb-legend i{width:13px;height:13px;border-radius:4px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:800;font-style:normal;line-height:1}
+.hcb-legend .lg-done{background:var(--green);border:1.5px solid var(--green);color:#fff}
+.hcb-legend .lg-done::after{content:'✓'}
+.hcb-legend .lg-missed{background:var(--red-dim);border:1.5px solid var(--red);color:var(--red-txt)}
+.hcb-legend .lg-missed::after{content:'✕'}
+.hcb-legend .lg-rest{background:var(--surface3);border:1.5px dashed var(--border2);color:var(--text2)}
+.hcb-legend .lg-rest::after{content:'–'}
+@media (max-width:700px){ .hcb-legend{display:none} }
+
 /* Streak chip: quiet by default, so a long streak reads as steady
    rather than as a trophy. Amber only when a miss has been bridged,
    because that is the state worth noticing. */
@@ -734,13 +750,20 @@ button,input,select{font-family:'Outfit',sans-serif}
 .hcb{width:22px;height:22px;border:1.5px solid var(--border2);
   border-radius:var(--r-sm);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;position:relative;
   transition:all .15s cubic-bezier(.4,0,.2,1);background:transparent;vertical-align:middle;user-select:none;flex-shrink:0}
-.hcb:hover:not(.done):not(.skipped){border-color:var(--accent);background:var(--accent-dim)}
+.hcb:hover:not(.done):not(.missed):not(.rest){border-color:var(--accent);background:var(--accent-dim)}
 .hcb.done{background:var(--green);border-color:var(--green)}
 .hcb.done::after{content:'✓';font-size:13px;color:#fff;font-weight:800;line-height:1;position:absolute}
-.hcb.skipped{background:var(--red-dim);border-color:var(--red)}
-.hcb.skipped::after{content:'✕';font-size:13px;color:var(--red-txt);font-weight:800;line-height:1;position:absolute}
+/* Missed: recorded by the user, so it is informative rather than
+   accusatory. Muted, not alarm-red. */
+.hcb.missed{background:var(--red-dim);border-color:var(--red)}
+.hcb.missed::after{content:'✕';font-size:13px;color:var(--red-txt);font-weight:800;line-height:1;position:absolute}
+/* Planned rest is neutral by design - the streak engine ignores it, so
+   the cell must not look like a failure either. */
+.hcb.rest{background:var(--surface3);border-color:var(--border2);border-style:dashed}
+.hcb.rest::after{content:'–';font-size:14px;color:var(--text2);font-weight:800;line-height:1;position:absolute}
 .hcb.done:hover{background:var(--green-bright);border-color:var(--green-bright)}
-.hcb.skipped:hover{border-color:var(--red);background:rgba(220,38,38,.18)}
+.hcb.missed:hover{border-color:var(--red);background:rgba(220,38,38,.18)}
+.hcb.rest:hover{border-color:var(--text2)}
 .fut .hcb{opacity:.2;pointer-events:none;cursor:default}
 
 /* ── PROGRESS STATS ROWS ────────── */
@@ -2220,7 +2243,7 @@ canvas{max-width:100%}
 
 <!-- SIDEBAR — overlay drawer; starts docked as the icon rail -->
 <div id="sb-scrim" onclick="sbClose()"></div>
-<div id="sb" class="slim">
+<div id="sb" class="slim" onclick="sbSpaceToggle(event)">
   <div class="sb-top">
     <!-- Cloud toggle button -->
     <button class="sb-cloud-btn" id="sb-cloud-btn" onclick="sbToggle()" title="Toggle sidebar" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sb">
@@ -2582,6 +2605,11 @@ canvas{max-width:100%}
       </button>
       <button class="ib" onclick="chMo(-1)">‹</button>
       <button class="ib" onclick="chMo(1)">›</button>
+      <div class="hcb-legend" aria-hidden="true">
+        <span><i class="lg-done"></i>Done</span>
+        <span><i class="lg-missed"></i>Missed</span>
+        <span><i class="lg-rest"></i>Rest</span>
+      </div>
       <button class="cta" onclick="openMod()"><span style="font-size:19px;line-height:1">+</span>New Habit</button>
     </div>
   </div>
@@ -3620,6 +3648,16 @@ function newId(){
   save();
 })();
 
+/* ── Habit cell states ──────────────────────────────────────────────
+   'x' used to be the only non-done state and meant "planned rest".
+   It now means "recorded miss", and rest moved to 'r'. Migrate old
+   data so nobody's history quietly changes meaning. */
+(function migrateSkipToRest(){
+  if(S.skipMigrated) return;
+  Object.keys(S.checks||{}).forEach(k=>{ if(S.checks[k]==='x') S.checks[k]='r'; });
+  S.skipMigrated=1; save();
+})();
+
 /* ── Daily reset for Focus Timer stats ──────────────────────────────
    pomoDone / pomoFocusMins / pomoBreakMins are shown as "today" and fed
    to the AI as today's numbers, but nothing ever reset them — they grew
@@ -3761,6 +3799,17 @@ function sbSetOpen(open){
     else el.setAttribute('title',lbl.textContent.trim());
   });
 }
+/* The rail has a lot of dead vertical space. Clicking it toggles the
+   sidebar, so the whole column becomes the affordance rather than one
+   small button. Only bare space counts - clicks that land on a nav
+   item, the theme switch or any control are left alone. */
+function sbSpaceToggle(e){
+  const t=e.target;
+  if(t.closest('button,input,label,a,select,textarea,.theme-row,.acct-row')) return;
+  if(t.id!=='sb' && !t.classList.contains('sb-nav') && !t.classList.contains('sb-foot')
+     && !t.classList.contains('sb-div')) return;
+  sbToggle();
+}
 function sbToggle(){ sbSetOpen(document.getElementById('sb').classList.contains('slim')); }
 function sbClose(){ sbSetOpen(false); }
 document.addEventListener('keydown',e=>{
@@ -3870,12 +3919,12 @@ function _localState(){
 
   const checks = {};
   Object.entries(S.checks || {}).forEach(([k, v]) => {
-    if(v !== true && v !== 'x') return;
+    if(v !== true && v !== 'x' && v !== 'r') return;
     const cut = String(k).lastIndexOf('_');
     if(cut < 1) return;
     const habit_id = k.slice(0, cut), day = k.slice(cut + 1);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-    checks[k] = { habit_id, day, state: v === true ? 'done' : 'skip' };
+    checks[k] = { habit_id, day, state: v === true ? 'done' : v === 'x' ? 'missed' : 'rest' };
   });
 
   const sleep = {};
@@ -4128,7 +4177,9 @@ function _applyMerged(m){
   S.habits = Object.values(m.habits).sort((a, b) => a.sort_order - b.sort_order)
     .map(h => ({ id:h.id, name:h.name, emoji:h.emoji }));
   S.checks = {};
-  Object.values(m.checks).forEach(c => { S.checks[c.habit_id + '_' + c.day] = c.state === 'done' ? true : 'x'; });
+  Object.values(m.checks).forEach(c => {
+    S.checks[c.habit_id + '_' + c.day] =
+      c.state === 'done' ? true : c.state === 'missed' ? 'x' : 'r'; });
 
   const prev = {}; (S.sleepLog || []).forEach(e => prev[e.date] = e);
   S.sleepLog = Object.values(m.sleep)
@@ -4523,7 +4574,9 @@ function habitStreak(habitId){
        day always gets spent walking off the far end of the streak, and
        a gap with nothing behind it has bridged nothing. */
     if(v===true){ current++; if(pending){bridged=true;pending=false;} continue; }
-    if(v==='x')  continue;                 // planned rest: neutral
+    if(v==='r')  continue;                 // planned rest: neutral
+    /* 'x' is a recorded miss and falls through to the gap rules
+       below, exactly like a day left blank. */
     if(i===0)    continue;                 // today is still open
     if(grace>0){ grace--; pending=true; continue; }
     break;
@@ -4557,7 +4610,7 @@ function perfectDayStreak(){
     const d=new Date(TODAY); d.setDate(d.getDate()-i);
     const ds=fd(d);
     const all=S.habits.every(h=>{
-      const v=S.checks[h.id+'_'+ds]; return v===true || v==='x'; });
+      const v=S.checks[h.id+'_'+ds]; return v===true || v==='r'; });
     if(all){ n++; continue; }
     if(i===0) continue;                    // today still open
     break;
@@ -4746,10 +4799,10 @@ function buildGrid(){
     tr.appendChild(nt);
     all.forEach(d=>{
       const key=`${h.id}_${d.ds}`,cv=S.checks[key],fut=d.ds>todayStr,it=d.ds===todayStr;
-      const st=cv===true?'done':cv==='x'?'skipped':'';
+      const st=cv===true?'done':cv==='x'?'missed':cv==='r'?'rest':'';
       const td=document.createElement('td');
       td.className='ctd'+(d.il?' wl':'')+(fut?' fut':'')+(it?' tb':'');
-      td.innerHTML=`<div class="hcb${st?' '+st:''}" data-key="${key}"${fut?'':` onclick="hcbClick('${key}')" oncontextmenu="hcbSkip('${key}',event)" onpointerdown="hcbPtrDown('${key}',event)" onpointerup="hcbPtrUp('${key}')" onpointerleave="hcbPtrUp('${key}')" title="Click: done ↔ empty  |  Right-click / long-press: mark skipped"`}></div>`;
+      td.innerHTML=`<div class="hcb${st?' '+st:''}" data-key="${key}"${fut?'':` onclick="hcbClick('${key}')" oncontextmenu="hcbSkip('${key}',event)" onpointerdown="hcbPtrDown('${key}',event)" onpointerup="hcbPtrUp('${key}')" onpointerleave="hcbPtrUp('${key}')" title="Click to cycle: done → missed → clear   |   Right-click or long-press: rest day"`}></div>`;
       tr.appendChild(td);
     });
     tb.appendChild(tr);
@@ -4763,7 +4816,7 @@ function buildGrid(){
     let done=0,skipped=0;
     S.habits.forEach(h=>{
       const v=S.checks[`${h.id}_${d.ds}`];
-      if(v===true) done++; else if(v==='x') skipped++;
+      if(v===true) done++; else if(v==='r') skipped++;
     });
     const nd = total-done;
     const pct = d.ds>todayStr ? null : Math.round(done/total*100);
@@ -4902,10 +4955,14 @@ function _maybeCelebrateDay(originEl){
 
 function hcbClick(key){
   const cur=S.checks[key];
-  const becameDone = (cur!==true && cur!=='x'); // empty → done
-  if(cur===true) delete S.checks[key];   // done → empty
-  else if(cur!=='x') S.checks[key]=true; // empty → done (skip if already skipped — let hcbSkip handle that)
-  else delete S.checks[key];             // skipped → empty (fallback safety)
+  /* empty → done → missed → empty. Recording "I didn't" used to need a
+     right-click or a long-press, which is undiscoverable and does not
+     exist on touch at all, so the state was effectively unreachable. */
+  const becameDone = (cur!==true && cur!=='x' && cur!=='r');  // only empty -> done celebrates
+  if(cur===true)      S.checks[key]='x';   // done → missed
+  else if(cur==='x')  delete S.checks[key];// missed → empty
+  else if(cur==='r')  delete S.checks[key];// rest → empty
+  else                S.checks[key]=true;  // empty → done
   save(); buildGrid(); syncLiveBars();   // buildGrid already runs updStats + renderDashOverview
   if(becameDone){
     const cell=document.querySelector('.hcb[data-key="'+key+'"]');
@@ -4916,7 +4973,7 @@ function hcbClick(key){
 function hcbSkip(key,e){
   if(e){e.preventDefault();e.stopPropagation();}
   const cur=S.checks[key];
-  if(cur==='x') delete S.checks[key]; else S.checks[key]='x'; // toggle skipped
+  if(cur==='r') delete S.checks[key]; else S.checks[key]='r'; // toggle rest day
   save(); buildGrid(); syncLiveBars();   // buildGrid already runs updStats + renderDashOverview
 }
 const _lpTimers={};
@@ -6889,7 +6946,7 @@ function weeklyReview(){
      not penalised for rest you planned. */
   const habits=S.habits.map(h=>{
     const done=cur.filter(ds=>S.checks[h.id+'_'+ds]===true).length;
-    const skip=cur.filter(ds=>S.checks[h.id+'_'+ds]==='x').length;
+    const skip=cur.filter(ds=>S.checks[h.id+'_'+ds]==='r').length;
     const was =prev.filter(ds=>S.checks[h.id+'_'+ds]===true).length;
     const target=Math.max(1,7-skip);
     return {h, done, skip, was, target, pct:Math.round(done/target*100), delta:done-was};
@@ -7953,7 +8010,7 @@ function _aiContext(){
     }
     const pct = total>0?Math.round(done/total*100):0;
     const todayKey = h.id+'_'+todayStr;
-    return `  • ID:${h.id} ${h.emoji} "${h.name}" — ${done}/${total} days this month (${pct}%) | Today: ${S.checks[todayKey]===true?'✅ DONE':(S.checks[todayKey]==='x'?'✕ Skipped':'❌ pending')}`;
+    return `  • ID:${h.id} ${h.emoji} "${h.name}" — ${done}/${total} days this month (${pct}%) | Today: ${S.checks[todayKey]===true?'✅ DONE':(S.checks[todayKey]==='x'?'✕ Missed':S.checks[todayKey]==='r'?'– Rest day':'❌ pending')}`;
   }).join('\n');
 
   // Recent sleep
