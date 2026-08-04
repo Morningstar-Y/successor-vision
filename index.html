@@ -4179,11 +4179,40 @@ function _localState(){
   });
 
   return { habits, checks, sleep, focus, tasks, journal,
+    prefs: _prefsFlat(),
     profile:{ theme: document.documentElement.getAttribute('data-theme') || 'light',
               sleep_profile_age: S.sleepAge || null } };
 }
 
 const _eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/* Settings preferences, flattened to one key each.
+   Flat rather than nested so the three-way merge can resolve them
+   individually: as a single object, hiding a page on the laptop would
+   overwrite a gamification change made on the phone, because the whole
+   object would be one value with one winner.
+
+   Only non-default values are written, so switching something back to
+   its default deletes the key, and the merge propagates that deletion
+   the same way it propagates any other. */
+function _prefsFlat(){
+  const o = {};
+  Object.keys(S.hiddenPages || {}).forEach(k => { if(S.hiddenPages[k]) o['hide:'+k] = 1; });
+  if(S.gamify === false) o.gamify = false;
+  if(S.ovOpen === true)  o.ovOpen = true;
+  if(S.tourDone)         o.tourDone = 1;
+  return o;
+}
+
+function _prefsApply(flat){
+  flat = flat || {};
+  const hidden = {};
+  Object.keys(flat).forEach(k => { if(k.indexOf('hide:') === 0) hidden[k.slice(5)] = 1; });
+  S.hiddenPages = hidden;
+  S.gamify   = (flat.gamify === false) ? false : true;
+  S.ovOpen   = (flat.ovOpen === true);
+  S.tourDone = flat.tourDone ? 1 : 0;
+}
 
 /* Three-way merge of one keyed collection.
    Conflicts resolve to local: the device in front of the user reflects
@@ -4240,7 +4269,7 @@ async function syncNow(reason){
       sb.from('focus_log').select('day,minutes,sessions'),
       sb.from('tasks').select('id,title,done,day,tag,sort_order'),
       sb.from('journal_entries').select('day,body,mood,tags,data'),
-      sb.from('profiles').select('theme,sleep_profile_age').eq('id', uid).maybeSingle()
+      sb.from('profiles').select('theme,sleep_profile_age,prefs').eq('id', uid).maybeSingle()
     ]);
     for(const [r, n] of [[rh,'habits'],[rc,'checks'],[rs,'sleep'],[rf,'focus'],[rt,'tasks'],[rj,'journal'],[rp,'profile']])
       if(r.error) _sbErr(r.error, 'pull ' + n);
@@ -4344,12 +4373,17 @@ async function syncNow(reason){
     const pr = rp.data || {};
     const wantTheme = (B && B.profile && B.profile.theme === L.profile.theme && pr.theme) ? pr.theme : L.profile.theme;
     const wantAge   = L.profile.sleep_profile_age || pr.sleep_profile_age || null;
-    const pe = (await sb.from('profiles').upsert({ id:uid, theme:wantTheme, sleep_profile_age:wantAge })).error;
+    /* Merged per key, so two devices changing different settings both
+       keep their change instead of the later sync winning outright. */
+    const pm = _merge3(B && B.prefs, L2.prefs, pr.prefs || {});
+    const pe = (await sb.from('profiles')
+      .upsert({ id:uid, theme:wantTheme, sleep_profile_age:wantAge, prefs:pm.merged })).error;
     if(pe) _sbErr(pe, 'push profile');
 
     // ── land the merged result locally ─────────────────────────────
     _applyMerged({ habits:hm.merged, checks:cm.merged, sleep:sm.merged, focus:fm.merged,
-                   tasks:tm.merged, journal:jm.merged, theme:wantTheme, age:wantAge });
+                   tasks:tm.merged, journal:jm.merged, theme:wantTheme, age:wantAge,
+                   prefs:pm.merged });
 
     const finalState = _localState();
     finalState._uid = uid;
@@ -4420,6 +4454,13 @@ function _applyMerged(m){
   }
 
   if(m.age) S.sleepAge = m.age;
+  if(m.prefs){
+    _prefsApply(m.prefs);
+    if(typeof applyPageVisibility === 'function') applyPageVisibility();
+    if(typeof applyOverviewState  === 'function') applyOverviewState();
+    if(typeof renderSettings === 'function' &&
+       document.getElementById('pg-settings').classList.contains('on')) renderSettings();
+  }
   save();
   if(m.theme && m.theme !== document.documentElement.getAttribute('data-theme')){
     applyTheme(m.theme === 'dark');
