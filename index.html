@@ -2319,8 +2319,9 @@ canvas{max-width:100%}
   border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .sp-page.on .sp-page-sw{background:var(--accent)}
 .sp-page.on .sp-page-sw::after{transform:translateX(14px)}
-.sp-page.locked{cursor:default;opacity:1}
-.sp-page.locked .sp-page-sw{background:var(--border2);opacity:.45}
+.sp-page.locked{cursor:default;opacity:1;background:var(--surface);border-style:dashed}
+.sp-page.locked .sp-page-n{color:var(--text2)}
+.sp-lock{font-size:12px;flex-shrink:0;opacity:.5}
 
 .sp-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px}
 .sp-stat{background:var(--surface2);border:1px solid var(--border);
@@ -2512,31 +2513,9 @@ canvas{max-width:100%}
   </div>
 </div>
 
-<!-- PROFILE -->
-<div class="page" id="pg-profile">
-  <div class="sp-scroll">
-    <div class="sp-hd">
-      <div>
-        <div class="sp-title">Profile</div>
-        <div class="sp-sub">Who you are, and where your data lives.</div>
-      </div>
-    </div>
-    <div class="sp-body" id="profile-body"></div>
-  </div>
-</div>
 
-<!-- SETTINGS -->
-<div class="page" id="pg-settings">
-  <div class="sp-scroll">
-    <div class="sp-hd">
-      <div>
-        <div class="sp-title">Settings</div>
-        <div class="sp-sub">Shape the app around how you actually use it.</div>
-      </div>
-    </div>
-    <div class="sp-body" id="settings-body"></div>
-  </div>
-</div>
+
+
 
 <!-- TOUR -->
 <div id="tour" role="dialog" aria-modal="true" aria-labelledby="tour-h">
@@ -3566,6 +3545,32 @@ canvas{max-width:100%}
 </div><!-- #pg-diary -->
 
 <!-- PAGE: AI ASSISTANT -->
+<!-- PROFILE -->
+<div class="page" id="pg-profile">
+  <div class="sp-scroll">
+    <div class="sp-hd">
+      <div>
+        <div class="sp-title">Profile</div>
+        <div class="sp-sub">Who you are, and where your data lives.</div>
+      </div>
+    </div>
+    <div class="sp-body" id="profile-body"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="pg-settings">
+  <div class="sp-scroll">
+    <div class="sp-hd">
+      <div>
+        <div class="sp-title">Settings</div>
+        <div class="sp-sub">Shape the app around how you actually use it.</div>
+      </div>
+    </div>
+    <div class="sp-body" id="settings-body"></div>
+  </div>
+</div>
+
 <div class="page" id="pg-ai" style="flex-direction:column;">
   <div class="ai-page-hd">
     <div class="ai-page-hd-ico">🤖</div>
@@ -4509,16 +4514,21 @@ window.addEventListener('offline', () => acctRender('Offline'));
    user with no way to undo it. */
 const SV_PAGES = [
   {id:'ai',        ico:'\u2728',      name:'AI Assistant', blurb:'Ask about your data, or have it add and tick habits for you.'},
-  {id:'dashboard', ico:'\U0001f4ca',  name:'Habit Tracker',blurb:'A year of days. Tap to tick, double-tap to cross, long-press for a rest day.'},
-  {id:'sleep',     ico:'\U0001f319',  name:'Sleep Tracker',blurb:'Log bed and wake time; get a score that weighs regularity over raw hours.'},
-  {id:'todo',      ico:'\U0001f30a',  name:'Flow Planner', blurb:'Plan the day, capture tasks in plain language, and run a focus session.'},
+  {id:'dashboard', ico:'📊',  name:'Habit Tracker',blurb:'A year of days. Tap to tick, double-tap to cross, long-press for a rest day.'},
+  {id:'sleep',     ico:'🌙',  name:'Sleep Tracker',blurb:'Log bed and wake time; get a score that weighs regularity over raw hours.'},
+  {id:'todo',      ico:'🌊',  name:'Flow Planner', blurb:'Plan the day, capture tasks in plain language, and run a focus session.'},
   {id:'stopwatch', ico:'\u23f1\ufe0f',name:'Stopwatch',    blurb:'Simple lap timing.'},
-  {id:'pomodoro',  ico:'\U0001f3af',  name:'Focus Timer',  blurb:'Pomodoro sessions that can tick a linked habit when they finish.'},
-  {id:'analytics', ico:'\U0001f4c8',  name:'Analytics',    blurb:'Full-year charts, plus a weekly review naming one thing to change.'},
-  {id:'diary',     ico:'\U0001f4d4',  name:'Journal',      blurb:'Dated entries with mood, gratitude and tags.'}
+  {id:'pomodoro',  ico:'🎯',  name:'Focus Timer',  blurb:'Pomodoro sessions that can tick a linked habit when they finish.'},
+  {id:'analytics', ico:'📈',  name:'Analytics',    blurb:'Full-year charts, plus a weekly review naming one thing to change.'},
+  {id:'diary',     ico:'📔',  name:'Journal',      blurb:'Dated entries with mood, gratitude and tags.'}
 ];
 
-function pageHidden(id){ return !!(S.hiddenPages && S.hiddenPages[id]); }
+const SV_LOCKED = ['dashboard','ai','analytics'];   // the product itself
+function pageLocked(id){ return SV_LOCKED.indexOf(id) > -1; }
+function pageHidden(id){
+  if(pageLocked(id)) return false;
+  return !!(S.hiddenPages && S.hiddenPages[id]);
+}
 
 /* Applies the on/off choices to the sidebar. A hidden page keeps
    working if you navigate to it directly - this only removes the
@@ -4538,6 +4548,7 @@ function applyPageVisibility(){
 }
 
 function togglePage(id){
+  if(pageLocked(id)) return;          // not offered, and not accepted either
   S.hiddenPages = S.hiddenPages || {};
   if(S.hiddenPages[id]) delete S.hiddenPages[id]; else S.hiddenPages[id]=1;
   save(); applyPageVisibility(); renderSettings();
@@ -4566,15 +4577,18 @@ function renderSettings(){
 
   '<div class="sp-card">'+
     '<div class="sp-card-hd"><div class="sp-card-t">Pages</div>'+
-      '<div class="sp-card-s">Switch off anything you do not use and it leaves the sidebar. Nothing is deleted \u2014 turn it back on and your data is exactly where you left it.</div></div>'+
+      '<div class="sp-card-s">Switch off anything you do not use and it leaves the sidebar. Nothing is deleted \u2014 turn it back on and your data is exactly where you left it. Habit Tracker, AI and Analytics are the core of the app and stay put.</div></div>'+
     '<div class="sp-card-b"><div class="sp-pages">'+
       SV_PAGES.map(pg=>{
+        const locked=pageLocked(pg.id);
         const on=!pageHidden(pg.id);
-        return '<button class="sp-page '+(on?'on':'off')+'" onclick="togglePage(\''+pg.id+'\')" '+
-          'title="'+esc(pg.blurb)+'">'+
+        return '<button class="sp-page '+(on?'on':'off')+(locked?' locked':'')+'"'+
+          (locked?' disabled':' onclick="togglePage(\''+pg.id+'\')"')+' '+
+          'title="'+esc(locked ? pg.name+' is part of the core app and cannot be switched off.' : pg.blurb)+'">'+
           '<span class="sp-page-ico">'+pg.ico+'</span>'+
           '<span class="sp-page-n">'+esc(pg.name)+'</span>'+
-          '<span class="sp-page-sw"></span></button>';
+          (locked ? '<span class="sp-lock">\ud83d\udd12</span>'
+                  : '<span class="sp-page-sw"></span>')+'</button>';
       }).join('')+
     '</div></div>'+
   '</div>'+
@@ -4689,7 +4703,7 @@ function renderProfile(){
 let _tourI=0, _tourSteps=[];
 function tourStart(force){
   if(!force && S.tourDone) return;
-  _tourSteps=[{ico:'\U0001f44b',h:'Welcome to Successor Vision',
+  _tourSteps=[{ico:'👋',h:'Welcome to Successor Vision',
     p:'A quick look at what is here. Under a minute, and you can skip at any point.'}]
     .concat(SV_PAGES.filter(pg=>!pageHidden(pg.id)).map(pg=>({ico:pg.ico,h:pg.name,p:pg.blurb})))
     .concat([{ico:'\u2699\ufe0f',h:'Make it yours',
