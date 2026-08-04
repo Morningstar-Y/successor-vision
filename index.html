@@ -653,21 +653,28 @@ button,input,select{font-family:'Outfit',sans-serif}
 .dash-hd{background:var(--surface);border-bottom:1px solid var(--border);
   padding:20px 28px;flex-shrink:0;display:flex;align-items:center;
   justify-content:space-between;gap:20px;box-shadow:var(--shadow)}
-.dh-l{display:flex;flex-direction:column;gap:3px}
+.dh-l{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.dh-l-txt{display:flex;flex-direction:column;gap:3px}
+.dh-nav{display:flex;gap:6px}
 .dh-title{font-size:22px;font-weight:800;letter-spacing:-.3px;line-height:1}
 .dh-sub{font-size:13px;color:var(--text2)}
-.dh-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:32px}
+.dh-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:28px;min-width:0}
 .sblk{display:flex;flex-direction:column;align-items:center;gap:2px}
 .sbl{font-size:11.5px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;color:var(--text3)}
 .sbv{font-size:28px;font-weight:800;line-height:1}
-.prog-wrap{display:flex;flex-direction:column;gap:5px;min-width:200px}
-.prog-row{display:flex;align-items:center;gap:10px}
-.prog-lbl{font-size:12.5px;font-weight:500;color:var(--text2);flex-shrink:0}
-.prog-bar{flex:1;height:8px;background:var(--prog-bg);border-radius:var(--r-sm);overflow:hidden}
-.prog-fill{height:100%;width:100%;background:var(--prog-fill);border-radius:var(--r-sm);
+/* Progress is the one number that answers "how am I doing", so it gets
+   the middle and the width rather than a hairline wedged between two
+   stat blocks. */
+.prog-wrap{display:flex;flex-direction:column;gap:5px;flex:1;min-width:220px;max-width:460px}
+.prog-row{display:flex;align-items:center;gap:12px}
+.prog-lbl{font-size:12.5px;font-weight:600;color:var(--text2);flex-shrink:0}
+.prog-bar{flex:1;height:12px;background:var(--prog-bg);border-radius:var(--r-pill);overflow:hidden}
+.prog-fill{height:100%;width:100%;background:var(--prog-fill);border-radius:var(--r-pill);
   transform-origin:left center;transform:scaleX(0);transition:transform .4s}
-.prog-pct{font-size:12.5px;font-weight:600;color:var(--text2);min-width:30px;text-align:right}
-.dh-r{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.prog-pct{font-size:14px;font-weight:800;color:var(--text);min-width:42px;text-align:right;
+  font-family:'JetBrains Mono',monospace;letter-spacing:-.3px}
+.dh-r{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.dh-r .overview-toggle-btn{margin-left:4px}
 .ib{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);
   border-radius:var(--r-lg);font-size:16px;color:var(--text2);display:flex;align-items:center;
   justify-content:center;cursor:pointer;transition:all .2s}
@@ -2002,30 +2009,34 @@ button,input,select{font-family:'Outfit',sans-serif}
 }
 .ai-page-left-title{font-size:12.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
 .ai-suggestion-card{
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);
-  padding:10px 12px;cursor:pointer;transition:all .15s;margin-bottom:6px;
-  font-size:13px;color:var(--text2);font-weight:500;line-height:1.4;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:11px 13px;cursor:pointer;transition:all .16s;margin-bottom:7px;
+  font-size:12.5px;color:var(--text2);font-weight:600;line-height:1.45;
   display:flex;align-items:flex-start;gap:8px;
 }
-.ai-suggestion-card:hover{background:var(--accent-dim);border-color:rgba(79,70,229,.3);color:var(--accent-txt)}
+.ai-suggestion-card:hover{background:var(--accent-dim);border-color:var(--accent);
+  color:var(--accent-txt);transform:translateX(2px)}
 .ai-suggestion-card .sc-ico{font-size:14px;flex-shrink:0;margin-top:1px}
-.ai-page-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-width:0}
-.ai-page-msgs{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
-.ai-page-msg{display:flex;gap:10px;animation:ai-in .22s ease;max-width:720px}
+.ai-page-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-width:0;
+  background-image:radial-gradient(circle at 50% 0%, var(--accent-dim) 0%, transparent 46%)}
+.ai-page-msgs{flex:1;overflow-y:auto;padding:26px 24px 20px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
+.ai-page-msg{display:flex;gap:11px;animation:ai-in .26s cubic-bezier(.16,1,.3,1);max-width:760px}
 .ai-page-msg.user{flex-direction:row-reverse;align-self:flex-end}
 .ai-page-msg.bot{align-self:flex-start}
-.ai-page-av{width:32px;height:32px;border-radius:var(--r-md);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;margin-top:2px}
-.ai-page-av.bot{background:var(--accent-dim)}
+.ai-page-av{width:30px;height:30px;border-radius:var(--r-md);flex-shrink:0;display:flex;
+  align-items:center;justify-content:center;font-size:15px;margin-top:3px;
+  border:1px solid var(--border)}
+.ai-page-av.bot{background:var(--accent);border-color:var(--accent);box-shadow:var(--elev-accent-sm)}
 .ai-page-av.user{background:var(--surface3)}
 .ai-page-bub{
-  max-width:580px;padding:11px 15px;border-radius:var(--r-lg);
-  font-size:13.5px;line-height:1.65;color:var(--text);
+  max-width:600px;padding:13px 17px;border-radius:var(--r-lg);
+  font-size:13.5px;line-height:1.68;color:var(--text);
   white-space:pre-wrap;word-break:break-word;
 }
 .ai-page-msg.bot .ai-page-bub{background:var(--surface);border:1px solid var(--border);border-top-left-radius:4px}
 .ai-page-msg.user .ai-page-bub{background:var(--accent);color:#fff;border-top-right-radius:4px}
 .ai-page-inp-row{
-  padding:14px 24px 18px;border-top:1px solid var(--border);
+  padding:16px 24px 20px;border-top:1px solid var(--border);
   display:flex;gap:10px;align-items:flex-end;flex-shrink:0;
   background:var(--surface);
 }
@@ -2046,9 +2057,11 @@ button,input,select{font-family:'Outfit',sans-serif}
 }
 #ai-page-send-btn:hover{background:var(--accent-h);transform:scale(1.05)}
 #ai-page-send-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+/* The header is chrome, not a feature — keep it thin and quiet so the
+   conversation is the loudest thing on the page. */
 .ai-page-hd{
   background:var(--surface);border-bottom:1px solid var(--border);
-  padding:14px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px;
+  padding:15px 24px;flex-shrink:0;display:flex;align-items:center;gap:12px;
   box-shadow:var(--shadow);
 }
 .ai-page-hd-ico{width:40px;height:40px;border-radius:var(--r-md);background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
@@ -2214,6 +2227,14 @@ canvas{max-width:100%}
   .slp-hr-bar-w{flex:1 1 100%;order:5}
 }
 
+@media (max-width:1100px){ .prog-wrap{min-width:150px} }
+@media (max-width:820px){
+  .dash-hd{flex-wrap:wrap;gap:12px}
+  .dh-l{flex:1 1 100%}
+  .dh-mid{flex:1 1 100%;justify-content:flex-start;gap:20px}
+  .dh-r{flex:1 1 100%;justify-content:flex-end}
+  .prog-wrap{max-width:none}
+}
 @media (max-width:620px){
   .hm-bento{grid-template-columns:minmax(0,1fr)}
   .hm-bento-habits,.hm-bento-monthly{grid-column:auto}
@@ -2239,6 +2260,111 @@ canvas{max-width:100%}
   .slp-chart-hd,.an-hd{flex-wrap:wrap;gap:8px}
   .an-hd>*{min-width:0}
 }
+
+/* ══ PROFILE & SETTINGS ══════════════════════════════════════════ */
+.sp-scroll{flex:1;overflow-y:auto;padding:0 0 40px}
+.sp-hd{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.sp-title{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)}
+.sp-sub{font-size:13px;color:var(--text2);margin-top:3px}
+.sp-body{padding:22px 28px;display:flex;flex-direction:column;gap:18px;
+  max-width:860px}
+
+.sp-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+.sp-card-hd{padding:16px 20px 12px;border-bottom:1px solid var(--border)}
+.sp-card-t{font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.15px}
+.sp-card-s{font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5}
+.sp-card-b{padding:8px 20px 16px}
+
+.sp-row{display:flex;align-items:center;gap:14px;padding:12px 0;
+  border-bottom:1px solid var(--border)}
+.sp-row:last-child{border-bottom:none}
+.sp-row-txt{flex:1;min-width:0}
+.sp-row-n{font-size:13.5px;font-weight:600;color:var(--text)}
+.sp-row-d{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.45}
+.sp-row-v{font-family:'JetBrains Mono',monospace;font-size:12.5px;
+  font-weight:700;color:var(--text2);flex-shrink:0}
+
+.sp-btn{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);
+  border-radius:var(--r-md);padding:9px 16px;font-family:'Outfit',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;flex-shrink:0}
+.sp-btn:hover{background:var(--surface3);border-color:var(--border2)}
+.sp-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);
+  box-shadow:var(--elev-accent-sm)}
+.sp-btn.primary:hover{background:var(--accent-h)}
+.sp-btn.danger{color:var(--red-txt);border-color:var(--red-dim)}
+.sp-btn.danger:hover{background:var(--red-dim)}
+.sp-btns{display:flex;gap:10px;flex-wrap:wrap}
+
+.sp-in{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);
+  border-radius:var(--r-md);padding:9px 12px;font-family:'Outfit',sans-serif;
+  font-size:13.5px;font-weight:500;outline:none;min-width:0;flex:1}
+.sp-in:focus{border-color:var(--accent);background:var(--surface)}
+
+/* Page visibility list */
+.sp-pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:10px}
+.sp-page{display:flex;align-items:center;gap:11px;padding:11px 13px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--r-md);cursor:pointer;transition:all .18s;
+  font-family:'Outfit',sans-serif;text-align:left;width:100%}
+.sp-page:hover{border-color:var(--border2)}
+.sp-page.off{opacity:.5}
+.sp-page-ico{font-size:17px;flex-shrink:0;width:22px;text-align:center}
+.sp-page-n{flex:1;font-size:13px;font-weight:600;color:var(--text);min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sp-page-sw{width:34px;height:20px;border-radius:var(--r-pill);flex-shrink:0;
+  background:var(--border2);position:relative;transition:background .2s}
+.sp-page-sw::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;
+  border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sp-page.on .sp-page-sw{background:var(--accent)}
+.sp-page.on .sp-page-sw::after{transform:translateX(14px)}
+.sp-page.locked{cursor:default;opacity:1}
+.sp-page.locked .sp-page-sw{background:var(--border2);opacity:.45}
+
+.sp-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px}
+.sp-stat{background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:14px 16px}
+.sp-stat-v{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.6px;line-height:1}
+.sp-stat-l{font-size:11.5px;font-weight:600;color:var(--text2);margin-top:5px}
+
+.sp-av{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;flex-shrink:0}
+
+@media (max-width:620px){
+  .sp-hd{padding:16px 16px}
+  .sp-body{padding:16px 16px}
+  .sp-card-hd,.sp-card-b{padding-left:14px;padding-right:14px}
+  .sp-pages{grid-template-columns:1fr}
+}
+
+/* ══ FIRST-RUN TOUR ═════════════════════════════════════════════════ */
+#tour{position:fixed;inset:0;z-index:5000;display:none;
+  align-items:center;justify-content:center;padding:22px;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+#tour.on{display:flex}
+.tour-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);box-shadow:var(--shadow3);
+  width:100%;max-width:420px;padding:30px 30px 24px;text-align:center;
+  animation:authRise .4s cubic-bezier(.16,1,.3,1) both}
+.tour-step{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:1.1px;color:var(--text2);margin-bottom:16px}
+.tour-ico{font-size:40px;line-height:1;margin-bottom:14px}
+.tour-h{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text);margin-bottom:9px}
+.tour-p{font-size:13.5px;line-height:1.6;color:var(--text2);margin-bottom:20px}
+.tour-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
+.tour-dots i{width:6px;height:6px;border-radius:50%;background:var(--border2);
+  transition:background .2s,width .2s}
+.tour-dots i.on{background:var(--accent);width:18px;border-radius:var(--r-pill)}
+.tour-btns{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tour-skip{background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:13px;font-weight:600;color:var(--text2);padding:9px 6px}
+.tour-skip:hover{color:var(--text)}
+.tour-next{background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);
+  padding:11px 24px;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;
+  cursor:pointer;box-shadow:var(--elev-accent-sm);transition:background .18s}
+.tour-next:hover{background:var(--accent-h)}
+@media (prefers-reduced-motion:reduce){ .tour-card{animation:none} }
 
 /* ── HABIT GRID: PINNED COLUMN WIDTH ──────────────────────────────
    The name column was a hard 200px. On a 380px phone the scroll area is
@@ -2359,6 +2485,13 @@ canvas{max-width:100%}
     <button class="sni" id="sni-diary" title="Journal" onclick="goPage('diary',this)">
       <span class="ico">📔</span><span class="lbl">Journal</span>
     </button>
+    <div class="sb-div"></div>
+    <button class="sni" id="sni-profile" title="Profile" onclick="goPage('profile',this)">
+      <span class="ico">👤</span><span class="lbl">Profile</span>
+    </button>
+    <button class="sni" id="sni-settings" title="Settings" onclick="goPage('settings',this)">
+      <span class="ico">⚙️</span><span class="lbl">Settings</span>
+    </button>
   </nav>
   <div class="sb-foot">
     <button class="acct-row" id="acct-row" onclick="acctClick()" title="Account">
@@ -2376,15 +2509,46 @@ canvas{max-width:100%}
         <span class="swts"></span>
       </label>
     </div>
-    <div class="theme-row" style="gap:6px;padding:6px 10px">
-      <button onclick="exportData()" title="Export all your data as JSON backup"
-        style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:6px 8px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s"
-        onmouseover="this.style.background='var(--surface3)';this.style.color='var(--text)'"
-        onmouseout="this.style.background='var(--surface2)';this.style.color='var(--text2)'">💾 Export</button>
-      <button onclick="importData()" title="Import a backup JSON file"
-        style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:6px 8px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s"
-        onmouseover="this.style.background='var(--surface3)';this.style.color='var(--text)'"
-        onmouseout="this.style.background='var(--surface2)';this.style.color='var(--text2)'">📂 Import</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="pg-profile">
+  <div class="sp-scroll">
+    <div class="sp-hd">
+      <div>
+        <div class="sp-title">Profile</div>
+        <div class="sp-sub">Who you are, and where your data lives.</div>
+      </div>
+    </div>
+    <div class="sp-body" id="profile-body"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="pg-settings">
+  <div class="sp-scroll">
+    <div class="sp-hd">
+      <div>
+        <div class="sp-title">Settings</div>
+        <div class="sp-sub">Shape the app around how you actually use it.</div>
+      </div>
+    </div>
+    <div class="sp-body" id="settings-body"></div>
+  </div>
+</div>
+
+<!-- TOUR -->
+<div id="tour" role="dialog" aria-modal="true" aria-labelledby="tour-h">
+  <div class="tour-card">
+    <div class="tour-step" id="tour-step">1 / 1</div>
+    <div class="tour-ico" id="tour-ico">👋</div>
+    <h2 class="tour-h" id="tour-h">Welcome</h2>
+    <p class="tour-p" id="tour-p"></p>
+    <div class="tour-dots" id="tour-dots"></div>
+    <div class="tour-btns">
+      <button class="tour-skip" onclick="tourEnd()">Skip</button>
+      <button class="tour-next" id="tour-next" onclick="tourNext()">Next</button>
     </div>
   </div>
 </div>
@@ -2626,8 +2790,14 @@ canvas{max-width:100%}
 
   <div class="dash-hd">
     <div class="dh-l">
-      <div class="dh-title">Habit Tracker</div>
-      <div class="dh-sub" id="dh-ml">November 2025</div>
+      <div class="dh-l-txt">
+        <div class="dh-title">Habit Tracker</div>
+        <div class="dh-sub" id="dh-ml">November 2025</div>
+      </div>
+      <div class="dh-nav">
+        <button class="ib" onclick="chMo(-1)" title="Previous month" aria-label="Previous month">‹</button>
+        <button class="ib" onclick="chMo(1)" title="Next month" aria-label="Next month">›</button>
+      </div>
     </div>
     <div class="dh-mid">
       <div class="sblk">
@@ -2647,18 +2817,16 @@ canvas{max-width:100%}
       </div>
     </div>
     <div class="dh-r">
-      <button class="overview-toggle-btn is-collapsed" id="overview-toggle-btn" onclick="toggleDashOverview()" title="Show glanceable dashboard" aria-label="Toggle glanceable dashboard" aria-expanded="false">
-        <span class="ot-icon">▲</span>
-        <span class="ot-dot"></span>
-      </button>
-      <button class="ib" onclick="chMo(-1)">‹</button>
-      <button class="ib" onclick="chMo(1)">›</button>
       <div class="hcb-legend" aria-hidden="true">
         <span><i class="lg-done"></i>Tap · Done</span>
         <span><i class="lg-missed"></i>Double-tap · Missed</span>
         <span><i class="lg-rest"></i>Long-press · Rest</span>
       </div>
       <button class="cta" onclick="openMod()"><span style="font-size:19px;line-height:1">+</span>New Habit</button>
+      <button class="overview-toggle-btn is-collapsed" id="overview-toggle-btn" onclick="toggleDashOverview()" title="Show glanceable dashboard" aria-label="Toggle glanceable dashboard" aria-expanded="false">
+        <span class="ot-icon">▲</span>
+        <span class="ot-dot"></span>
+      </button>
     </div>
   </div>
   <div id="gscroll">
@@ -3815,6 +3983,8 @@ function goPage(id,btn){
     fab.style.display='';
   }
   if(id==='home'){renderHome();}
+  if(id==='settings') renderSettings();
+  if(id==='profile')  renderProfile();
   if(id==='dashboard'){applyOverviewState();buildGrid(); updStats();} // Bug 3 fix: refresh grid & header stats on every navigation to dashboard
   if(id==='sleep'){renderSleep(); renderLiveBar('sleep');}
   // 'todo' page now hosts the Flow Planner iframe — loaded via blob URL below
@@ -4290,6 +4460,225 @@ window.addEventListener('online',  () => syncNow('online'));
 window.addEventListener('offline', () => acctRender('Offline'));
 
 /* ══════════════════════════════════════════════════════════════════
+   PROFILE, SETTINGS, AND THE FIRST-RUN TOUR
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Every page that can be switched off. Home, Profile and Settings are
+   not in the list: hiding the way back to Settings would strand the
+   user with no way to undo it. */
+const SV_PAGES = [
+  {id:'ai',        ico:'\u2728',      name:'AI Assistant', blurb:'Ask about your data, or have it add and tick habits for you.'},
+  {id:'dashboard', ico:'\U0001f4ca',  name:'Habit Tracker',blurb:'A year of days. Tap to tick, double-tap to cross, long-press for a rest day.'},
+  {id:'sleep',     ico:'\U0001f319',  name:'Sleep Tracker',blurb:'Log bed and wake time; get a score that weighs regularity over raw hours.'},
+  {id:'todo',      ico:'\U0001f30a',  name:'Flow Planner', blurb:'Plan the day, capture tasks in plain language, and run a focus session.'},
+  {id:'stopwatch', ico:'\u23f1\ufe0f',name:'Stopwatch',    blurb:'Simple lap timing.'},
+  {id:'pomodoro',  ico:'\U0001f3af',  name:'Focus Timer',  blurb:'Pomodoro sessions that can tick a linked habit when they finish.'},
+  {id:'analytics', ico:'\U0001f4c8',  name:'Analytics',    blurb:'Full-year charts, plus a weekly review naming one thing to change.'},
+  {id:'diary',     ico:'\U0001f4d4',  name:'Journal',      blurb:'Dated entries with mood, gratitude and tags.'}
+];
+
+function pageHidden(id){ return !!(S.hiddenPages && S.hiddenPages[id]); }
+
+/* Applies the on/off choices to the sidebar. A hidden page keeps
+   working if you navigate to it directly - this only removes the
+   invitation, it never deletes anything. */
+function applyPageVisibility(){
+  SV_PAGES.forEach(pg=>{
+    const btn=document.getElementById('sni-'+pg.id);
+    if(btn) btn.style.display = pageHidden(pg.id) ? 'none' : '';
+  });
+  /* Dividers stranded next to a hidden group look like dead space. */
+  document.querySelectorAll('.sb-nav .sb-div').forEach(d=>{
+    let prev=d.previousElementSibling, next=d.nextElementSibling;
+    while(prev && prev.style.display==='none') prev=prev.previousElementSibling;
+    while(next && next.style.display==='none') next=next.nextElementSibling;
+    d.style.display = (prev && next) ? '' : 'none';
+  });
+}
+
+function togglePage(id){
+  S.hiddenPages = S.hiddenPages || {};
+  if(S.hiddenPages[id]) delete S.hiddenPages[id]; else S.hiddenPages[id]=1;
+  save(); applyPageVisibility(); renderSettings();
+  /* If they just hid the page they are standing on, move somewhere real. */
+  if(S.hiddenPages[id] && document.getElementById('pg-'+id).classList.contains('on'))
+    goPage('settings', document.getElementById('sni-settings'));
+}
+
+/* ── Settings ─────────────────────────────────────────────────── */
+function renderSettings(){
+  const box=document.getElementById('settings-body');
+  if(!box) return;
+  const dark = document.documentElement.getAttribute('data-theme')==='dark';
+
+  box.innerHTML =
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Appearance</div>'+
+      '<div class="sp-card-s">One theme for the whole app, planner included.</div></div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Dark mode</div>'+
+        '<div class="sp-row-d">Warmer and dimmer at night \u2014 blue light late suppresses melatonin, which is the same thing the sleep score marks you down for.</div>'+
+      '</div><button class="sp-btn'+(dark?' primary':'')+'" onclick="setThemeFromSettings('+(!dark)+')">'+(dark?'On':'Off')+'</button></div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Pages</div>'+
+      '<div class="sp-card-s">Switch off anything you do not use and it leaves the sidebar. Nothing is deleted \u2014 turn it back on and your data is exactly where you left it.</div></div>'+
+    '<div class="sp-card-b"><div class="sp-pages">'+
+      SV_PAGES.map(pg=>{
+        const on=!pageHidden(pg.id);
+        return '<button class="sp-page '+(on?'on':'off')+'" onclick="togglePage(\''+pg.id+'\')" '+
+          'title="'+esc(pg.blurb)+'">'+
+          '<span class="sp-page-ico">'+pg.ico+'</span>'+
+          '<span class="sp-page-n">'+esc(pg.name)+'</span>'+
+          '<span class="sp-page-sw"></span></button>';
+      }).join('')+
+    '</div></div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Your data</div>'+
+      '<div class="sp-card-s">Everything lives in this browser unless you sign in. A backup is a plain JSON file you keep.</div></div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Backup and restore</div>'+
+        '<div class="sp-row-d">Export writes a file you can keep or move to another device. Import replaces what is here.</div>'+
+      '</div><div class="sp-btns">'+
+        '<button class="sp-btn" onclick="exportData()">Export</button>'+
+        '<button class="sp-btn" onclick="importData()">Import</button>'+
+      '</div></div>'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Show the tour again</div>'+
+        '<div class="sp-row-d">A quick walk through every page.</div>'+
+      '</div><button class="sp-btn" onclick="tourStart(true)">Replay</button></div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Habit tracker</div></div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Gamification</div>'+
+        '<div class="sp-row-d">Streak badges and the celebration when you finish a day. Turn it off for a plain tracker — the streak rules still work, you just stop being congratulated about them.</div>'+
+      '</div><button class="sp-btn'+(S.gamify===false?'':' primary')+'" onclick="toggleGamify()">'+
+        (S.gamify===false?'Off':'On')+'</button></div>'+
+    '</div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Open the glance strip by default</div>'+
+        '<div class="sp-row-d">The summary cards above the grid. Closed by default so the grid is the first thing you see.</div>'+
+      '</div><button class="sp-btn'+(S.ovOpen?' primary':'')+'" onclick="S.ovOpen=!S.ovOpen;save();applyOverviewState();renderSettings()">'+
+        (S.ovOpen?'On':'Off')+'</button></div>'+
+    '</div>'+
+  '</div>';
+}
+
+function toggleGamify(){
+  S.gamify = (S.gamify===false);   // undefined/true -> false, false -> true
+  save(); renderSettings();
+  if(typeof buildGrid==='function' && document.getElementById('pg-dashboard').classList.contains('on')) buildGrid();
+  renderHome();
+}
+
+function setThemeFromSettings(dark){
+  applyTheme(dark);
+  const t=document.getElementById('thm'); if(t) t.checked=dark;
+  renderSettings();
+}
+
+/* ── Profile ──────────────────────────────────────────────────── */
+function renderProfile(){
+  const box=document.getElementById('profile-body');
+  if(!box) return;
+
+  const nights=(S.sleepLog||[]).length;
+  const ticks=Object.values(S.checks||{}).filter(v=>v===true).length;
+  const focusMins=Object.values(S.focusLog||{}).reduce((a,b)=>a+(+b||0),0)+(S.pomoFocusMins||0);
+  const best=(S.habits||[]).reduce((m,h)=>Math.max(m,habitBestStreak(h.id)),0);
+
+  const signedIn=!!SVUser;
+  const email=signedIn?SVUser.email:'';
+  const initial=signedIn?(email||'?').charAt(0).toUpperCase():'\u2601';
+
+  box.innerHTML =
+  '<div class="sp-card">'+
+    '<div class="sp-card-b" style="padding-top:20px">'+
+      '<div style="display:flex;align-items:center;gap:16px">'+
+        '<span class="sp-av">'+initial+'</span>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:16px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+
+            (signedIn?esc(email):'Not signed in')+'</div>'+
+          '<div style="font-size:12.5px;color:var(--text2);margin-top:3px">'+
+            (signedIn?'Synced across your devices':'Everything is saved in this browser only')+'</div>'+
+        '</div>'+
+        (signedIn
+          ? '<button class="sp-btn danger" onclick="authSignOut()">Sign out</button>'
+          : '<button class="sp-btn primary" onclick="authOpen(\'signin\')">Sign in</button>')+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Since you started</div></div>'+
+    '<div class="sp-card-b"><div class="sp-stat-grid">'+
+      '<div class="sp-stat"><div class="sp-stat-v">'+ticks+'</div><div class="sp-stat-l">Habits ticked</div></div>'+
+      '<div class="sp-stat"><div class="sp-stat-v">'+best+'</div><div class="sp-stat-l">Longest streak</div></div>'+
+      '<div class="sp-stat"><div class="sp-stat-v">'+nights+'</div><div class="sp-stat-l">Nights logged</div></div>'+
+      '<div class="sp-stat"><div class="sp-stat-v">'+Math.round(focusMins/60)+'h</div><div class="sp-stat-l">Time focused</div></div>'+
+    '</div></div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Sleep profile</div>'+
+      '<div class="sp-card-s">Your age band sets the target range the sleep score judges a night against.</div></div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt"><div class="sp-row-n">Age</div>'+
+        '<div class="sp-row-d">'+(S.sleepAge?('Currently '+S.sleepAge+' \u2014 '+esc((slpGetProfile()||{}).label||'')):'Not set yet')+'</div>'+
+      '</div><button class="sp-btn" onclick="slpOpenAgeOverlay(true)">Change</button></div>'+
+      '<div class="sp-row"><div class="sp-row-txt"><div class="sp-row-n">Habits tracked</div>'+
+        '<div class="sp-row-d">Add or remove them on the habit tracker.</div>'+
+      '</div><span class="sp-row-v">'+(S.habits||[]).length+'</span></div>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ── First-run tour ───────────────────────────────────────────── */
+let _tourI=0, _tourSteps=[];
+function tourStart(force){
+  if(!force && S.tourDone) return;
+  _tourSteps=[{ico:'\U0001f44b',h:'Welcome to Successor Vision',
+    p:'A quick look at what is here. Under a minute, and you can skip at any point.'}]
+    .concat(SV_PAGES.filter(pg=>!pageHidden(pg.id)).map(pg=>({ico:pg.ico,h:pg.name,p:pg.blurb})))
+    .concat([{ico:'\u2699\ufe0f',h:'Make it yours',
+      p:'Settings lets you switch off any page you do not use, back your data up, and replay this tour. Nothing here is permanent.'}]);
+  _tourI=0;
+  document.getElementById('tour').classList.add('on');
+  document.body.style.overflow='hidden';
+  tourPaint();
+}
+function tourPaint(){
+  const st=_tourSteps[_tourI];
+  document.getElementById('tour-step').textContent=(_tourI+1)+' / '+_tourSteps.length;
+  document.getElementById('tour-ico').textContent=st.ico;
+  document.getElementById('tour-h').textContent=st.h;
+  document.getElementById('tour-p').textContent=st.p;
+  document.getElementById('tour-next').textContent=(_tourI===_tourSteps.length-1)?'Start':'Next';
+  document.getElementById('tour-dots').innerHTML=
+    _tourSteps.map((_,i)=>'<i class="'+(i===_tourI?'on':'')+'"></i>').join('');
+}
+function tourNext(){
+  if(_tourI<_tourSteps.length-1){ _tourI++; tourPaint(); return; }
+  tourEnd();
+}
+function tourEnd(){
+  document.getElementById('tour').classList.remove('on');
+  document.body.style.overflow='';
+  S.tourDone=1; save();
+}
+
+/* ══════════════════════════════════════════════════════════════════
    AUTH SCREENS
    Four modes in one card. An account is optional here - the app works
    fully without one - so the copy sells the actual benefit (your
@@ -4668,6 +5057,7 @@ function perfectDayStreak(){
 
 /* One chip, used everywhere a streak appears. */
 function streakChip(habitId, size){
+  if(S.gamify===false) return '';   // Settings > Gamification
   const {current, bridged} = habitStreak(habitId);
   if(current<2) return '';
   const cls = 'streak-chip' + (size==='sm'?' sm':'') + (bridged?' bridged':'');
@@ -4955,6 +5345,7 @@ function _celeToast(msg){
   _celeToastT=setTimeout(()=>{_celeToastEl.style.opacity='0';_celeToastEl.style.transform='translateX(-50%) translateY(14px)';},2600);
 }
 function _celebrate(opts={}){
+  if(S.gamify===false) return;      // Settings > Gamification
   if(opts.toast) _celeToast(opts.toast);
   if(_reduceMotion()) return;                 // honour reduced motion — toast only
   if(!_celeLayer){
@@ -7717,6 +8108,15 @@ function hmPmDisp(){
 buildGrid();
 renderPmDots(); updPM(); updatePmStats(); pmRenderHabitPicker();
 renderHome();
+applyPageVisibility();
+applyOverviewState();
+/* First run only. Deferred so it lands on a painted app rather than a
+   blank one, and never on top of the sleep-age prompt. */
+setTimeout(()=>{
+  const ageOverlay=document.getElementById('slp-age-overlay');
+  const agePending = ageOverlay && getComputedStyle(ageOverlay).display!=='none';
+  if(!S.tourDone && !agePending) tourStart();
+}, 700);
 
 /* ──────── DIARY ──────── */
 const DIAR_MOODS=[
