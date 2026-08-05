@@ -1999,8 +1999,11 @@ button,input,select{font-family:'Outfit',sans-serif}
 /* ══ AI FULL PAGE ══ */
 #pg-ai{overflow:hidden;flex-direction:column}
 .ai-page-wrap{flex:1;display:flex;overflow:hidden;min-height:0}
+/* Prompt suggestions are scaffolding for the first message, not
+   permanent furniture — they fold away on smaller screens so the
+   conversation keeps the width. */
 .ai-page-left{
-  width:260px;min-width:260px;
+  width:248px;min-width:248px;
   background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;
 }
@@ -2019,8 +2022,12 @@ button,input,select{font-family:'Outfit',sans-serif}
 .ai-suggestion-card .sc-ico{font-size:14px;flex-shrink:0;margin-top:1px}
 .ai-page-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-width:0;
   background-image:radial-gradient(circle at 50% 0%, var(--accent-dim) 0%, transparent 46%)}
-.ai-page-msgs{flex:1;overflow-y:auto;padding:26px 24px 20px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth}
-.ai-page-msg{display:flex;gap:11px;animation:ai-in .26s cubic-bezier(.16,1,.3,1);max-width:760px}
+.ai-page-msgs{flex:1;overflow-y:auto;padding:30px 24px 24px;display:flex;
+  flex-direction:column;gap:22px;scroll-behavior:smooth;align-items:center}
+/* One centred column with a readable measure, rather than text running
+   the full width of a desktop monitor. */
+.ai-page-msgs > *{width:100%;max-width:720px}
+.ai-page-msg{display:flex;gap:12px;animation:ai-in .26s cubic-bezier(.16,1,.3,1)}
 .ai-page-msg.user{flex-direction:row-reverse;align-self:flex-end}
 .ai-page-msg.bot{align-self:flex-start}
 .ai-page-av{width:30px;height:30px;border-radius:var(--r-md);flex-shrink:0;display:flex;
@@ -2030,14 +2037,17 @@ button,input,select{font-family:'Outfit',sans-serif}
 .ai-page-av.user{background:var(--surface3)}
 .ai-page-bub{
   max-width:600px;padding:13px 17px;border-radius:var(--r-lg);
-  font-size:13.5px;line-height:1.68;color:var(--text);
+  font-size:14px;line-height:1.7;color:var(--text);
   white-space:pre-wrap;word-break:break-word;
 }
 .ai-page-msg.bot .ai-page-bub{background:var(--surface);border:1px solid var(--border);border-top-left-radius:4px}
 .ai-page-msg.user .ai-page-bub{background:var(--accent);color:#fff;border-top-right-radius:4px}
+/* The composer is the one control that matters here, so it gets room
+   and elevation instead of being a strip glued to the bottom edge. */
 .ai-page-inp-row{
-  padding:16px 24px 20px;border-top:1px solid var(--border);
+  padding:14px 24px 22px;border-top:1px solid var(--border);
   display:flex;gap:10px;align-items:flex-end;flex-shrink:0;
+  max-width:768px;width:100%;margin:0 auto;box-sizing:border-box;
   background:var(--surface);
 }
 #ai-page-inp{
@@ -2235,7 +2245,10 @@ canvas{max-width:100%}
   .dh-r{flex:1 1 100%;justify-content:flex-end}
   .prog-wrap{max-width:none}
 }
+@media (max-width:1000px){ .ai-page-left{display:none} }
 @media (max-width:620px){
+  .ai-page-msgs{padding:20px 14px 16px;gap:18px}
+  .ai-page-inp-row{padding:12px 14px 16px}
   .hm-bento{grid-template-columns:minmax(0,1fr)}
   .hm-bento-habits,.hm-bento-monthly{grid-column:auto}
   /* .hm-hero-left sets overflow:hidden, which collapses its automatic
@@ -2338,6 +2351,44 @@ canvas{max-width:100%}
   .sp-card-hd,.sp-card-b{padding-left:14px;padding-right:14px}
   .sp-pages{grid-template-columns:1fr}
 }
+
+/* ══ AI CONFIRMATION ════════════════════════════════════════════ */
+.aic-scrim{position:fixed;inset:0;z-index:6000;display:flex;align-items:center;
+  justify-content:center;padding:22px;background:rgba(0,0,0,.5);backdrop-filter:blur(3px)}
+.aic-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);box-shadow:var(--shadow3);width:100%;max-width:380px;
+  padding:26px 26px 20px;text-align:center;
+  animation:authRise .3s cubic-bezier(.16,1,.3,1) both}
+.aic-ico{font-size:30px;line-height:1;margin-bottom:12px}
+.aic-t{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.2px;margin-bottom:7px}
+.aic-d{font-size:13px;line-height:1.55;color:var(--text2);margin-bottom:20px}
+.aic-btns{display:flex;gap:10px}
+.aic-btns button{flex:1;border-radius:var(--r-md);padding:11px 14px;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;transition:all .18s}
+.aic-no{background:var(--surface2);color:var(--text);border:1.5px solid var(--border)}
+.aic-no:hover{background:var(--surface3)}
+.aic-yes{background:var(--red);color:#fff;border:1.5px solid var(--red)}
+.aic-yes:hover{filter:brightness(1.08)}
+@media (prefers-reduced-motion:reduce){ .aic-card{animation:none} }
+
+/* ══ AI HISTORY (in Settings) ════════════════════════════════════ */
+.aih-empty{font-size:13px;color:var(--text2);padding:6px 0}
+.aih-group{margin-bottom:16px}
+.aih-group:last-child{margin-bottom:0}
+.aih-page{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;
+  letter-spacing:.7px;text-transform:uppercase;color:var(--text2);
+  padding-bottom:7px;margin-bottom:9px;border-bottom:1px solid var(--border)}
+.aih-count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-weight:700;
+  letter-spacing:0;text-transform:none;opacity:.7}
+.aih-item{padding:9px 0;border-bottom:1px solid var(--border)}
+.aih-item:last-child{border-bottom:none}
+.aih-q{font-size:13px;font-weight:600;color:var(--text);line-height:1.45}
+.aih-when{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text2);
+  margin-top:3px}
+.aih-acts{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.aih-act{font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--r-pill);
+  background:var(--green-dim);color:var(--green-txt)}
+.aih-act.warn{background:var(--red-dim);color:var(--red-txt)}
 
 /* ══ FIRST-RUN TOUR ═════════════════════════════════════════════════ */
 #tour{position:fixed;inset:0;z-index:5000;display:none;
@@ -3988,7 +4039,7 @@ function goPage(id,btn){
     fab.style.display='';
   }
   if(id==='home'){renderHome();}
-  if(id==='settings') renderSettings();
+  if(id==='settings'){ renderSettings(); renderAiHistory(); }
   if(id==='profile')  renderProfile();
   if(id==='dashboard'){applyOverviewState();buildGrid(); updStats();} // Bug 3 fix: refresh grid & header stats on every navigation to dashboard
   if(id==='sleep'){renderSleep(); renderLiveBar('sleep');}
@@ -4609,6 +4660,27 @@ function renderSettings(){
         '<div class="sp-row-d">A quick walk through every page.</div>'+
       '</div><button class="sp-btn" onclick="tourStart(true)">Replay</button></div>'+
     '</div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">Assistant</div>'+
+      '<div class="sp-card-s">The assistant can change anything in the app. It never signs you in or out, and never touches your account.</div></div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Ask before deleting</div>'+
+        '<div class="sp-row-d">Adding and editing happen straight away. Deletions ask first, because they take history with them. Turn this off and the assistant deletes without asking.</div>'+
+      '</div><button class="sp-btn'+(S.aiSkipConfirm?'':' primary')+'" onclick="S.aiSkipConfirm=!S.aiSkipConfirm;save();renderSettings()">'+
+        (S.aiSkipConfirm?'Off':'On')+'</button></div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">'+
+      '<div><div class="sp-card-t">What the assistant did</div>'+
+      '<div class="sp-card-s">Grouped by the page you were on when you asked.</div></div>'+
+      ((S.aiLog||[]).length?'<button class="sp-btn" onclick="clearAiHistory()">Clear</button>':'')+
+    '</div>'+
+    '<div class="sp-card-b"><div id="aih-body"></div></div>'+
   '</div>'+
 
   '<div class="sp-card">'+
@@ -8581,109 +8653,419 @@ FOCUS TIMER — ${pomoLine}
 
 /* Tool definitions for Claude */
 const _aiTools = [
-  {
-    name:'add_habit',
-    description:'Add a brand-new habit to the habit tracker grid.',
-    input_schema:{
-      type:'object',
-      properties:{
-        name:{type:'string',description:'Habit name, e.g. "Morning Run"'},
-        emoji:{type:'string',description:'Single emoji that represents the habit'}
-      },
-      required:['name','emoji']
-    }
-  },
-  {
-    name:'delete_habit',
-    description:'Remove a habit permanently from the tracker.',
-    input_schema:{
-      type:'object',
-      properties:{
-        habit_id:{type:'number',description:'Numeric ID of the habit (from the data above)'},
-        habit_name:{type:'string',description:'Full or partial name to match if ID is unknown'}
-      }
-    }
-  },
-  {
-    name:'check_habit',
-    description:'Mark a habit as done or not-done for a specific date.',
-    input_schema:{
-      type:'object',
-      properties:{
-        habit_id:{type:'number',description:'ID of the habit'},
-        habit_name:{type:'string',description:'Name of the habit (used if ID unknown)'},
-        date:{type:'string',description:'Date in YYYY-MM-DD format. Omit for today.'},
-        done:{type:'boolean',description:'true = mark done, false = unmark'}
-      }
-    }
-  },
-  {
-    name:'navigate_to',
-    description:'Open a different section of the app for the user.',
-    input_schema:{
-      type:'object',
-      properties:{
-        page:{type:'string',enum:['home','dashboard','sleep','diary','pomodoro','stopwatch','analytics','todo'],
-          description:'Page/section name. "dashboard" is the Habit Tracker, "todo" is the Flow Planner, "pomodoro" is the Focus Timer.'}
-      },
-      required:['page']
-    }
-  }
+  /* ── Habits ─────────────────────────────────────────────────── */
+  { name:'add_habit', description:'Create a new habit.',
+    input_schema:{type:'object',properties:{
+      name:{type:'string',description:'Habit name, e.g. "Morning Run"'},
+      emoji:{type:'string',description:'One emoji for it'}},required:['name']}},
+
+  { name:'rename_habit', description:'Rename an existing habit or change its emoji.',
+    input_schema:{type:'object',properties:{
+      habit:{type:'string',description:'Current name or id of the habit'},
+      name:{type:'string',description:'New name (omit to keep)'},
+      emoji:{type:'string',description:'New emoji (omit to keep)'}},required:['habit']}},
+
+  { name:'delete_habit', description:'Delete a habit and its whole history. Destructive.',
+    input_schema:{type:'object',properties:{
+      habit:{type:'string',description:'Name or id of the habit'}},required:['habit']}},
+
+  { name:'set_habit_day', description:'Set a habit\'s state on a date: done, missed, rest, or clear.',
+    input_schema:{type:'object',properties:{
+      habit:{type:'string',description:'Name or id of the habit'},
+      date:{type:'string',description:'YYYY-MM-DD. Omit for today.'},
+      state:{type:'string',enum:['done','missed','rest','clear'],description:'What to record'}},
+      required:['habit','state']}},
+
+  /* ── Tasks ──────────────────────────────────────────────────── */
+  { name:'add_task', description:'Add a task to the to-do list.',
+    input_schema:{type:'object',properties:{
+      text:{type:'string'}, tag:{type:'string',description:'Optional label'},
+      date:{type:'string',description:'YYYY-MM-DD, defaults to today'}},required:['text']}},
+
+  { name:'complete_task', description:'Mark a task done or not done.',
+    input_schema:{type:'object',properties:{
+      task:{type:'string',description:'Task text to match, or its id'},
+      done:{type:'boolean',description:'Defaults to true'}},required:['task']}},
+
+  { name:'delete_task', description:'Delete a task. Destructive.',
+    input_schema:{type:'object',properties:{
+      task:{type:'string',description:'Task text to match, or its id'}},required:['task']}},
+
+  /* ── Sleep ──────────────────────────────────────────────────── */
+  { name:'log_sleep', description:'Record a night of sleep and score it.',
+    input_schema:{type:'object',properties:{
+      bed:{type:'string',description:'Bedtime, 24h HH:MM'},
+      wake:{type:'string',description:'Wake time, 24h HH:MM'},
+      date:{type:'string',description:'YYYY-MM-DD, defaults to today'}},required:['bed','wake']}},
+
+  { name:'delete_sleep', description:'Remove a logged night. Destructive.',
+    input_schema:{type:'object',properties:{
+      date:{type:'string',description:'YYYY-MM-DD'}},required:['date']}},
+
+  /* ── Journal ────────────────────────────────────────────────── */
+  { name:'write_journal', description:'Write or update a journal entry.',
+    input_schema:{type:'object',properties:{
+      text:{type:'string',description:'Main entry text'},
+      mood:{type:'string',description:'Optional mood'},
+      gratitude:{type:'string'}, highlight:{type:'string'},
+      date:{type:'string',description:'YYYY-MM-DD, defaults to today'},
+      append:{type:'boolean',description:'Add to the existing entry instead of replacing it'}},
+      required:['text']}},
+
+  { name:'read_journal', description:'Read back a journal entry.',
+    input_schema:{type:'object',properties:{
+      date:{type:'string',description:'YYYY-MM-DD, defaults to today'}}}},
+
+  /* ── Focus timer ────────────────────────────────────────────── */
+  { name:'focus_timer', description:'Start, pause, reset or configure the focus timer.',
+    input_schema:{type:'object',properties:{
+      action:{type:'string',enum:['start','pause','reset'],description:'What to do'},
+      minutes:{type:'number',description:'Set the work length in minutes'},
+      habit:{type:'string',description:'Habit to tick when a session completes'}}}},
+
+  /* ── Settings ───────────────────────────────────────────────── */
+  { name:'set_setting', description:'Change an app setting.',
+    input_schema:{type:'object',properties:{
+      setting:{type:'string',enum:['theme','gamification','glance_strip','sleep_age','delete_confirm'],
+        description:'Which setting'},
+      value:{type:'string',description:'For theme: light|dark. For switches: on|off. For sleep_age: a number.'}},
+      required:['setting','value']}},
+
+  { name:'show_page', description:'Show or hide a page in the sidebar. Habit Tracker, AI and Analytics cannot be hidden.',
+    input_schema:{type:'object',properties:{
+      page:{type:'string',enum:['sleep','todo','stopwatch','pomodoro','diary']},
+      visible:{type:'boolean'}},required:['page','visible']}},
+
+  /* ── Navigation ─────────────────────────────────────────────── */
+  { name:'navigate_to', description:'Open a section of the app.',
+    input_schema:{type:'object',properties:{
+      page:{type:'string',enum:['home','dashboard','sleep','diary','pomodoro','stopwatch','analytics','todo','profile','settings','ai'],
+        description:'"dashboard" is the Habit Tracker, "todo" the Flow Planner, "pomodoro" the Focus Timer.'}},
+      required:['page']}}
 ];
 
+/* Tools that destroy something the user cannot trivially retype.
+   These ask first; everything else just happens. */
+const _aiDestructive = ['delete_habit','delete_task','delete_sleep'];
+
+
 /* Execute a tool call from Claude */
-function _aiExecTool(name, input){
+/* ── What the assistant did ───────────────────────────────────────
+   Kept so the user can see what was changed on their behalf, grouped by
+   the page they were on when they asked. Capped, because this is a
+   record, not an archive. */
+const AI_LOG_MAX = 120;
+function _aiLog(page, prompt, actions, reply){
+  S.aiLog = S.aiLog || [];
+  S.aiLog.unshift({
+    t: Date.now(),
+    page: page || 'ai',
+    q: String(prompt||'').slice(0, 300),
+    a: (actions||[]).slice(0, 12),
+    r: String(reply||'').slice(0, 400)
+  });
+  if(S.aiLog.length > AI_LOG_MAX) S.aiLog.length = AI_LOG_MAX;
+  save();
+}
+
+function _aiPageName(id){
+  const p = (typeof SV_PAGES!=='undefined' ? SV_PAGES : []).find(x=>x.id===id);
+  if(p) return p.ico+' '+p.name;
+  return ({home:'\ud83c\udfe0 Dashboard', profile:'\ud83d\udc64 Profile',
+           settings:'\u2699\ufe0f Settings'})[id] || id;
+}
+
+function renderAiHistory(){
+  const box=document.getElementById('aih-body');
+  if(!box) return;
+  const log=S.aiLog||[];
+  if(!log.length){
+    box.innerHTML='<div class="aih-empty">Nothing yet. Anything you ask the assistant to change will be listed here, grouped by the page you were on.</div>';
+    return;
+  }
+  const groups={};
+  log.forEach(e=>{ (groups[e.page]=groups[e.page]||[]).push(e); });
+  box.innerHTML=Object.keys(groups).map(pg=>{
+    const items=groups[pg];
+    return '<div class="aih-group">'+
+      '<div class="aih-page">'+esc(_aiPageName(pg))+
+        '<span class="aih-count">'+items.length+'</span></div>'+
+      items.map(e=>{
+        const d=new Date(e.t);
+        const when=d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+
+                   ' \u00b7 '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+        const acts=(e.a||[]).map(a=>{
+          const bad=/^\u26a0/.test(a.result||'');
+          return '<span class="aih-act'+(bad?' warn':'')+'" title="'+esc(a.result||'')+'">'+
+            esc(a.name.replace(/_/g,' '))+'</span>';
+        }).join('');
+        return '<div class="aih-item">'+
+          '<div class="aih-q">'+esc(e.q)+'</div>'+
+          '<div class="aih-when">'+when+'</div>'+
+          (acts?'<div class="aih-acts">'+acts+'</div>':'')+
+        '</div>';
+      }).join('')+
+    '</div>';
+  }).join('');
+}
+
+function clearAiHistory(){
+  S.aiLog=[]; save(); renderAiHistory();
+}
+
+/* ── Confirmation gate ────────────────────────────────────────────
+   Adds and edits are cheap to undo by hand, so they happen at once.
+   A deletion takes history with it, so it asks - unless the user has
+   turned that off in Settings. */
+function _aiConfirm(title, detail){
+  if(S.aiSkipConfirm) return Promise.resolve(true);
+  return new Promise(res=>{
+    const wrap=document.createElement('div');
+    wrap.className='aic-scrim';
+    wrap.innerHTML=
+      '<div class="aic-card" role="dialog" aria-modal="true">'+
+        '<div class="aic-ico">\u26a0\ufe0f</div>'+
+        '<div class="aic-t">'+esc(title)+'</div>'+
+        '<div class="aic-d">'+esc(detail||'')+'</div>'+
+        '<div class="aic-btns">'+
+          '<button class="aic-no">Keep it</button>'+
+          '<button class="aic-yes">Delete</button>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(wrap);
+    const done=v=>{ wrap.remove(); document.removeEventListener('keydown',key); res(v); };
+    const key=e=>{ if(e.key==='Escape') done(false); };
+    wrap.querySelector('.aic-no').onclick=()=>done(false);
+    wrap.querySelector('.aic-yes').onclick=()=>done(true);
+    wrap.onclick=e=>{ if(e.target===wrap) done(false); };
+    document.addEventListener('keydown',key);
+    setTimeout(()=>wrap.querySelector('.aic-yes').focus(),50);
+  });
+}
+
+/* Resolve a habit from a name or an id, tolerantly. */
+function _aiFindHabit(q){
+  if(q==null) return null;
+  const t=String(q).trim().toLowerCase();
+  return S.habits.find(h=>String(h.id)===String(q))
+      || S.habits.find(h=>h.name.toLowerCase()===t)
+      || S.habits.find(h=>h.name.toLowerCase().includes(t))
+      || null;
+}
+function _aiFindTask(q){
+  const t=String(q||'').trim().toLowerCase();
+  return (S.tasks||[]).find(x=>String(x.id)===String(q))
+      || (S.tasks||[]).find(x=>(x.text||'').toLowerCase()===t)
+      || (S.tasks||[]).find(x=>(x.text||'').toLowerCase().includes(t))
+      || null;
+}
+function _aiRefresh(){
+  save();
+  try{ buildGrid(); }catch(e){}
+  try{ renderHome(); }catch(e){}
+  try{ syncUI(); }catch(e){}
+}
+
+/* Execute one tool call. Async because a deletion may wait on the user. */
+async function _aiExecTool(name, input){
+  input = input || {};
   try{
     switch(name){
+
+      /* ── Habits ─────────────────────────────────────────────── */
       case 'add_habit':{
-        const em = input.emoji || '💪';
-        const nm = input.name;
-        S.habits.push({id:newId(), name:nm, emoji:em});
-        save(); buildGrid(); renderHome();
-        return `✅ Added habit: ${em} "${nm}"`;
+        const nm=(input.name||'').trim();
+        if(!nm) return '\u26a0\ufe0f A habit needs a name.';
+        if(S.habits.some(h=>h.name.toLowerCase()===nm.toLowerCase()))
+          return `\u26a0\ufe0f "${nm}" already exists.`;
+        S.habits.push({id:newId(), name:nm, emoji:input.emoji||'\u2705'});
+        _aiRefresh();
+        return `\u2705 Added ${input.emoji||'\u2705'} "${nm}".`;
+      }
+      case 'rename_habit':{
+        const h=_aiFindHabit(input.habit);
+        if(!h) return `\u26a0\ufe0f No habit matching "${input.habit}".`;
+        const was=`${h.emoji} ${h.name}`;
+        if(input.name)  h.name=input.name.trim();
+        if(input.emoji) h.emoji=input.emoji;
+        _aiRefresh();
+        return `\u2705 ${was} is now ${h.emoji} ${h.name}.`;
       }
       case 'delete_habit':{
-        const before=S.habits.length;
-        if(input.habit_id){
-          S.habits=S.habits.filter(h=>h.id!==input.habit_id);
-        } else if(input.habit_name){
-          const q=input.habit_name.toLowerCase();
-          S.habits=S.habits.filter(h=>!h.name.toLowerCase().includes(q));
-        }
-        if(S.habits.length<before){ save(); buildGrid(); renderHome(); return `✅ Habit deleted.`; }
-        return `⚠️ No matching habit found.`;
+        const h=_aiFindHabit(input.habit);
+        if(!h) return `\u26a0\ufe0f No habit matching "${input.habit}".`;
+        const days=Object.keys(S.checks).filter(k=>k.slice(0,String(k).lastIndexOf('_'))===String(h.id)).length;
+        const okGo=await _aiConfirm(`Delete "${h.emoji} ${h.name}"?`,
+          days? `This also removes ${days} day${days===1?'':'s'} of history. It cannot be undone.`
+              : 'This cannot be undone.');
+        if(!okGo) return `Left "${h.name}" alone.`;
+        /* Deleted inline rather than through delH(), which raises its own
+           native confirm \u2014 the user would be asked twice, and its answer
+           was not checked, so declining there still reported success. */
+        S.habits = S.habits.filter(x=>String(x.id)!==String(h.id));
+        Object.keys(S.checks).forEach(k=>{
+          if(k.slice(0, String(k).lastIndexOf('_'))===String(h.id)) delete S.checks[k];
+        });
+        if(String(S.pomoHabit)===String(h.id)) S.pomoHabit=null;
+        _aiRefresh();
+        try{ pmRenderHabitPicker(); }catch(e){}
+        return `\u2705 Deleted "${h.name}"${days?` and ${days} day${days===1?'':'s'} of history`:''}.`;
       }
-      case 'check_habit':{
+      case 'set_habit_day':{
+        const h=_aiFindHabit(input.habit);
+        if(!h) return `\u26a0\ufe0f No habit matching "${input.habit}".`;
         const date=input.date||todayStr;
-        let habit=null;
-        if(input.habit_id) habit=S.habits.find(h=>h.id===input.habit_id);
-        if(!habit&&input.habit_name){
-          const q=input.habit_name.toLowerCase();
-          habit=S.habits.find(h=>h.name.toLowerCase().includes(q));
+        const key=`${h.id}_${date}`;
+        const st=input.state;
+        if(st==='done')        S.checks[key]=true;
+        else if(st==='missed') S.checks[key]='x';
+        else if(st==='rest')   S.checks[key]='r';
+        else                   delete S.checks[key];
+        _aiRefresh();
+        if(st==='done') try{ _maybeCelebrateDay(); }catch(e){}
+        const word={done:'done \u2705',missed:'missed \u2715',rest:'a rest day \u2013',clear:'cleared'}[st]||st;
+        return `\u2705 ${h.emoji} ${h.name} on ${date}: ${word}.`;
+      }
+
+      /* ── Tasks ──────────────────────────────────────────────── */
+      case 'add_task':{
+        const t=(input.text||'').trim();
+        if(!t) return '\u26a0\ufe0f A task needs some text.';
+        if(!S.tasks) S.tasks=[];
+        S.tasks.push({id:newId(), text:t, tag:input.tag||'', date:input.date||todayStr, done:false});
+        _aiRefresh(); try{ hmRenderTodoMini(); }catch(e){}
+        return `\u2705 Added task "${t}".`;
+      }
+      case 'complete_task':{
+        const t=_aiFindTask(input.task);
+        if(!t) return `\u26a0\ufe0f No task matching "${input.task}".`;
+        t.done = input.done!==false;
+        _aiRefresh(); try{ hmRenderTodoMini(); }catch(e){}
+        return `\u2705 "${t.text}" marked ${t.done?'done':'not done'}.`;
+      }
+      case 'delete_task':{
+        const t=_aiFindTask(input.task);
+        if(!t) return `\u26a0\ufe0f No task matching "${input.task}".`;
+        const okGo=await _aiConfirm(`Delete the task "${t.text}"?`,'This cannot be undone.');
+        if(!okGo) return `Kept "${t.text}".`;
+        S.tasks=S.tasks.filter(x=>String(x.id)!==String(t.id));
+        _aiRefresh(); try{ hmRenderTodoMini(); }catch(e){}
+        return `\u2705 Deleted "${t.text}".`;
+      }
+
+      /* ── Sleep ──────────────────────────────────────────────── */
+      case 'log_sleep':{
+        const bed=input.bed, wake=input.wake, date=input.date||todayStr;
+        if(!/^\d{1,2}:\d{2}$/.test(bed||'')||!/^\d{1,2}:\d{2}$/.test(wake||''))
+          return '\u26a0\ufe0f Times need to be HH:MM in 24-hour form.';
+        const sc=slpScoreOf(bed,wake,date);
+        S.sleepLog=S.sleepLog.filter(e=>e.date!==date);
+        S.sleepLog.unshift({date,bed,wake,hrs:+sc.hrs.toFixed(2),total:sc.total,
+          grade:sc.grade,label:sc.label,colorVar:sc.colorVar,colorHex:sc.colorHex,stars:sc.stars});
+        S.sleepLog.sort((a,b)=>b.date.localeCompare(a.date));
+        _aiRefresh();
+        try{ slpRenderHist(); slpDrawChart(); slpUpdateKPIs(); }catch(e){}
+        return `\u2705 Logged ${date}: ${bed}\u2192${wake}, ${sc.hrs.toFixed(1)}h, score ${sc.total} (${sc.label}).`;
+      }
+      case 'delete_sleep':{
+        const d=input.date;
+        if(!S.sleepLog.some(e=>e.date===d)) return `\u26a0\ufe0f Nothing logged for ${d}.`;
+        const okGo=await _aiConfirm(`Delete the night of ${d}?`,'This cannot be undone.');
+        if(!okGo) return `Kept ${d}.`;
+        S.sleepLog=S.sleepLog.filter(e=>e.date!==d);
+        _aiRefresh();
+        try{ slpRenderHist(); slpDrawChart(); slpUpdateKPIs(); }catch(e){}
+        return `\u2705 Removed ${d}.`;
+      }
+
+      /* ── Journal ────────────────────────────────────────────── */
+      case 'write_journal':{
+        const d=input.date||todayStr;
+        const cur=diarEntries[d]||diarMakeEntry();
+        cur.text = input.append && cur.text ? (cur.text+'\n\n'+input.text) : input.text;
+        if(input.mood)      cur.mood=input.mood;
+        if(input.gratitude) cur.gratitude=input.gratitude;
+        if(input.highlight) cur.highlight=input.highlight;
+        diarEntries[d]=cur;
+        diarSave();
+        try{ if(typeof diarRender==='function') diarRender(); }catch(e){}
+        return `\u2705 ${input.append?'Added to':'Wrote'} the journal for ${d}.`;
+      }
+      case 'read_journal':{
+        const d=input.date||todayStr;
+        const e=diarEntries[d];
+        if(!e || !((e.text||'').trim())) return `Nothing written for ${d}.`;
+        return `Journal for ${d}:\n${e.text}` +
+          (e.mood?`\nMood: ${e.mood}`:'') + (e.gratitude?`\nGrateful for: ${e.gratitude}`:'');
+      }
+
+      /* ── Focus timer ────────────────────────────────────────── */
+      case 'focus_timer':{
+        const bits=[];
+        if(input.minutes){
+          const m=Math.max(1,Math.min(180,Math.round(input.minutes)));
+          pmDur.work=m; const f=document.getElementById('cfg-w'); if(f) f.value=m;
+          if(!pmOn){ pmSecs=m*60; try{ updPM(); }catch(e){} }
+          bits.push(`work set to ${m} min`);
         }
-        if(!habit) return `⚠️ Could not find that habit.`;
-        const key=`${habit.id}_${date}`;
-        if(input.done!==false) S.checks[key]=true; else delete S.checks[key];
-        save(); buildGrid(); renderHome();
-        if(input.done!==false) _maybeCelebrateDay();
-        return `✅ Marked "${habit.emoji} ${habit.name}" as ${input.done!==false?'done ✅':'not done ❌'} on ${date}.`;
+        if(input.habit!==undefined){
+          const h=_aiFindHabit(input.habit);
+          if(h){ S.pomoHabit=h.id; try{ pmRenderHabitPicker(); }catch(e){} bits.push(`linked to ${h.emoji} ${h.name}`); }
+          else bits.push(`no habit matching "${input.habit}"`);
+        }
+        if(input.action==='start' && !pmOn) pmToggle();
+        else if(input.action==='pause' && pmOn) pmToggle();
+        else if(input.action==='reset') pmReset();
+        if(input.action) bits.push(input.action==='start'?'started':input.action==='pause'?'paused':'reset');
+        save();
+        return `\u2705 Focus timer: ${bits.join(', ')||'no change'}.`;
       }
+
+      /* ── Settings ───────────────────────────────────────────── */
+      case 'set_setting':{
+        const v=String(input.value||'').toLowerCase();
+        const on = v==='on'||v==='true'||v==='yes';
+        switch(input.setting){
+          case 'theme':
+            applyTheme(v==='dark');
+            { const t=document.getElementById('thm'); if(t) t.checked=(v==='dark'); }
+            break;
+          case 'gamification':  S.gamify = on; break;
+          case 'glance_strip':  S.ovOpen = on; try{ applyOverviewState(); }catch(e){} break;
+          case 'delete_confirm':S.aiSkipConfirm = !on; break;
+          case 'sleep_age':{
+            const n=parseInt(v,10);
+            if(!(n>=1&&n<=120)) return '\u26a0\ufe0f Age needs to be between 1 and 120.';
+            S.sleepAge=n; break;
+          }
+          default: return `\u26a0\ufe0f Unknown setting.`;
+        }
+        _aiRefresh(); try{ renderSettings(); }catch(e){}
+        return `\u2705 ${input.setting.replace('_',' ')} set to ${input.value}.`;
+      }
+      case 'show_page':{
+        if(pageLocked(input.page)) return `\u26a0\ufe0f ${input.page} is core to the app and always stays.`;
+        S.hiddenPages=S.hiddenPages||{};
+        if(input.visible) delete S.hiddenPages[input.page]; else S.hiddenPages[input.page]=1;
+        save(); applyPageVisibility(); try{ renderSettings(); }catch(e){}
+        return `\u2705 ${input.page} is now ${input.visible?'visible':'hidden'}.`;
+      }
+
+      /* ── Navigation ─────────────────────────────────────────── */
       case 'navigate_to':{
-        const p=input.page;
-        // Use ID-based lookup (robust) with fallback to data-attribute search
-        const btn=document.getElementById('sni-'+p)||
-                  document.querySelector(`.sni[onclick*=\'${p}\']`)||
-                  document.querySelector(`.sni[onclick*="${p}"]`);
-        goPage(p,btn);
-        return `✅ Navigated to ${p}.`;
+        const pg=input.page;
+        goPage(pg, document.getElementById('sni-'+pg));
+        return `\u2705 Opened ${pg}.`;
       }
+
       default:
-        return `⚠️ Unknown tool: ${name}`;
+        return `\u26a0\ufe0f Unknown tool: ${name}`;
     }
   }catch(e){
-    return `⚠️ Error executing ${name}: ${e.message}`;
+    return `\u26a0\ufe0f ${name} failed: ${e.message}`;
   }
 }
+
 
 /* ── AI transport ───────────────────────────────────────────────────────
    The two send paths (floating panel + full page) each hand-rolled this
@@ -8849,6 +9231,10 @@ function _aiBusyState(on){
 
 /* Main send function */
 async function aiSend(userMsg){
+  const _aiActs=[];   // what this turn actually changed
+  /* Captured before any navigate_to tool runs, so the history records
+     where the user asked from rather than where they ended up. */
+  const _aiFromPage=(document.querySelector('.page.on')||{id:'pg-home'}).id.replace('pg-','');
   if(_aiBusy||!userMsg.trim()) return;
 
   const inp=document.getElementById('ai-inp');
@@ -8860,7 +9246,19 @@ async function aiSend(userMsg){
 
   _aiMsgs.push({role:'user',content:userMsg});
 
-  const systemPrompt=`You are Successor Vision AI, a brilliant personal productivity assistant embedded inside the "Successor Vision" habit tracker app. You have real-time access to all the user's data and full control over the app.
+  const systemPrompt=`You are Successor Vision AI, the assistant built into the Successor Vision app. You can read all of the user's data and you have real control of the app through your tools.
+
+HOW TO ACT
+- Just do it. If the user asks you to add, edit, tick, log, write or change something, call the tool and report what you did. Do not ask for permission first and do not offer to do it - do it.
+- Deleting is the one exception: those tools show the user a confirmation themselves. Call the tool anyway; the app handles the asking. If the result says the user declined, accept that without arguing.
+- Chain tools freely to finish a request in one go.
+- If something is ambiguous, pick the most reasonable reading and say what you assumed. Only ask when you genuinely cannot proceed.
+
+WHAT YOU CANNOT DO
+You have no tools for signing in or out, changing a password, deleting the account, or wiping all data, and you must not claim otherwise. If asked, say plainly that those are the user's to do from the Profile page, and carry on with anything else they wanted.
+
+TONE
+Direct and warm. Short sentences. No filler, no hype, no congratulating the user for existing. When you report an action, say what changed in plain words.
 
 ${_aiContext()}
 
@@ -8894,7 +9292,8 @@ RESPONSE STYLE:
         // Execute each tool
         const results=[];
         for(const tu of toolBlocks){
-          const result=_aiExecTool(tu.name,tu.input);
+          const result=await _aiExecTool(tu.name,tu.input);
+          _aiActs.push({name:tu.name,input:tu.input,result:String(result)});
           actionsDone.push(result);
           results.push({type:'tool_result',tool_use_id:tu.id,_name:tu.name,content:result});
         }
@@ -8916,6 +9315,7 @@ RESPONSE STYLE:
         _aiAddMsg('bot','Done!',actionsDone.join(' | '));
         _aiMsgs.push({role:'assistant',content:'Done!'});
       }
+      _aiLog(_aiFromPage, userMsg, _aiActs, finalText);
       break;
     }
   }catch(err){
@@ -8996,6 +9396,7 @@ function _aiPageBusyState(on){
 }
 
 async function aiPageSend(userMsg){
+  const _aiActs=[];   // what this turn actually changed
   if(_aiPageBusy || !userMsg.trim()) return;
   const inp = document.getElementById('ai-page-inp');
   inp.value = ''; inp.style.height = 'auto';
@@ -9004,7 +9405,19 @@ async function aiPageSend(userMsg){
   _aiPageShowTyping();
   _aiPageMsgs.push({role:'user', content: userMsg});
 
-  const systemPrompt = `You are Successor Vision AI, a brilliant personal productivity assistant embedded inside the "Successor Vision" habit tracker app. You have real-time access to all the user's data and full control over the app.
+  const systemPrompt = `You are Successor Vision AI, the assistant built into the Successor Vision app. You can read all of the user's data and you have real control of the app through your tools.
+
+HOW TO ACT
+- Just do it. If the user asks you to add, edit, tick, log, write or change something, call the tool and report what you did. Do not ask for permission first and do not offer to do it - do it.
+- Deleting is the one exception: those tools show the user a confirmation themselves. Call the tool anyway; the app handles the asking. If the result says the user declined, accept that without arguing.
+- Chain tools freely to finish a request in one go.
+- If something is ambiguous, pick the most reasonable reading and say what you assumed. Only ask when you genuinely cannot proceed.
+
+WHAT YOU CANNOT DO
+You have no tools for signing in or out, changing a password, deleting the account, or wiping all data, and you must not claim otherwise. If asked, say plainly that those are the user's to do from the Profile page, and carry on with anything else they wanted.
+
+TONE
+Direct and warm. Short sentences. No filler, no hype, no congratulating the user for existing. When you report an action, say what changed in plain words.
 
 ${_aiContext()}
 
@@ -9035,7 +9448,8 @@ RESPONSE STYLE:
       if(toolBlocks.length>0){
         const results = [];
         for(const tu of toolBlocks){
-          const result = _aiExecTool(tu.name, tu.input);
+          const result = await _aiExecTool(tu.name, tu.input);
+          _aiActs.push({name:tu.name,input:tu.input,result:String(result)});
           actionsDone.push(result);
           results.push({type:'tool_result',tool_use_id:tu.id,_name:tu.name,content:result});
         }
@@ -9054,6 +9468,7 @@ RESPONSE STYLE:
         _aiPageAddMsg('bot','Done!', actionsDone.join(' | '));
         _aiPageMsgs.push({role:'assistant', content:'Done!'});
       }
+      _aiLog('ai', userMsg, _aiActs, finalText);
       break;
     }
   }catch(err){
