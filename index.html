@@ -23,6 +23,7 @@
 }
 [data-theme="light"]{
   --bg:#f4f2ed;--surface:#fffdf9;--surface2:#faf7f1;--surface3:#efebe3;
+  --wk-band:rgba(0,0,0,.028);
   --border:#e7e2d8;--border2:#d6cfc2;
   --text:#191612;--text2:#5d574d;--text3:#615a50;--text4:#cbc4b7;
   --accent:#4f46e5;--accent-dim:rgba(79,70,229,.1);--accent-h:#4338ca;
@@ -65,6 +66,7 @@
 }
 [data-theme="dark"]{
   --bg:#100e0c;--surface:#221e1a;--surface2:#2a2521;--surface3:#332d27;
+  --wk-band:rgba(255,255,255,.035);
   --border:#3d352e;--border2:#4d443b;
   --text:#f0eae0;--text2:#a89e90;--text3:#a69c8e;--text4:#3a342e;
   /* One shade darker than #6366f1 so white text on accent-filled buttons clears
@@ -664,9 +666,9 @@ button,input,select{font-family:'Outfit',sans-serif}
 .dash-hd{background:var(--surface);border-bottom:1px solid var(--border);
   padding:20px 28px;flex-shrink:0;display:flex;align-items:center;
   justify-content:space-between;gap:20px;box-shadow:var(--shadow)}
-.dh-l{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.dh-l{display:flex;align-items:center;flex-shrink:0}
 .dh-l-txt{display:flex;flex-direction:column;gap:3px}
-.dh-nav{display:flex;gap:6px}
+.dh-nav{display:flex;gap:6px;margin-right:4px}
 .dh-title{font-size:22px;font-weight:800;letter-spacing:-.3px;line-height:1}
 .dh-sub{font-size:13px;color:var(--text2)}
 .dh-mid{flex:1;display:flex;flex-direction:column;align-items:center;
@@ -772,6 +774,14 @@ button,input,select{font-family:'Outfit',sans-serif}
 [data-theme="dark"] .ctd.tb{background:rgba(99,102,241,.12);border-left-color:rgba(99,102,241,.3)!important;border-right-color:rgba(99,102,241,.3)!important}
 .stats-today{background:rgba(79,70,229,.08)!important;border-left:2px solid rgba(79,70,229,.25)!important;border-right:2px solid rgba(79,70,229,.25)!important}
 [data-theme="dark"] .stats-today{background:rgba(99,102,241,.12)!important;border-left-color:rgba(99,102,241,.3)!important;border-right-color:rgba(99,102,241,.3)!important}
+/* Alternating band so each week reads as its own block. The :not()
+   guards keep today's highlight and the hover state winning without
+   depending on source order. */
+.wkth.wkb,.dth.wkb:not(.td),
+.ctd.wkb:not(.tb):not(:hover),
+.stats-val-td.wkb:not(.stats-today){background:var(--wk-band)}
+.wkth.stub{color:transparent}
+
 .ctd:hover{background:var(--surface3)}
 .ctd.fut{cursor:default}
 .ctd.fut:hover{background:transparent}
@@ -2380,7 +2390,62 @@ canvas{max-width:100%}
    A chat surface, not a page with a chatbot bolted on. One column, a
    dock that owns the bottom, and prompts that exist only until the
    conversation starts. */
-#pg-ai{flex-direction:column;background:var(--bg)}
+#pg-ai{flex-direction:row;background:var(--bg)}
+.aip-main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* Width animates to 0 rather than display:none, so closing reads as a
+   panel sliding away instead of the layout snapping. */
+.aip-rail{width:252px;flex-shrink:0;background:var(--surface2);
+  border-right:1px solid var(--border);overflow:hidden;
+  transition:width .22s cubic-bezier(.4,0,.2,1)}
+/* border-width, not just the colour: a transparent 1px border still
+   occupies a pixel, which left a sliver where the closed rail had been. */
+.aip-rail.closed{width:0;border-right-width:0}
+.aip-rail-in{width:252px;height:100%;display:flex;flex-direction:column;padding:12px 10px}
+.aip-rail-new{display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-md);
+  background:var(--surface);color:var(--text);font-family:'Outfit',sans-serif;
+  font-size:13px;font-weight:600;cursor:pointer;transition:all .16s;
+  box-shadow:var(--shadow);flex-shrink:0}
+.aip-rail-new:hover{border-color:var(--accent);color:var(--accent-txt);background:var(--accent-dim)}
+.aip-rail-ttl{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;
+  color:var(--text3);padding:15px 8px 5px;flex-shrink:0}
+.aip-rail-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:2px;
+  margin:0 -4px;padding:0 4px}
+
+.aip-conv{display:flex;align-items:center;gap:6px;width:100%;
+  padding:8px 6px 8px 10px;border-radius:var(--r-sm);
+  cursor:pointer;transition:background .14s}
+.aip-conv:hover{background:var(--surface3)}
+.aip-conv.on{background:var(--accent-dim)}
+.aip-conv.on .aip-conv-t{color:var(--accent-txt);font-weight:600}
+.aip-conv-t{flex:1;min-width:0;font-family:'Outfit',sans-serif;font-size:12.5px;
+  color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aip-conv-x{flex-shrink:0;width:20px;height:20px;border:none;border-radius:var(--r-xs);
+  background:none;color:var(--text3);font-size:15px;line-height:1;cursor:pointer;
+  opacity:0;transition:opacity .14s,background .14s,color .14s}
+.aip-conv:hover .aip-conv-x,.aip-conv-x:focus-visible{opacity:1}
+.aip-conv-x:hover{background:var(--red-dim);color:var(--red-txt)}
+.aip-rail-empty{font-size:12px;color:var(--text3);line-height:1.55;padding:6px 8px}
+
+.aip-rail-btn{flex-shrink:0;width:30px;height:30px;display:flex;align-items:center;
+  justify-content:center;border:1px solid transparent;border-radius:var(--r-sm);
+  background:none;color:var(--text2);cursor:pointer;transition:all .16s}
+.aip-rail-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--border)}
+
+/* A phone cannot spare 252px, so there the rail floats over the chat
+   and a scrim closes it. */
+.aip-rail-scrim{display:none}
+@media (max-width:760px){
+  .aip-rail{position:absolute;top:0;bottom:0;left:0;z-index:32;box-shadow:var(--shadow3)}
+  .aip-rail.closed{box-shadow:none}
+  .aip-rail-scrim{display:block;position:absolute;inset:0;z-index:31;
+    background:rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .22s}
+  .aip-rail-scrim.on{opacity:1;pointer-events:auto}
+}
+@media (prefers-reduced-motion:reduce){
+  .aip-rail,.aip-rail-scrim{transition:none}
+}
 
 .aip-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:12px 22px;flex-shrink:0;border-bottom:1px solid var(--border);
@@ -2954,10 +3019,6 @@ canvas{max-width:100%}
         <div class="dh-title">Habit Tracker</div>
         <div class="dh-sub" id="dh-ml">November 2025</div>
       </div>
-      <div class="dh-nav">
-        <button class="ib" onclick="chMo(-1)" title="Previous month" aria-label="Previous month">‹</button>
-        <button class="ib" onclick="chMo(1)" title="Next month" aria-label="Next month">›</button>
-      </div>
     </div>
     <div class="dh-mid">
       <div class="dh-stats">
@@ -2979,11 +3040,15 @@ canvas{max-width:100%}
       </div>
     </div>
     <div class="dh-r">
-      <button class="cta" onclick="openMod()" title="Create a new habit to track" aria-label="Create a new habit"><span style="font-size:19px;line-height:1">+</span><span class="cta-lbl">New Habit</span></button>
       <button class="overview-toggle-btn is-collapsed" id="overview-toggle-btn" onclick="toggleDashOverview()" title="Show glanceable dashboard" aria-label="Toggle glanceable dashboard" aria-expanded="false">
         <span class="ot-icon">▲</span>
         <span class="ot-dot"></span>
       </button>
+      <div class="dh-nav">
+        <button class="ib" onclick="chMo(-1)" title="Previous month" aria-label="Previous month">‹</button>
+        <button class="ib" onclick="chMo(1)" title="Next month" aria-label="Next month">›</button>
+      </div>
+      <button class="cta" onclick="openMod()" title="Create a new habit to track" aria-label="Create a new habit"><span style="font-size:19px;line-height:1">+</span><span class="cta-lbl">New Habit</span></button>
     </div>
   </div>
   <div class="grid-legend-bar">
@@ -3757,8 +3822,29 @@ canvas{max-width:100%}
 </div>
 
 <div class="page" id="pg-ai">
+  <!-- Conversation rail. Collapses to zero width so the chat can have
+       the whole page when the history is not what you are looking at. -->
+  <aside class="aip-rail" id="aip-rail">
+    <div class="aip-rail-in">
+      <button class="aip-rail-new" onclick="aiPageClear()" title="Start a new conversation">
+        <span style="font-size:16px;line-height:1">+</span><span>New chat</span>
+      </button>
+      <div class="aip-rail-ttl">Recent</div>
+      <div class="aip-rail-list" id="aip-rail-list"></div>
+    </div>
+  </aside>
+  <div class="aip-rail-scrim" id="aip-rail-scrim" onclick="aiRailToggle(false)"></div>
+
+  <div class="aip-main">
   <div class="aip-bar">
     <div class="aip-bar-l">
+      <button class="aip-rail-btn" id="aip-rail-btn" onclick="aiRailToggle()"
+              title="Show or hide your conversations" aria-label="Toggle conversation history">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>
+        </svg>
+      </button>
       <span class="aip-bar-name">Successor Vision AI</span>
       <span class="aip-bar-state"><i class="ai-dot" id="ai-pg-dot"></i><span id="ai-pg-status-lbl">Ready</span></span>
     </div>
@@ -3810,6 +3896,7 @@ canvas{max-width:100%}
     </div>
     <div class="aip-note">It acts on your real data. Deletions ask first.</div>
   </div>
+  </div><!-- .aip-main -->
 </div>
 
 </div><!-- #main -->
@@ -4172,6 +4259,12 @@ function goPage(id,btn){
       _aipEmpty(true);
       aipTailorGreeting(_prevPageId);
     }
+    /* Closed by default on a phone, where it would cover the chat. */
+    const railOpen = (S.aiRailOpen===undefined) ? innerWidth>760 : !!S.aiRailOpen;
+    document.getElementById('aip-rail').classList.toggle('closed', !railOpen);
+    const scrim = document.getElementById('aip-rail-scrim');
+    if(scrim) scrim.classList.toggle('on', railOpen && innerWidth<=760);
+    renderAiChatList();
   } else {
     fab.style.display='';
   }
@@ -5465,26 +5558,35 @@ function buildGrid(){
   const co=document.createElement('th'); co.className='cth'; co.rowSpan=2;
   co.innerHTML='<div class="ci"><div class="c-my">MY</div><div class="c-sub">Habit or Task</div></div>';
   r1.appendChild(co);
+  /* A month rarely starts on a Sunday, so the first and last runs are
+     usually partial. Labelling a single day "Week 1" was wrong and it
+     pushed every real week's number up by one. Number the seven-day
+     weeks only; the short runs keep their real dates and are told
+     apart by the band instead of by a label. */
+  let wkNo=0;
   weeks.forEach((wk,wi)=>{
-    const t=document.createElement('th'); t.colSpan=wk.length; t.className='wkth';
-    t.textContent=`Week ${wi+1}`; r1.appendChild(t);
+    const t=document.createElement('th'); t.colSpan=wk.length;
+    t.className='wkth'+(wi%2?' wkb':'');
+    if(wk.length===7){ t.textContent=`Week ${++wkNo}`; }
+    else { t.classList.add('stub'); t.textContent=''; t.title='Part of a week that falls outside this month'; }
+    r1.appendChild(t);
   });
   th.appendChild(r1);
   const r2=document.createElement('tr'); r2.className='dhr';
   const all=[];
-  weeks.forEach((wk)=>{
+  weeks.forEach((wk,wi)=>{
     wk.forEach((d,di)=>{
       const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
       // Mark last day of week (Saturday=dow6) or last day of month as column separator
       const il=(d.dow===6||d.d===dim), it=ds===todayStr;
       const td=document.createElement('td');
-      td.className='dth'+(il?' wl':'')+(it?' td':'');
+      td.className='dth'+(il?' wl':'')+(it?' td':'')+(wi%2?' wkb':'');
       if(it){
         td.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span class="dd">${DS[d.dow]}</span><span class="dn">${d.d}</span></div>`;
       } else {
         td.innerHTML=`<span class="dd">${DS[d.dow]}</span><span class="dn">${d.d}</span>`;
       }
-      r2.appendChild(td); all.push({...d,ds,il});
+      r2.appendChild(td); all.push({...d,ds,il,wkb:!!(wi%2)});
     });
   });
   th.appendChild(r2);
@@ -5509,7 +5611,7 @@ function buildGrid(){
       const key=`${h.id}_${d.ds}`,cv=S.checks[key],fut=d.ds>todayStr,it=d.ds===todayStr;
       const st=cv===true?'done':cv==='x'?'missed':cv==='r'?'rest':'';
       const td=document.createElement('td');
-      td.className='ctd'+(d.il?' wl':'')+(fut?' fut':'')+(it?' tb':'');
+      td.className='ctd'+(d.il?' wl':'')+(fut?' fut':'')+(it?' tb':'')+(d.wkb?' wkb':'');
       td.innerHTML=`<div class="hcb${st?' '+st:''}" data-key="${key}"${fut?'':` onclick="hcbClick('${key}')" oncontextmenu="hcbSkip('${key}',event)" onpointerdown="hcbPtrDown('${key}',event)" onpointerup="hcbPtrUp('${key}')" onpointerleave="hcbPtrUp('${key}')" title="Tap: done   |   Double-tap: missed ✕   |   Long-press: rest day"`}></div>`;
       tr.appendChild(td);
     });
@@ -5528,7 +5630,7 @@ function buildGrid(){
     });
     const nd = total-done;
     const pct = d.ds>todayStr ? null : Math.round(done/total*100);
-    return {ds:d.ds,pct,done,nd,skipped,fut:d.ds>todayStr,il:d.il};
+    return {ds:d.ds,pct,done,nd,skipped,fut:d.ds>todayStr,il:d.il,wkb:d.wkb};
   });
 
   // Separator row
@@ -5553,7 +5655,7 @@ function buildGrid(){
     lbl.innerHTML=labelHTML; row.appendChild(lbl);
     dayStats.forEach(d=>{
       const td=document.createElement('td');
-      td.className='stats-val-td'+(d.il?' wl':'')+' '+extraCls;
+      td.className='stats-val-td'+(d.il?' wl':'')+(d.wkb?' wkb':'')+' '+extraCls;
       const {text, cls} = valFn(d);
       if(cls) td.classList.add(cls);
       if(d.ds===todayStr) td.classList.add('stats-today');
@@ -9210,7 +9312,10 @@ async function _aiExecTool(name, input){
         if(input.highlight) cur.highlight=input.highlight;
         diarEntries[d]=cur;
         diarSave();
-        try{ if(typeof diarRender==='function') diarRender(); }catch(e){}
+        /* diarRender() does not exist — the real one is diarRenderAll.
+           The typeof guard meant the journal page silently never
+           refreshed after the assistant wrote to it. */
+        try{ diarRenderAll(); }catch(e){}
         return `\u2705 ${input.append?'Added to':'Wrote'} the journal for ${d}.`;
       }
       case 'read_journal':{
@@ -9557,13 +9662,106 @@ function aiSendInput(){
 let _aiPageMsgs = [];
 let _aiPageBusy = false;
 
+/* ── Conversations ────────────────────────────────────────────────
+   _aiPageMsgs was in-memory only: New chat wiped it and a reload lost
+   it, so there was nothing for a rail to list. Threads now live in
+   S.aiChats, which persists and syncs with the account. Capped,
+   because this is history rather than an archive. */
+const AI_CHATS_MAX = 40;
+let _aiChatId = null;
+
+function _aiChats(){ return (S.aiChats = S.aiChats || []); }
+
+/* Creates the thread lazily on the first message, so an untouched
+   "New chat" never litters the list. */
+function _aiChatSave(){
+  if(!_aiPageMsgs.length) return;
+  let c = _aiChats().find(x=>x.id===_aiChatId);
+  if(!c){
+    c = {id:newId(), t:Date.now(), title:'', msgs:[]};
+    _aiChats().unshift(c);
+    _aiChatId = c.id;
+  }
+  c.msgs = _aiPageMsgs.slice();
+  c.t = Date.now();
+  if(!c.title){
+    const first = _aiPageMsgs.find(m=>m.role==='user');
+    c.title = first ? String(first.content).slice(0,70) : 'New chat';
+  }
+  const all = _aiChats();
+  if(all.length > AI_CHATS_MAX) all.length = AI_CHATS_MAX;
+  save();
+  renderAiChatList();
+}
+
+function renderAiChatList(){
+  const box = document.getElementById('aip-rail-list');
+  if(!box) return;
+  const all = _aiChats().slice().sort((a,b)=>b.t-a.t);
+  if(!all.length){
+    box.innerHTML = '<div class="aip-rail-empty">No conversations yet. Anything you ask here is saved so you can come back to it.</div>';
+    return;
+  }
+  box.innerHTML = all.map(c=>
+    '<div class="aip-conv'+(c.id===_aiChatId?' on':'')+'" onclick="aiChatOpen(&quot;'+c.id+'&quot;)" '+
+      'title="'+esc(c.title)+'">'+
+      '<span class="aip-conv-t">'+esc(c.title||'New chat')+'</span>'+
+      '<button class="aip-conv-x" onclick="aiChatDelete(&quot;'+c.id+'&quot;,event)" '+
+        'title="Delete this conversation" aria-label="Delete conversation">\u00d7</button>'+
+    '</div>').join('');
+}
+
+function aiChatOpen(id){
+  const c = _aiChats().find(x=>x.id===id);
+  if(!c) return;
+  _aiChatSave();                    // bank the one being left
+  _aiChatId = id;
+  _aiPageMsgs = (c.msgs||[]).slice();
+  const wrap = document.getElementById('ai-pg-msgs');
+  wrap.innerHTML = '';
+  _aipEmpty(!_aiPageMsgs.length);
+  _aiPageMsgs.forEach(m=>
+    _aiPageAddMsg(m.role==='assistant'?'bot':'user', m.content, m.note));
+  renderAiChatList();
+  if(innerWidth<=760) aiRailToggle(false);
+  const sc = document.getElementById('aip-scroll');
+  if(sc) sc.scrollTop = sc.scrollHeight;
+}
+
+function aiChatDelete(id, ev){
+  if(ev) ev.stopPropagation();
+  const c = _aiChats().find(x=>x.id===id);
+  if(!c) return;
+  _aiConfirm('Delete this conversation?',
+    '\u201c'+(c.title||'New chat')+'\u201d will be removed. This cannot be undone.'
+  ).then(yes=>{
+    if(!yes) return;
+    S.aiChats = _aiChats().filter(x=>x.id!==id);
+    save();
+    if(_aiChatId===id) aiPageClear(); else renderAiChatList();
+  });
+}
+
+function aiRailToggle(force){
+  const rail = document.getElementById('aip-rail');
+  if(!rail) return;
+  const open = (force===undefined) ? rail.classList.contains('closed') : !!force;
+  rail.classList.toggle('closed', !open);
+  const scrim = document.getElementById('aip-rail-scrim');
+  if(scrim) scrim.classList.toggle('on', open && innerWidth<=760);
+  S.aiRailOpen = open; save();
+}
+
 function aiPageGreet(pageId){
   const fn = _aiPageGreetings[pageId] || _aiPageGreetings.home;
   _aiPageAddMsg('bot', fn());
 }
 
 function aiPageClear(){
+  _aiChatSave();                    // bank the thread before leaving it
+  _aiChatId = null;
   _aiPageMsgs = [];
+  renderAiChatList();
   document.getElementById('ai-pg-msgs').innerHTML = '';
   _aipEmpty(true);                      // back to a blank slate
   aipTailorGreeting(_prevPageId);
@@ -9692,7 +9890,8 @@ RESPONSE STYLE:
 • IMPORTANT: For delete_habit, always confirm with the user first — deletion is permanent and removes all history`;
 
   try{
-    let msgs = [..._aiPageMsgs];
+    // `note` is display-only; it must not go to the model.
+    let msgs = _aiPageMsgs.map(m=>({role:m.role, content:m.content}));
     const actionsDone = [];
     for(let turn=0; turn<8; turn++){   // capped, see aiSend
       const data = await _aiFetch(systemPrompt,msgs);
@@ -9716,12 +9915,14 @@ RESPONSE STYLE:
       if(finalText){
         const note = actionsDone.length ? actionsDone.join(' | ') : null;
         _aiPageAddMsg('bot', finalText, note);
-        _aiPageMsgs.push({role:'assistant', content: finalText});
+        _aiPageMsgs.push({role:'assistant', content: finalText, note});
       } else if(actionsDone.length){
-        _aiPageAddMsg('bot','Done!', actionsDone.join(' | '));
-        _aiPageMsgs.push({role:'assistant', content:'Done!'});
+        const n = actionsDone.join(' | ');
+        _aiPageAddMsg('bot','Done!', n);
+        _aiPageMsgs.push({role:'assistant', content:'Done!', note:n});
       }
       _aiLog('ai', userMsg, _aiActs, finalText);
+      _aiChatSave();
       break;
     }
   }catch(err){

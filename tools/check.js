@@ -85,13 +85,29 @@ for (const doc of docs) {
      A rename or a partly-applied edit can leave call sites pointing at a
      deleted helper. Syntax still parses; it throws the moment that path
      runs. This caught three dead helpers after a refactor. */
-  const allCode = scripts.join('\n');
+  /* Comments are prose, not code. Scanning them reported three calls to
+     toISOString() that were only ever mentioned in notes about a bug. */
+  const allCode = scripts.join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:\\])\/\/[^\n]*/g, '$1');   // spare the // in http://
   const defined = new Set();
   for (const re of [/function\s+([A-Za-z_$][\w$]*)\s*\(/g,
                     /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function|\([^)]*\)\s*=>)/g,
-                    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?[A-Za-z_$][\w$]*\s*=>/g]) {
+                    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?[A-Za-z_$][\w$]*\s*=>/g,
+                    // object-literal methods: `add(o){...}` / `list(){...}`
+                    /(?:^|[{,]\s*)([A-Za-z_$][\w$]*)\s*\([^)]*\)\s*\{/gm]) {
     for (const m of allCode.matchAll(re)) defined.add(m[1]);
   }
+  /* Anything ever named as a parameter is bound at call time, so a call
+     to it is not dead. `valFn` — a callback passed into mkStatsRow —
+     was flagged until this went in. */
+  for (const m of allCode.matchAll(/(?:function\s*[\w$]*\s*|=>\s*|\(\s*)\(?([^()]{0,200}?)\)\s*(?:=>|\{)/g)) {
+    for (const part of m[1].split(',')) {
+      const name = part.trim().replace(/[=:].*$/, '').replace(/^\.\.\./, '').trim();
+      if (/^[A-Za-z_$][\w$]*$/.test(name)) defined.add(name);
+    }
+  }
+
   // project-local helpers only: our own naming, not builtins or libraries
   const localCall = /(?<![\w.$])(_[A-Za-z]\w*|[a-z]{2,}[A-Z]\w*)\s*\(/g;
   const missing = new Map();
@@ -99,13 +115,35 @@ for (const doc of docs) {
     const fn = m[1];
     if (defined.has(fn)) continue;
     if (/^(if|for|while|switch|catch|return|typeof|function|await|new)$/.test(fn)) continue;
-    // skip anything that exists as a property or global elsewhere
-    if (new RegExp(`[.\w]${fn}\s*[=:]`).test(allCode)) continue;
+    /* Property or method anywhere in the file. The char class here used
+       to be written `[.\w]` inside a template literal, where \w collapses
+       to a bare w — so it only ever matched ".foo=" or "wfoo=", and every
+       method name leaked through. */
+    if (new RegExp(`[.\\w]${fn}\\s*[=:]`).test(allCode)) continue;
+    if (new RegExp(`[.?]\\s*${fn}\\s*\\(`).test(allCode)) continue;   // x.toFixed(2)
     if (typeof globalThis[fn] !== 'undefined') continue;
     missing.set(fn, (missing.get(fn) || 0) + 1);
   }
-  // only flag names that look like ours and are never defined anywhere
-  const dead = [...missing.keys()].filter(fn => fn.startsWith('_') && !allCode.includes(`${fn} =`));
+
+  /* Names that look like calls but are not. Browser globals node has no
+     idea about, plus CSS functions that live inside style strings. */
+  const NOT_OURS = new Set([
+    'requestAnimationFrame', 'cancelAnimationFrame', 'requestIdleCallback',
+    'getComputedStyle', 'matchMedia', 'getSelection', 'scrollTo', 'scrollBy',
+    'createImageBitmap', 'queueMicrotask', 'structuredClone', 'reportError',
+    'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval',
+    // CSS, not JS
+    'scaleX', 'scaleY', 'scale3d', 'translateX', 'translateY', 'translate3d',
+    'rotateX', 'rotateY', 'rotateZ', 'skewX', 'skewY', 'linearGradient',
+    'radialGradient', 'dropShadow', 'cubicBezier', 'colorMix'
+  ]);
+
+  /* Was `fn.startsWith('_')` only, which is how a call to a function I
+     had simply invented — svConfirm(), no underscore — reached the
+     browser and threw. Any camelCase name that nothing in the file
+     defines is just as dead as an underscored one. */
+  const dead = [...missing.keys()].filter(fn =>
+    !NOT_OURS.has(fn) && !allCode.includes(`${fn} =`));
   if (dead.length) dead.forEach(fn => fail(`calls ${fn}() x${missing.get(fn)} but nothing defines it`));
   else pass('no calls to undefined local helpers');
 
