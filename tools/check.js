@@ -81,6 +81,34 @@ for (const doc of docs) {
       (guarded ? ` (${guarded} guarded)` : '') + (dynamic ? ` (${dynamic} built at runtime)` : ''));
   }
 
+  /* ---------- 2b. no calls to functions that no longer exist ----------
+     A rename or a partly-applied edit can leave call sites pointing at a
+     deleted helper. Syntax still parses; it throws the moment that path
+     runs. This caught three dead helpers after a refactor. */
+  const allCode = scripts.join('\n');
+  const defined = new Set();
+  for (const re of [/function\s+([A-Za-z_$][\w$]*)\s*\(/g,
+                    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?(?:function|\([^)]*\)\s*=>)/g,
+                    /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?[A-Za-z_$][\w$]*\s*=>/g]) {
+    for (const m of allCode.matchAll(re)) defined.add(m[1]);
+  }
+  // project-local helpers only: our own naming, not builtins or libraries
+  const localCall = /(?<![\w.$])(_[A-Za-z]\w*|[a-z]{2,}[A-Z]\w*)\s*\(/g;
+  const missing = new Map();
+  for (const m of allCode.matchAll(localCall)) {
+    const fn = m[1];
+    if (defined.has(fn)) continue;
+    if (/^(if|for|while|switch|catch|return|typeof|function|await|new)$/.test(fn)) continue;
+    // skip anything that exists as a property or global elsewhere
+    if (new RegExp(`[.\w]${fn}\s*[=:]`).test(allCode)) continue;
+    if (typeof globalThis[fn] !== 'undefined') continue;
+    missing.set(fn, (missing.get(fn) || 0) + 1);
+  }
+  // only flag names that look like ours and are never defined anywhere
+  const dead = [...missing.keys()].filter(fn => fn.startsWith('_') && !allCode.includes(`${fn} =`));
+  if (dead.length) dead.forEach(fn => fail(`calls ${fn}() x${missing.get(fn)} but nothing defines it`));
+  else pass('no calls to undefined local helpers');
+
   /* ---------- 3. balanced divs ---------- */
   const opens = (body.match(/<div\b/g) || []).length;
   const closes = (body.match(/<\/div>/g) || []).length;
