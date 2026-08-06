@@ -669,14 +669,18 @@ button,input,select{font-family:'Outfit',sans-serif}
 .dh-nav{display:flex;gap:6px}
 .dh-title{font-size:22px;font-weight:800;letter-spacing:-.3px;line-height:1}
 .dh-sub{font-size:13px;color:var(--text2)}
-.dh-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:28px;min-width:0}
-.sblk{display:flex;flex-direction:column;align-items:center;gap:2px}
-.sbl{font-size:11.5px;font-weight:700;letter-spacing:0.7px;text-transform:uppercase;color:var(--text3)}
-.sbv{font-size:28px;font-weight:800;line-height:1}
-/* Progress is the one number that answers "how am I doing", so it gets
-   the middle and the width rather than a hairline wedged between two
-   stat blocks. */
-.prog-wrap{display:flex;flex-direction:column;gap:5px;flex:1;min-width:220px;max-width:460px}
+.dh-mid{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;min-width:0}
+.sblk{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:74px}
+.sbl{font-size:10.5px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;
+  color:var(--text3);white-space:nowrap}
+.sbv{font-size:34px;font-weight:800;line-height:1;letter-spacing:-1.2px;
+  font-variant-numeric:tabular-nums}
+/* The reference put the two counts side by side with progress running
+   underneath them, which reads as one block answering "where am I"
+   rather than three things competing. */
+.dh-stats{display:flex;align-items:flex-end;justify-content:center;gap:34px}
+.prog-wrap{display:flex;flex-direction:column;gap:5px;width:100%;max-width:460px}
 .prog-row{display:flex;align-items:center;gap:12px}
 .prog-lbl{font-size:12.5px;font-weight:600;color:var(--text2);flex-shrink:0}
 .prog-bar{flex:1;height:12px;background:var(--prog-bg);border-radius:var(--r-pill);overflow:hidden}
@@ -1773,6 +1777,10 @@ button,input,select{font-family:'Outfit',sans-serif}
 .diar-hab-btn:hover{background:#faf5ee}
 [data-theme="dark"] .diar-hab-btn:hover{background:rgba(196,152,82,0.12)}
 .diar-hab-btn.diar-done{background:#e8f4e8;border-color:#8fbc8f;color:#3a6b3a}
+.diar-hab-btn.diar-missed{background:var(--red-dim);border-color:var(--red);color:var(--red-txt)}
+.diar-hab-btn.diar-rest{background:var(--surface3);border-color:var(--border2);
+  color:var(--text2);border-style:dashed}
+.diar-hab-none{grid-column:1/-1;font-size:12.5px;line-height:1.55;color:var(--diary-muted)}
 [data-theme="dark"] .diar-hab-btn.diar-done{background:rgba(34,197,94,0.1);border-color:#3a6b3a;color:#4ade80}
 .diar-hab-chk{width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
@@ -2227,18 +2235,15 @@ canvas{max-width:100%}
   .sw-left{flex:none;min-width:0;border-right:none;border-bottom:1px solid var(--border)}
   .sw-right{flex:none;overflow:visible}
 
-  /* Dashboard header: let the centre group shrink rather than force the bar wide. */
-  .dh-mid{flex:1 1 100%;min-width:0;flex-wrap:wrap;gap:12px}
-  .dh-l,.dh-r{min-width:0}
-
   #hm-hab-list,#hm-mo-list{grid-template-columns:1fr}
   .diar-extras-grid,.diar-hab-grid{grid-template-columns:1fr}
   .sci-age-row{grid-template-columns:1fr 56px 56px 56px;gap:6px}
 
-  /* Header bar: title + month nav + stat pills + toggle on one row was too
-     wide. Let it wrap to a second row instead of clipping. */
+  /* The centre group is a compact stack now, so it stays inline here and
+     only takes its own row at 820px. Let it compress instead of wrap. */
   .dash-hd{flex-wrap:wrap;gap:12px;padding:14px 18px}
-  .dh-mid{flex:1 1 100%;min-width:0;flex-wrap:wrap;gap:12px}
+  .dh-mid{min-width:0}
+  .dh-stats{gap:24px}
   .dh-l,.dh-r{min-width:0}
   .dov-top{flex-wrap:wrap;gap:6px}
 
@@ -2248,13 +2253,21 @@ canvas{max-width:100%}
   .slp-hr-bar-w{flex:1 1 100%;order:5}
 }
 
-@media (max-width:1100px){ .prog-wrap{min-width:150px} }
+@media (max-width:1100px){ .prog-wrap{max-width:340px} }
+@media (max-width:980px){ .prog-wrap{max-width:250px} .dh-title{font-size:19px} }
 @media (max-width:820px){
-  .dash-hd{flex-wrap:wrap;gap:12px}
-  .dh-l{flex:1 1 100%}
-  .dh-mid{flex:1 1 100%;justify-content:flex-start;gap:20px}
-  .dh-r{flex:1 1 100%;justify-content:flex-end}
-  .prog-wrap{max-width:none}
+  .dash-hd{flex-wrap:wrap;gap:10px 12px}
+  /* flex-grow here ate the free space and pushed the actions onto a
+     third row. Hug the content and let margin do the pushing. */
+  .dh-l{flex:0 1 auto;min-width:0}
+  .dh-r{flex:0 0 auto;order:2;margin-left:auto}
+  /* Counts beside the bar rather than above it: on a phone the scarce
+     axis is vertical, so this row costs 44px instead of 74px. */
+  .dh-mid{flex:1 1 100%;order:3;flex-direction:row;align-items:center;
+    justify-content:flex-start;flex-wrap:wrap;gap:10px 22px}
+  .dh-stats{gap:22px}
+  .prog-wrap{flex:1 1 200px;max-width:none;width:auto}
+  .sbv{font-size:27px}
 }
 @media (max-width:1000px){ .ai-page-left{display:none} }
 @media (max-width:620px){
@@ -2506,6 +2519,34 @@ canvas{max-width:100%}
   cursor:pointer;box-shadow:var(--elev-accent-sm);transition:background .18s}
 .tour-next:hover{background:var(--accent-h)}
 @media (prefers-reduced-motion:reduce){ .tour-card{animation:none} }
+
+/* The legend explains the cells, so it sits with the cells. In the
+   header it competed with the headline numbers for the same glance. */
+.grid-legend-bar{display:flex;justify-content:flex-end;padding:8px 24px 0;
+  background:var(--surface);flex-shrink:0}
+.grid-legend-bar .hcb-legend{margin-right:0}
+/* Under ~480px the label is what pushes the actions onto a third row.
+   The + and the tooltip carry the meaning on their own. */
+@media (max-width:480px){
+  .cta-lbl{display:none}
+  .cta{padding:0 13px}
+  /* Title, arrows and both actions come to 299px against 284px of room.
+     Reclaiming the gaps and side padding buys the 15px and keeps the
+     header at two rows instead of three. */
+  .dash-hd{padding:12px 10px;gap:10px 8px}
+  .dh-l{gap:8px}
+  .dh-r{gap:6px}
+  .dh-nav{gap:4px}
+  .dh-title{font-size:18px}
+  .dh-sub{font-size:12px}
+  .sbv{font-size:24px}
+  .dh-stats{gap:18px}
+  .sblk{min-width:0}
+}
+@media (max-width:820px){
+  .grid-legend-bar{justify-content:flex-start;padding:8px 14px 0}
+  .grid-legend-bar .hcb-legend{flex-wrap:wrap;gap:6px 12px;font-size:10.5px}
+}
 
 /* ── HABIT GRID: PINNED COLUMN WIDTH ──────────────────────────────
    The name column was a hard 200px. On a 380px phone the scroll area is
@@ -2919,13 +2960,15 @@ canvas{max-width:100%}
       </div>
     </div>
     <div class="dh-mid">
-      <div class="sblk">
-        <div class="sbl">Number of Habits</div>
-        <div class="sbv" id="s-tot">0</div>
-      </div>
-      <div class="sblk">
-        <div class="sbl">Done Today</div>
-        <div class="sbv" id="s-don">0</div>
+      <div class="dh-stats">
+        <div class="sblk">
+          <div class="sbl">Habits</div>
+          <div class="sbv" id="s-tot">0</div>
+        </div>
+        <div class="sblk">
+          <div class="sbl">Done Today</div>
+          <div class="sbv" id="s-don">0</div>
+        </div>
       </div>
       <div class="prog-wrap">
         <div class="prog-row">
@@ -2936,16 +2979,18 @@ canvas{max-width:100%}
       </div>
     </div>
     <div class="dh-r">
-      <div class="hcb-legend" aria-hidden="true">
-        <span><i class="lg-done"></i>Tap · Done</span>
-        <span><i class="lg-missed"></i>Double-tap · Missed</span>
-        <span><i class="lg-rest"></i>Long-press · Rest</span>
-      </div>
-      <button class="cta" onclick="openMod()" title="Create a new habit to track"><span style="font-size:19px;line-height:1">+</span>New Habit</button>
+      <button class="cta" onclick="openMod()" title="Create a new habit to track" aria-label="Create a new habit"><span style="font-size:19px;line-height:1">+</span><span class="cta-lbl">New Habit</span></button>
       <button class="overview-toggle-btn is-collapsed" id="overview-toggle-btn" onclick="toggleDashOverview()" title="Show glanceable dashboard" aria-label="Toggle glanceable dashboard" aria-expanded="false">
         <span class="ot-icon">▲</span>
         <span class="ot-dot"></span>
       </button>
+    </div>
+  </div>
+  <div class="grid-legend-bar">
+    <div class="hcb-legend" aria-hidden="true">
+      <span><i class="lg-done"></i>Tap · Done</span>
+      <span><i class="lg-missed"></i>Double-tap · Missed</span>
+      <span><i class="lg-rest"></i>Long-press · Rest</span>
     </div>
   </div>
   <div id="gscroll">
@@ -3596,7 +3641,7 @@ canvas{max-width:100%}
         <div class="diar-stat-row"><span>Mood today</span><span class="diar-stat-val" id="diar-stat-mood">—</span></div>
       </div>
       <div class="diar-card diar-fade">
-        <div class="diar-panel-label">Today's Habits</div>
+        <div class="diar-panel-label" title="Your habits from the Habit Tracker, for the day this entry is about. Ticking here ticks there too.">Habits This Day</div>
         <div class="diar-hab-grid" id="diar-left-habits"></div>
       </div>
     </div>
@@ -3667,7 +3712,7 @@ canvas{max-width:100%}
         <div class="diar-date-sub" id="diar-date-wd3"></div>
       </div>
       <div class="diar-card diar-fade">
-        <div class="diar-panel-label">Today's Habits</div>
+        <div class="diar-panel-label" title="Your habits from the Habit Tracker, for the day this entry is about. Ticking here ticks there too.">Habits This Day</div>
         <div class="diar-hab-grid" id="diar-left-habits3"></div>
       </div>
     </div>
@@ -8477,23 +8522,56 @@ function diarRenderStats(){
   set('diar-stat-words',words);
   // Math.max(1, …) claimed "1 entry" on a brand-new, empty journal.
   set('diar-stat-entries',entryDates.length);
-  set('diar-stat-habits',e.habits.length+'/'+DIAR_HABITS.length);
+  /* Counted against the eight hardcoded names before; now against the
+     user's real habits on the day being written about. */
+  {
+    const ds=diarDK(diarSelDate);
+    const done=S.habits.filter(h=>S.checks[h.id+'_'+ds]===true).length;
+    set('diar-stat-habits', S.habits.length? done+'/'+S.habits.length : '—');
+  }
   set('diar-stat-mood',moodObj?moodObj.emoji:'—');
   set('diar-stat-entries2',entryDates.length);
   set('diar-stat-mood2',moodObj?moodObj.emoji:'—');
   set('diar-wc',words+' words');
 }
 
-/* ── Left habits ── */
+/* ── Habits, for the day being written about ──────────────────────
+   This used to list eight hardcoded names (Exercise, Meditate, Read...)
+   that had nothing to do with the user's own habits, and ticking one
+   wrote to the diary's private store where nothing else could see it.
+   It is the same habits and the same checks as the tracker now, for the
+   date the entry is about — so writing up your day and marking it done
+   are one action, not two that disagree. */
 function diarRenderLeftHabits(gridId){
-  const e=diarGetEntry(diarSelDate);
-  const grid=document.getElementById(gridId); if(!grid)return; grid.innerHTML='';
-  DIAR_HABITS.forEach(h=>{
-    const done=e.habits.includes(h);
+  const grid=document.getElementById(gridId); if(!grid)return;
+  const ds=diarDK(diarSelDate);
+  grid.innerHTML='';
+  if(!S.habits.length){
+    grid.innerHTML='<div class="diar-hab-none">No habits yet. Add them on the '+
+      '<b onclick="goPage(&quot;dashboard&quot;)" style="cursor:pointer;text-decoration:underline">Habit Tracker</b> '+
+      'and they will appear here for the day you are writing about.</div>';
+    return;
+  }
+  S.habits.forEach(h=>{
+    const v=S.checks[h.id+'_'+ds];
+    const cls = v===true?' diar-done' : v==='x'?' diar-missed' : v==='r'?' diar-rest' : '';
+    const mark= v===true?'✓' : v==='x'?'✕' : v==='r'?'–' : '';
     const btn=document.createElement('button');
-    btn.className='diar-hab-btn'+(done?' diar-done':'');
-    btn.innerHTML=`<div class="diar-hab-chk">${done?'✓':''}</div>${h}`;
-    btn.onclick=()=>{const en=diarGetEntry(diarSelDate);en.habits=done?en.habits.filter(x=>x!==h):[...en.habits,h];diarSave();diarRenderLeftHabits(gridId);diarRenderStats();};
+    btn.className='diar-hab-btn'+cls;
+    btn.title = h.name+' — click to mark done, again for missed, again to clear. '+
+                'This is the same tick as the habit tracker.';
+    btn.innerHTML=`<div class="diar-hab-chk">${mark}</div>${esc(h.emoji)} ${esc(h.name)}`;
+    btn.onclick=()=>{
+      const cur=S.checks[h.id+'_'+ds];
+      if(cur===true)       S.checks[h.id+'_'+ds]='x';
+      else if(cur==='x')   delete S.checks[h.id+'_'+ds];
+      else if(cur==='r')   delete S.checks[h.id+'_'+ds];
+      else                 S.checks[h.id+'_'+ds]=true;
+      save();
+      diarRenderLeftHabits(gridId); diarRenderStats();
+      try{ buildGrid(); }catch(e){}
+      try{ renderHome(); syncUI(); }catch(e){}
+    };
     grid.appendChild(btn);
   });
 }
