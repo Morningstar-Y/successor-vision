@@ -2557,33 +2557,43 @@ canvas{max-width:100%}
   background:var(--green-dim);color:var(--green-txt)}
 .aih-act.warn{background:var(--red-dim);color:var(--red-txt)}
 
-/* ══ FIRST-RUN TOUR ═════════════════════════════════════════════════ */
-#tour{position:fixed;inset:0;z-index:5000;display:none;
-  align-items:center;justify-content:center;padding:22px;
-  background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
-#tour.on{display:flex}
-.tour-card{background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--r-xl);box-shadow:var(--shadow3);
-  width:100%;max-width:420px;padding:30px 30px 24px;text-align:center;
-  animation:authRise .4s cubic-bezier(.16,1,.3,1) both}
-.tour-step{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
-  letter-spacing:1.1px;color:var(--text2);margin-bottom:16px}
-.tour-ico{font-size:40px;line-height:1;margin-bottom:14px}
-.tour-h{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text);margin-bottom:9px}
-.tour-p{font-size:13.5px;line-height:1.6;color:var(--text2);margin-bottom:20px}
-.tour-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
-.tour-dots i{width:6px;height:6px;border-radius:50%;background:var(--border2);
-  transition:background .2s,width .2s}
-.tour-dots i.on{background:var(--accent);width:18px;border-radius:var(--r-pill)}
-.tour-btns{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.tour-skip{background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;
-  font-size:13px;font-weight:600;color:var(--text2);padding:9px 6px}
-.tour-skip:hover{color:var(--text)}
-.tour-next{background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);
-  padding:11px 24px;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;
-  cursor:pointer;box-shadow:var(--elev-accent-sm);transition:background .18s}
+/* ══ FIRST-RUN TOUR ═════════════════════════════════════════════════
+   Coach marks, not a slideshow. The page being described stays visible
+   behind the bubble, with the thing being pointed at cut out of the
+   dimming rather than hidden under it. */
+#tour{position:fixed;inset:0;z-index:9000;display:none;pointer-events:none}
+#tour.on{display:block}
+
+/* The hole: one huge spread shadow dims everything except this box. */
+/* No transition on either of these. They are driven by a per-frame
+   follower, so an animation would mean the spotlight is permanently
+   chasing its target rather than sitting on it — visibly wrong the
+   moment anything under it scrolls or resizes. */
+.tour-spot{position:fixed;border-radius:var(--r-md);pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(15,12,9,.62), 0 0 0 3px var(--accent)}
+
+.tour-pop{position:fixed;width:296px;max-width:calc(100vw - 24px);
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--shadow3);padding:15px 16px 13px;pointer-events:auto}
+.tour-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tour-ico{font-size:20px;line-height:1}
+.tour-step{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;
+  letter-spacing:.6px;color:var(--text3)}
+.tour-h{font-size:15.5px;font-weight:700;letter-spacing:-.2px;color:var(--text);
+  margin:0 0 5px;line-height:1.3}
+.tour-p{font-size:12.8px;line-height:1.55;color:var(--text2);margin:0 0 13px}
+.tour-btns{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tour-nav{display:flex;gap:7px}
+.tour-skip,.tour-back{background:none;border:none;color:var(--text3);
+  font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;
+  padding:6px 8px;border-radius:var(--r-sm);transition:all .15s}
+.tour-skip:hover,.tour-back:hover{color:var(--text);background:var(--surface2)}
+.tour-back[disabled]{opacity:.35;cursor:default}
+.tour-next{background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);
+  padding:7px 16px;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600;
+  cursor:pointer;transition:background .15s;box-shadow:var(--elev-accent-sm)}
 .tour-next:hover{background:var(--accent-h)}
-@media (prefers-reduced-motion:reduce){ .tour-card{animation:none} }
+@media (max-width:520px){ .tour-pop{width:calc(100vw - 24px)} }
 
 /* The legend explains the cells, so it sits with the cells. In the
    header it competed with the headline numbers for the same glance. */
@@ -2764,16 +2774,22 @@ canvas{max-width:100%}
 
 
 <!-- TOUR -->
-<div id="tour" role="dialog" aria-modal="true" aria-labelledby="tour-h">
-  <div class="tour-card">
-    <div class="tour-step" id="tour-step">1 / 1</div>
-    <div class="tour-ico" id="tour-ico">👋</div>
+<div id="tour" aria-hidden="true">
+  <div class="tour-spot" id="tour-spot"></div>
+  <div class="tour-pop" id="tour-pop" role="dialog" aria-modal="true" aria-labelledby="tour-h">
+    <div class="tour-arrow" id="tour-arrow"></div>
+    <div class="tour-top">
+      <span class="tour-ico" id="tour-ico">ὄb</span>
+      <span class="tour-step" id="tour-step">1 / 1</span>
+    </div>
     <h2 class="tour-h" id="tour-h">Welcome</h2>
     <p class="tour-p" id="tour-p"></p>
-    <div class="tour-dots" id="tour-dots"></div>
     <div class="tour-btns">
       <button class="tour-skip" onclick="tourEnd()">Skip</button>
-      <button class="tour-next" id="tour-next" onclick="tourNext()">Next</button>
+      <div class="tour-nav">
+        <button class="tour-back" id="tour-back" onclick="tourPrev()">Back</button>
+        <button class="tour-next" id="tour-next" onclick="tourNext()">Next</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4190,9 +4206,25 @@ setInterval(()=>{
     document.getElementById('sni-'+(_currentPageId==='home'?'home':_currentPageId)));
 },60000);
 
-/* ── Data export / import ── */
+/* ── Data export / import ──
+   The Journal and the Flow Planner keep their own localStorage stores
+   rather than living in S, so a backup built from S alone silently
+   contained neither. They travel in _stores as raw strings: opaque to
+   us, but exactly what each store expects to read back. */
+const SV_SIDE_STORES = ['diar1', 'flow_web_v2'];
+
+function _sideStores(){
+  const o = {};
+  SV_SIDE_STORES.forEach(k => {
+    const v = localStorage.getItem(k);
+    if(v != null) o[k] = v;
+  });
+  return o;
+}
+
 function exportData(){
-  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const payload = Object.assign({}, S, {_stores: _sideStores()});
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
   a.download=`successor-vision-backup-${todayStr}.json`; a.click();
   URL.revokeObjectURL(a.href);
@@ -4207,7 +4239,17 @@ function importData(){
         const data=JSON.parse(ev.target.result);
         if(!data.habits)throw new Error('Invalid backup file — missing habits array');
         if(!confirm(`Import backup from ${f.name}?\n\nThis will REPLACE all your current data. Export a backup first if needed.`))return;
+        /* Restore the side stores first, then let the reload below
+           pick them up. _stores is stripped so it never becomes a
+           stray key on S. */
+        const sideStores = data._stores || null;
+        delete data._stores;
         Object.assign(S,data);
+        if(sideStores){
+          SV_SIDE_STORES.forEach(k => {
+            if(typeof sideStores[k] === 'string') localStorage.setItem(k, sideStores[k]);
+          });
+        }
         // ── Issue 5 fix: normalize all required fields so old backups can't break the app ──
         if(!Array.isArray(S.tasks))     S.tasks     = [];
         if(!Array.isArray(S.todos))     S.todos     = [];
@@ -4487,6 +4529,13 @@ function _prefsFlat(){
   if(S.gamify === false) o.gamify = false;
   if(S.ovOpen === true)  o.ovOpen = true;
   if(S.tourDone)         o.tourDone = 1;
+  /* The Flow Planner's tasks live in its own store, so they were never
+     part of the synced state at all -- a second device opened an empty
+     planner. Carried here as one opaque blob rather than as a table.
+     ponytail: whole-blob last-write-wins; give it its own table if two
+     devices ever need to edit the planner concurrently. */
+  const flow = localStorage.getItem('flow_web_v2');
+  if(flow && flow !== '{}') o.flowStore = flow;
   return o;
 }
 
@@ -4498,6 +4547,14 @@ function _prefsApply(flat){
   S.gamify   = (flat.gamify === false) ? false : true;
   S.ovOpen   = (flat.ovOpen === true);
   S.tourDone = flat.tourDone ? 1 : 0;
+  if(typeof flat.flowStore === 'string' &&
+     flat.flowStore !== localStorage.getItem('flow_web_v2')){
+    localStorage.setItem('flow_web_v2', flat.flowStore);
+    /* Reload the planner so it reads what just arrived; it holds its
+       state in a closure and cannot be told to re-read otherwise. */
+    const f = document.querySelector('#pg-todo iframe');
+    if(f) f.src = f.src;
+  }
 }
 
 /* Three-way merge of one keyed collection.
@@ -5007,36 +5064,184 @@ function renderProfile(){
   '</div>';
 }
 
-/* ── First-run tour ───────────────────────────────────────────── */
-let _tourI=0, _tourSteps=[];
+/* ── First-run tour ─────────────────────────────────────────────
+   Coach marks. Each step goes to the page it describes so you see the
+   real thing behind the bubble.
+
+   Most steps anchor to the page's sidebar icon rather than to
+   something inside the page. That is deliberate: the icons are stable,
+   whereas this file's page markup moves constantly, and a tour that
+   silently points at nothing is worse than no tour. Steps that do name
+   an inner control fall back to the icon if it has gone. */
+let _tourI=0, _tourSteps=[], _tourSettle=0;
+
+function _tourDeck(){
+  const on = id => !pageHidden(id);
+  const step = (page, sel, ico, h, p) => ({page, sel, ico, h, p});
+  const d = [];
+  d.push(step('home','#sni-home','\ud83d\udc4b','Welcome to Successor Vision',
+    'Every page lives in this rail. Under a minute to walk through, and you can leave at any point.'));
+  if(on('ai')){
+    d.push(step('ai','.aip-field','\u2728','Ask it, or tell it',
+      'It reads your real habits, sleep and tasks \u2014 and can change them. It adds straight away and only asks before deleting.'));
+    d.push(step('ai','#aip-rail-btn','\ud83d\udcac','Your conversations are kept',
+      'Every chat is saved in this panel. The button hides it when you want the full width.'));
+  }
+  if(on('dashboard')){
+    d.push(step('dashboard','#t-body .hcb','\ud83d\udcca','One cell per day',
+      'Tap to tick it off, double-tap to mark it missed, long-press for a planned rest day.'));
+    d.push(step('dashboard','#overview-toggle-btn','\ud83d\udc41\ufe0f','The glance view',
+      'Opens a summary above the grid: streaks, today\u2019s tasks and how the month is going.'));
+  }
+  if(on('sleep'))     d.push(step('sleep','#sni-sleep','\ud83c\udf19','Sleep Tracker',
+    'Log when you went to bed and woke up. The score weighs going to bed at a regular time over raw hours.'));
+  if(on('todo'))      d.push(step('todo','#sni-todo','\ud83c\udf0a','Flow Planner',
+    'Plan the day in plain language and run a focus session next to it.'));
+  if(on('pomodoro'))  d.push(step('pomodoro','#sni-pomodoro','\ud83c\udfaf','Focus Timer',
+    'Pomodoro sessions that can tick a linked habit off when they finish.'));
+  if(on('stopwatch')) d.push(step('stopwatch','#sni-stopwatch','\u23f1\ufe0f','Stopwatch',
+    'Plain lap timing, for when you just need a clock.'));
+  if(on('analytics')) d.push(step('analytics','#sni-analytics','\ud83d\udcc8','Analytics',
+    'Full-year charts, plus a weekly review that names the one habit worth fixing.'));
+  if(on('diary'))     d.push(step('diary','#sni-diary','\ud83d\udcd4','Journal',
+    'Dated entries with mood and gratitude. The habits shown there are the same ones as the tracker.'));
+  d.push(step('settings','#sni-settings','\u2699\ufe0f','Make it yours',
+    'Switch off any page you do not use, back your data up, or replay this tour. Nothing here is permanent.'));
+  return d;
+}
+
 function tourStart(force){
   if(!force && S.tourDone) return;
-  _tourSteps=[{ico:'👋',h:'Welcome to Successor Vision',
-    p:'A quick look at what is here. Under a minute, and you can skip at any point.'}]
-    .concat(SV_PAGES.filter(pg=>!pageHidden(pg.id)).map(pg=>({ico:pg.ico,h:pg.name,p:pg.blurb})))
-    .concat([{ico:'\u2699\ufe0f',h:'Make it yours',
-      p:'Settings lets you switch off any page you do not use, back your data up, and replay this tour. Nothing here is permanent.'}]);
-  _tourI=0;
+  _tourSteps=_tourDeck(); _tourI=0;
   document.getElementById('tour').classList.add('on');
-  document.body.style.overflow='hidden';
+  document.addEventListener('keydown', _tourKey);
   tourPaint();
+  if(!_tourRaf) _tourFollow();
 }
-function tourPaint(){
+
+function _tourKey(e){
+  if(e.key==='Escape') tourEnd();
+  else if(e.key==='ArrowRight'||e.key==='Enter') tourNext();
+  else if(e.key==='ArrowLeft') tourPrev();
+}
+/* The spotlight follows its target for as long as the tour is open.
+
+   Chasing this with timers did not work: the target kept moving after
+   whatever delay I picked — the grid scrolls itself to today, the AI
+   composer widens as the rail slides, and something above the grid
+   still shifted it 8px a beat later. Rather than guess at a settling
+   time, re-place whenever the rect actually changes. One rect read per
+   frame, and no timing assumption left to be wrong. */
+let _tourRaf=0, _tourLastRect='';
+function _tourFollow(){
+  if(!document.getElementById('tour').classList.contains('on')){ _tourRaf=0; return; }
   const st=_tourSteps[_tourI];
+  const el=st && _tourTarget(st);
+  if(el){
+    const r=el.getBoundingClientRect();
+    const k=r.left+','+r.top+','+r.width+','+r.height;
+    if(k!==_tourLastRect){ _tourLastRect=k; _tourPlace(st); }
+  }
+  _tourRaf=requestAnimationFrame(_tourFollow);
+}
+
+/* Resolves a step's target, falling back to the page's sidebar icon so
+   a moved element degrades instead of pointing at nothing. */
+function _tourTarget(st){
+  let el = st.sel ? document.querySelector(st.sel) : null;
+  if(!el || el.getBoundingClientRect().width < 4)
+    el = document.getElementById('sni-'+st.page);
+  return el;
+}
+
+function tourPaint(skipNav){
+  const st=_tourSteps[_tourI];
+  if(!st) return tourEnd();
+  if(!skipNav && _currentPageId!==st.page){
+    try{ goPage(st.page); }catch(e){}
+  }
   document.getElementById('tour-step').textContent=(_tourI+1)+' / '+_tourSteps.length;
   document.getElementById('tour-ico').textContent=st.ico;
   document.getElementById('tour-h').textContent=st.h;
   document.getElementById('tour-p').textContent=st.p;
-  document.getElementById('tour-next').textContent=(_tourI===_tourSteps.length-1)?'Start':'Next';
-  document.getElementById('tour-dots').innerHTML=
-    _tourSteps.map((_,i)=>'<i class="'+(i===_tourI?'on':'')+'"></i>').join('');
+  document.getElementById('tour-next').textContent=
+    (_tourI===_tourSteps.length-1)?'Done':'Next';
+  document.getElementById('tour-back').disabled=(_tourI===0);
+  /* Measure after the page has rendered, then measure again once
+     anything animating has finished. Targets whose size depends on a
+     transition — the AI composer widens as the conversation rail slides
+     open — were being spotlighted at their mid-animation width. */
+  _tourLastRect='';                       // force the follower to re-place
+  requestAnimationFrame(()=>requestAnimationFrame(()=>_tourPlace(st)));
 }
+
+function _tourPlace(st){
+  const el=_tourTarget(st);
+  const spot=document.getElementById('tour-spot');
+  const pop=document.getElementById('tour-pop');
+  const arw=document.getElementById('tour-arrow');
+  if(!el){ spot.style.display='none'; return; }
+  spot.style.display='';
+  const PAD=6, GAP=14, M=12;
+  const r=el.getBoundingClientRect();
+  const sx=r.left-PAD, sy=r.top-PAD, sw=r.width+PAD*2, sh=r.height+PAD*2;
+  spot.style.cssText='position:fixed;left:'+sx+'px;top:'+sy+'px;width:'+sw+'px;height:'+sh+'px';
+
+  const pw=pop.offsetWidth, ph=pop.offsetHeight;
+  const fitsRight  = sx+sw+GAP+pw <= innerWidth-M;
+  const fitsBelow  = sy+sh+GAP+ph <= innerHeight-M;
+  const fitsLeft   = sx-GAP-pw >= M;
+  const fitsAbove  = sy-GAP-ph >= M;
+  /* A wide target has no useful side to sit beside: parked next to the
+     720px composer, the bubble ended up 310px from the thing it was
+     pointing at. Go over or under those instead. */
+  const wide = sw > innerWidth*0.5;
+  const order = wide ? ['above','below','right','left'] : ['right','below','left','above'];
+  let left, top, side;
+  for(const cand of order){
+    if(cand==='right' && fitsRight){ side='left';  left=sx+sw+GAP; top=sy+sh/2-ph/2; break; }
+    if(cand==='below' && fitsBelow){ side='top';   top=sy+sh+GAP;  left=sx+sw/2-pw/2; break; }
+    if(cand==='left'  && fitsLeft ){ side='right'; left=sx-GAP-pw; top=sy+sh/2-ph/2; break; }
+    if(cand==='above' && fitsAbove){ side='bottom';top=sy-GAP-ph;  left=sx+sw/2-pw/2; break; }
+  }
+  if(side===undefined){ side='top'; top=sy+sh+GAP; left=sx+sw/2-pw/2; }
+  left=Math.max(M, Math.min(left, innerWidth-pw-M));
+  top =Math.max(M, Math.min(top,  innerHeight-ph-M));
+  pop.style.left=left+'px'; pop.style.top=top+'px';
+
+  // arrow sits on the edge facing the target, tracking its centre
+  const A=6;
+  arw.style.cssText='position:absolute;width:11px;height:11px;background:var(--surface);'+
+    'border-left:1px solid var(--border);border-top:1px solid var(--border);transform:rotate(-45deg);';
+  if(side==='left'){
+    arw.style.left='-6px';
+    arw.style.top=Math.max(A, Math.min(sy+sh/2-top-5, ph-16))+'px';
+  } else if(side==='right'){
+    arw.style.left=(pw-5)+'px';
+    arw.style.top=Math.max(A, Math.min(sy+sh/2-top-5, ph-16))+'px';
+    arw.style.transform='rotate(135deg)';
+  } else if(side==='top'){
+    arw.style.top='-6px';
+    arw.style.left=Math.max(A, Math.min(sx+sw/2-left-5, pw-16))+'px';
+    arw.style.transform='rotate(45deg)';
+  } else {
+    arw.style.top=(ph-5)+'px';
+    arw.style.left=Math.max(A, Math.min(sx+sw/2-left-5, pw-16))+'px';
+    arw.style.transform='rotate(-135deg)';
+  }
+}
+
 function tourNext(){
   if(_tourI<_tourSteps.length-1){ _tourI++; tourPaint(); return; }
   tourEnd();
 }
+function tourPrev(){ if(_tourI>0){ _tourI--; tourPaint(); } }
+
 function tourEnd(){
+  clearTimeout(_tourSettle);
   document.getElementById('tour').classList.remove('on');
+  document.removeEventListener('keydown', _tourKey);
+  cancelAnimationFrame(_tourRaf); _tourRaf=0; _tourLastRect='';
   document.body.style.overflow='';
   S.tourDone=1; save();
 }
