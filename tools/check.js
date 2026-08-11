@@ -160,6 +160,40 @@ for (const doc of docs) {
   if (pyEsc) fail(`${pyEsc.length} Python-style \\U escape(s) that JS will print literally`);
   else pass('no Python-style escapes');
 
+  /* ---------- 4b. emoji mangled by a 4-hex escape ----------
+     "ὄb" in a Python string is U+1F44 followed by a literal "b",
+     because \u takes exactly four hex digits — never five. It reaches
+     the page as Greek text where an emoji belongs, which is how the
+     tour ended up greeting people with "ὄb". Astral characters need a
+     surrogate pair (👋) or the literal character. */
+  const mangled = doc.html.match(/[ἀ-῿][0-9a-f](?![0-9a-zA-Z])/g);
+  if (mangled) fail(`${mangled.length} mangled astral escape(s), e.g. ${JSON.stringify(mangled[0])}` +
+                    ` — a \\uXXXX escape swallowed only 4 of 5 hex digits`);
+  else pass('no mangled emoji escapes');
+
+  /* ---------- 4c. every var() must be defined in this document ----------
+     A single unknown custom property invalidates the WHOLE declaration
+     it appears in, and CSS reports nothing. `--accent-glow` exists only
+     in the planner's stylesheet; using it in the main sheet silently
+     turned the tour's entire box-shadow into `none`, which removed the
+     dimming overlay. Nothing failed — it just quietly stopped working. */
+  const css = [...doc.html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
+    .map(m => m[1]).join('\n')
+    .replace(/\/\*[\s\S]*?\*\//g, '');          // comments mention var(--r-*) etc.
+  const definedVars = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map(m => m[1]));
+  // properties the code sets at runtime are defined too, just not in CSS
+  for (const m of doc.html.matchAll(/setProperty\(\s*['"](--[\w-]+)['"]/g)) definedVars.add(m[1]);
+  for (const m of doc.html.matchAll(/style="[^"]*?(--[\w-]+)\s*:/g)) definedVars.add(m[1]);
+  const used = new Map();
+  for (const m of css.matchAll(/var\(\s*(--[\w-]+)\s*[,)]/g)) {   // require a real close/fallback
+    used.set(m[1], (used.get(m[1]) || 0) + 1);
+  }
+  const undef = [...used.keys()].filter(v => !definedVars.has(v));
+  if (undef.length) undef.forEach(v =>
+    fail(`var(${v}) used x${used.get(v)} but this document never defines it` +
+         ` — the whole declaration silently becomes invalid`));
+  else pass(`all ${used.size} custom properties are defined`);
+
   /* ---------- 5. no secrets ---------- */
   const secrets = [
     [/AQ\.Ab8[A-Za-z0-9_-]+/, 'Gemini API key'],
