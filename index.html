@@ -211,12 +211,31 @@ button,input,select{font-family:'Outfit',sans-serif}
    box (so the button's hit area is unchanged) and just goes transparent; the
    clip does the rest. */
 #sb.slim .sni .lbl{opacity:0;pointer-events:none}
-/* Active dot, pinned inside the visible 62px rather than at the 228px-wide
-   button's right edge, which the clip would cut off. */
-#sb.slim .sni.on::after{
-  content:'';position:absolute;left:50px;top:50%;transform:translateY(-50%);
-  width:4px;height:4px;border-radius:50%;background:var(--accent);
+/* The active dot used to live on ::after here. That is where the label
+   goes now, and .sni.on::after outranks .sni::after, so the active item
+   was the one item showing no label. The dot moved to ::before. */
+#sb.slim .sni.on::before{
+  content:'';position:absolute;left:2px;top:50%;transform:translateY(-50%);
+  width:3px;height:17px;border-radius:0 3px 3px 0;background:var(--accent);
 }
+
+
+/* The collapsed rail carries its own labels. It used to be eleven bare
+   icons relying on title tooltips — which need a hover, and do not
+   exist on touch. 📊 vs 📈 was unguessable, and two clock-ish icons led
+   to two different timers. Short names come from data-short because the
+   full ones do not fit 62px, and a truncated label is worse than none. */
+#sb.slim .sni{flex-direction:column;gap:2px;padding:7px 0 6px;justify-content:center;
+  width:56px;text-align:center}
+#sb.slim .sni .ico{font-size:17px;line-height:1}
+#sb.slim .sni::after{
+  content:attr(data-short);
+  font-family:'Outfit',sans-serif;font-size:8.5px;font-weight:700;
+  letter-spacing:.2px;color:var(--text3);line-height:1;
+  max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#sb.slim .sni.on::after{color:var(--accent-txt)}
+#sb.slim .sni{position:relative}
 
 /* The slim rail's labels come from each button's title attribute — a native
    tooltip, which cannot be clipped. The CSS tooltip that used to live here
@@ -2924,42 +2943,42 @@ html.birthday[data-theme="dark"]{
     </span>
   </div>
   <nav class="sb-nav">
-    <button class="sni on" id="sni-home" title="Dashboard" onclick="goPage('home',this)">
-      <span class="ico">🏠</span><span class="lbl">Dashboard</span>
+    <button class="sni on" id="sni-home" data-short="Home" title="Home" onclick="goPage('home',this)">
+      <span class="ico">🏠</span><span class="lbl">Home</span>
     </button>
-    <button class="sni" id="sni-ai" title="AI Assistant" onclick="goPage('ai',this)">
+    <button class="sni" id="sni-ai" data-short="AI" title="AI Assistant" onclick="goPage('ai',this)">
       <span class="ico">✨</span><span class="lbl">AI Assistant</span>
     </button>
     <div class="sb-div"></div>
-    <button class="sni" id="sni-dashboard" title="Habit Tracker" onclick="goPage('dashboard',this)">
+    <button class="sni" id="sni-dashboard" data-short="Habits" title="Habit Tracker" onclick="goPage('dashboard',this)">
       <span class="ico">📊</span><span class="lbl">Habit Tracker</span>
     </button>
-    <button class="sni" id="sni-sleep" title="Sleep Tracker" onclick="goPage('sleep',this)">
+    <button class="sni" id="sni-sleep" data-short="Sleep" title="Sleep Tracker" onclick="goPage('sleep',this)">
       <span class="ico">🌙</span><span class="lbl">Sleep Tracker</span>
     </button>
-    <button class="sni" id="sni-todo" title="Flow Planner" onclick="goPage('todo',this)">
+    <button class="sni" id="sni-todo" data-short="Flow" title="Flow Planner" onclick="goPage('todo',this)">
       <span class="ico">🌊</span><span class="lbl">Flow Planner</span>
     </button>
     <div class="sb-div"></div>
-    <button class="sni" id="sni-stopwatch" title="Stopwatch" onclick="goPage('stopwatch',this)">
+    <button class="sni" id="sni-stopwatch" data-short="Stopwatch" title="Stopwatch" onclick="goPage('stopwatch',this)">
       <span class="ico">⏱️</span><span class="lbl">Stopwatch</span>
     </button>
-    <button class="sni" id="sni-pomodoro" title="Focus Timer" onclick="goPage('pomodoro',this)">
+    <button class="sni" id="sni-pomodoro" data-short="Focus" title="Focus Timer" onclick="goPage('pomodoro',this)">
       <span class="ico">🎯</span><span class="lbl">Focus Timer</span>
     </button>
     <div class="sb-div"></div>
-    <button class="sni" id="sni-analytics" title="Analytics" onclick="goPage('analytics',this)">
+    <button class="sni" id="sni-analytics" data-short="Stats" title="Analytics" onclick="goPage('analytics',this)">
       <span class="ico">📈</span><span class="lbl">Analytics</span>
     </button>
     <div class="sb-div"></div>
-    <button class="sni" id="sni-diary" title="Journal" onclick="goPage('diary',this)">
+    <button class="sni" id="sni-diary" data-short="Journal" title="Journal" onclick="goPage('diary',this)">
       <span class="ico">📔</span><span class="lbl">Journal</span>
     </button>
     <div class="sb-div"></div>
-    <button class="sni" id="sni-profile" title="Profile" onclick="goPage('profile',this)">
+    <button class="sni" id="sni-profile" data-short="You" title="Profile" onclick="goPage('profile',this)">
       <span class="ico">👤</span><span class="lbl">Profile</span>
     </button>
-    <button class="sni" id="sni-settings" title="Settings" onclick="goPage('settings',this)">
+    <button class="sni" id="sni-settings" data-short="Settings" title="Settings" onclick="goPage('settings',this)">
       <span class="ico">⚙️</span><span class="lbl">Settings</span>
     </button>
   </nav>
@@ -3296,7 +3315,7 @@ html.birthday[data-theme="dark"]{
     <div class="hcb-legend" aria-hidden="true">
       <span><i class="lg-done"></i>Tap · Done</span>
       <span><i class="lg-missed"></i>Double-tap · Missed</span>
-      <span><i class="lg-rest"></i>Long-press · Rest</span>
+      <span><i class="lg-rest"></i>Long-press · Rest</span><span style="opacity:.75">⌨ Arrows · Enter cycles</span>
     </div>
   </div>
   <div id="gscroll">
@@ -6240,6 +6259,62 @@ function renderDashOverview(){
 }
 
 /* ──────── DASHBOARD ──────── */
+/* Keyboard access for the habit grid.
+   Arrow keys move; Enter or Space cycles the three states. A single
+   cycling key rather than three modifiers, because the states are
+   mutually exclusive and nobody should have to memorise "r for rest". */
+function _hcbCycle(key){
+  const cur = S.checks[key];
+  if(cur === true)        S.checks[key] = 'x';      // done   -> missed
+  else if(cur === 'x')    S.checks[key] = 'r';      // missed -> rest
+  else if(cur === 'r')    delete S.checks[key];     // rest   -> clear
+  else                    S.checks[key] = true;     // clear  -> done
+  save();
+  const focused = document.activeElement && document.activeElement.dataset
+    ? document.activeElement.dataset.key : null;
+  buildGrid();
+  if(typeof syncLiveBars === 'function') syncLiveBars();
+  // buildGrid replaces the node, so focus has to be put back by key
+  if(focused){
+    const again = document.querySelector('.hcb[data-key="'+focused+'"][role="gridcell"]');
+    if(again){ again.tabIndex = 0; again.focus(); }
+  }
+}
+function _hcbKey(e){
+  const cell = e.target.closest && e.target.closest('.hcb[role="gridcell"]');
+  if(!cell) return;
+  const cells = [...document.querySelectorAll('#t-body .hcb[role="gridcell"]')];
+  const row = cell.closest('tr');
+  const inRow = [...row.querySelectorAll('.hcb[role="gridcell"]')];
+  const rows = [...document.querySelectorAll('#t-body tr.hr')];
+  const ri = rows.indexOf(row), ci = inRow.indexOf(cell);
+  let next = null;
+  switch(e.key){
+    case 'ArrowRight': next = inRow[ci+1]; break;
+    case 'ArrowLeft':  next = inRow[ci-1]; break;
+    case 'ArrowDown':  next = _hcbAt(rows[ri+1], ci); break;
+    case 'ArrowUp':    next = _hcbAt(rows[ri-1], ci); break;
+    case 'Home':       next = inRow[0]; break;
+    case 'End':        next = inRow[inRow.length-1]; break;
+    case 'Enter': case ' ':
+      e.preventDefault(); _hcbCycle(cell.dataset.key); return;
+    default: return;
+  }
+  e.preventDefault();
+  if(next){ cells.forEach(c=>c.tabIndex=-1); next.tabIndex=0; next.focus(); }
+}
+function _hcbAt(row, i){
+  if(!row) return null;
+  const cs = [...row.querySelectorAll('.hcb[role="gridcell"]')];
+  return cs[Math.min(i, cs.length-1)] || null;
+}
+
+/* Delegated, so it survives every buildGrid() rebuild. */
+(function(){
+  const gs = document.getElementById('gscroll');
+  if(gs) gs.addEventListener('keydown', _hcbKey);
+})();
+
 function buildGrid(){
   const{vy:y,vm:m}=S;
   const dim=new Date(y,m+1,0).getDate();
@@ -6317,7 +6392,10 @@ function buildGrid(){
       const st=cv===true?'done':cv==='x'?'missed':cv==='r'?'rest':'';
       const td=document.createElement('td');
       td.className='ctd'+(d.il?' wl':'')+(fut?' fut':'')+(it?' tb':'')+(d.wkb?' wkb':'');
-      td.innerHTML=`<div class="hcb${st?' '+st:''}" data-key="${key}"${fut?'':` onclick="hcbClick('${key}')" oncontextmenu="hcbSkip('${key}',event)" onpointerdown="hcbPtrDown('${key}',event)" onpointerup="hcbPtrUp('${key}')" onpointerleave="hcbPtrUp('${key}')" title="Tap: done   |   Double-tap: missed ✕   |   Long-press: rest day"`}></div>`;
+      /* Announced state, so a screen reader says more than "button". */
+      const stWord = st==='done'?'done':st==='missed'?'missed':st==='rest'?'rest day':'not set';
+      const aria = `${h.name}, ${d.ds}: ${stWord}`;
+      td.innerHTML=`<div class="hcb${st?' '+st:''}" data-key="${key}"${fut?' aria-disabled="true"':` role="gridcell" tabindex="-1" aria-label="${esc(aria)}" onclick="hcbClick('${key}')" oncontextmenu="hcbSkip('${key}',event)" onpointerdown="hcbPtrDown('${key}',event)" onpointerup="hcbPtrUp('${key}')" onpointerleave="hcbPtrUp('${key}')" title="Tap: done   |   Double-tap: missed ✕   |   Long-press: rest day   |   Keyboard: arrows to move, Enter to cycle"`}></div>`;
       tr.appendChild(td);
     });
     tb.appendChild(tr);
@@ -6408,6 +6486,11 @@ function buildGrid(){
   }
   if(_gs) requestAnimationFrame(()=>_gs.classList.toggle('is-scrolled',
     _gs.scrollTop + _gs.clientHeight < _gs.scrollHeight - 2));
+
+  /* Roving tabindex: the grid is ONE tab stop, not 365 per habit.
+     Arrow keys move within it, which is the standard grid pattern. */
+  const _firstCell = tb.querySelector('.hcb[role="gridcell"]');
+  if(_firstCell) _firstCell.tabIndex = 0;
 
   updStats();
   buildProgressChart(dayStats);

@@ -2,3 +2,11 @@
 Thumbs.db
 .vercel
 supabase/.temp/
+
+# Local dev tooling only, deliberately not committed. This repo deploys a
+# single static HTML file; a package.json in the root would make Vercel
+# treat it as a build project and change a working deploy. tools/smoke.js
+# skips itself when puppeteer is absent, so a clean clone still works.
+node_modules/
+package.json
+package-lock.json

@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Pre-push guard for successor-vision.
+#
+# Installed to .git/hooks/pre-push by tools/install-hooks.sh. Kept in
+# tools/ as well so it is version-controlled — .git/hooks is not.
+#
+# Two layers, because they catch different things:
+#   check.js  reads the file  — dangling ids, undefined helpers and CSS
+#             tokens, load-order bugs, unbalanced markup, leaked secrets
+#   smoke.js  runs the file   — the top-level throw that parses fine and
+#             then silently aborts everything after it. That class has
+#             taken out whole pages in this project more than once, and
+#             static analysis cannot see it.
+#
+# smoke.js exits 0 with a notice if puppeteer is not installed, so a
+# clean clone can still push.
+#
+# To push anyway in an emergency:  git push --no-verify
+
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+echo "pre-push: static checks"
+node tools/check.js || {
+  echo ""
+  echo "pre-push BLOCKED: check.js failed. Fix, or push with --no-verify."
+  exit 1
+}
+
+echo ""
+echo "pre-push: runtime smoke test"
+node tools/smoke.js || {
+  echo ""
+  echo "pre-push BLOCKED: the app throws or a page fails to open."
+  echo "Fix, or push with --no-verify."
+  exit 1
+}
+
+echo ""
+echo "pre-push: all good"
