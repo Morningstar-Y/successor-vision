@@ -1872,6 +1872,95 @@ html.no-minibar .live-mini-bar{display:none}
 .diar-stat-row:last-child{border-bottom:none}
 .diar-stat-val{font-weight:700;color:#3b2a1a;font-family:'Playfair Display',serif;font-size:15px}
 [data-theme="dark"] .diar-stat-val{color:var(--text)}
+
+
+
+/* Journal media */
+.diar-media-bar{display:flex;align-items:center;gap:10px;margin-top:10px}
+.diar-media-add{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;
+  border:1px dashed #c4a882;border-radius:var(--r-md);background:transparent;
+  color:#8b6340;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600}
+.diar-media-add:hover{background:#f0d9b5}
+[data-theme="dark"] .diar-media-add{border-color:var(--border2);color:var(--accent-txt)}
+[data-theme="dark"] .diar-media-add:hover{background:var(--surface3)}
+.diar-media-note{font-size:11.5px;color:#a08a6f}
+[data-theme="dark"] .diar-media-note{color:var(--text3)}
+#diar-media-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+#diar-media-strip:empty{margin-top:0}
+.diar-media-item{margin:0;width:150px;border:1px solid #e0cdb5;border-radius:var(--r-md);
+  overflow:hidden;background:rgba(255,252,245,.7)}
+[data-theme="dark"] .diar-media-item{border-color:var(--border);background:var(--surface2)}
+.diar-media-item img,.diar-media-item video{display:block;width:100%;height:104px;object-fit:cover}
+.diar-media-item audio{width:100%;margin:8px 0 2px}
+.diar-media-file{padding:22px 10px;font-size:12px;text-align:center;color:var(--text3)}
+.diar-media-item figcaption{display:flex;align-items:center;justify-content:space-between;
+  gap:6px;padding:6px 8px;font-size:10.5px;color:#8b6340;border-top:1px solid #e8dcc8}
+[data-theme="dark"] .diar-media-item figcaption{color:var(--text3);border-top-color:var(--border)}
+.diar-media-item figcaption button{border:none;background:none;cursor:pointer;
+  color:#b0392e;font-size:12px;padding:2px 4px;border-radius:4px;flex-shrink:0}
+.diar-media-item figcaption button:hover{background:var(--red-dim)}
+/* Journal lock */
+#diar-gate{position:absolute;inset:0;z-index:40;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:linear-gradient(135deg,#f5efe6 0%,#ede3d4 50%,#e8dcc8 100%)}
+[data-theme="dark"] #diar-gate{background:var(--bg)}
+#diar-gate.on{display:flex}
+.diar-gate-card{width:100%;max-width:330px;text-align:center}
+.diar-gate-ico{font-size:38px;line-height:1;margin-bottom:14px}
+.diar-gate-t{font-family:'Playfair Display',serif;font-size:23px;font-weight:700;
+  color:#3b2a1a;margin-bottom:6px}
+[data-theme="dark"] .diar-gate-t{color:var(--text)}
+.diar-gate-s{font-size:13px;color:#8b6340;line-height:1.55;margin-bottom:18px}
+[data-theme="dark"] .diar-gate-s{color:var(--text2)}
+.diar-gate-inp{width:100%;padding:12px 14px;border:1.5px solid #d4b896;
+  border-radius:var(--r-md);background:rgba(255,252,245,.9);
+  font-family:'Outfit',sans-serif;font-size:15px;color:#3b2a1a;outline:none;text-align:center;
+  letter-spacing:2px}
+.diar-gate-inp:focus{border-color:var(--accent)}
+[data-theme="dark"] .diar-gate-inp{background:var(--surface2);border-color:var(--border);color:var(--text)}
+.diar-gate-btn{width:100%;margin-top:10px;padding:12px;border:none;border-radius:var(--r-md);
+  background:var(--accent);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;
+  font-weight:700;cursor:pointer}
+.diar-gate-btn:hover{background:var(--accent-h)}
+.diar-gate-err{font-size:12.5px;color:var(--red-txt);margin-top:10px;min-height:17px}
+/* Habit picker */
+.diar-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.diar-pick-btn{background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:11px;font-weight:700;color:#8b6340;padding:3px 7px;border-radius:var(--r-sm);
+  transition:background .15s}
+.diar-pick-btn:hover{background:#f0d9b5}
+[data-theme="dark"] .diar-pick-btn{color:var(--accent-txt)}
+[data-theme="dark"] .diar-pick-btn:hover{background:var(--surface3)}
+
+#diar-pick-modal{position:fixed;inset:0;z-index:8000;display:none;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(15,12,9,.55)}
+#diar-pick-modal.on{display:flex}
+.diar-pick-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);box-shadow:var(--shadow3);width:100%;max-width:380px;
+  max-height:78vh;display:flex;flex-direction:column;overflow:hidden}
+.diar-pick-top{padding:16px 18px 12px;border-bottom:1px solid var(--border)}
+.diar-pick-t{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.diar-pick-s{font-size:12.5px;color:var(--text2);line-height:1.5;margin-top:4px}
+#diar-pick-list{padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.diar-pick-row{display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+  padding:9px 11px;border:1px solid transparent;border-radius:var(--r-md);
+  background:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13.5px;
+  color:var(--text2);transition:all .15s}
+.diar-pick-row:hover{background:var(--surface2)}
+.diar-pick-row.on{color:var(--text);font-weight:600}
+.diar-pick-box{width:19px;height:19px;flex-shrink:0;border:1.5px solid var(--border2);
+  border-radius:var(--r-xs);display:flex;align-items:center;justify-content:center;
+  font-size:12px;color:#fff;transition:all .15s}
+.diar-pick-row.on .diar-pick-box{background:var(--accent);border-color:var(--accent)}
+.diar-pick-all{margin-top:6px;padding:9px;border:1px dashed var(--border2);
+  border-radius:var(--r-md);background:none;cursor:pointer;font-family:'Outfit',sans-serif;
+  font-size:12.5px;font-weight:600;color:var(--text3)}
+.diar-pick-all:hover{border-color:var(--accent);color:var(--accent-txt)}
+.diar-pick-foot{padding:12px 18px;border-top:1px solid var(--border);text-align:right}
+.diar-pick-done{background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);
+  padding:9px 20px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.diar-pick-done:hover{background:var(--accent-h)}
 /* habit grid in left panel */
 .diar-hab-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .diar-hab-btn{display:flex;align-items:center;gap:6px;padding:8px 10px;
@@ -3925,6 +4014,19 @@ html.birthday[data-theme="dark"]{
 
 <!-- PAGE: DIARY -->
 <div class="page" id="pg-diary" style="flex-direction:column;">
+  <div id="diar-gate">
+    <div class="diar-gate-card">
+      <div class="diar-gate-ico">🔒</div>
+      <div class="diar-gate-t">Your journal is locked</div>
+      <div class="diar-gate-s">Enter your passcode to read and write. The entries are
+        encrypted on this device — there is nothing readable here without it.</div>
+      <input class="diar-gate-inp" id="diar-gate-inp" type="password"
+             placeholder="Passcode" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')diarGateSubmit()">
+      <button class="diar-gate-btn" onclick="diarGateSubmit()">Unlock</button>
+      <div class="diar-gate-err" id="diar-gate-err"></div>
+    </div>
+  </div>
   <div class="diary-inner-hd">
     <span style="font-family:'Playfair Display',serif;font-style:italic;font-size:17px;color:var(--text);margin-right:8px;flex-shrink:0">✦ Journal</span>
     <span style="font-size:12px;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;flex:1">A space to think &amp; reflect</span>
@@ -3969,7 +4071,7 @@ html.birthday[data-theme="dark"]{
         <div class="diar-stat-row"><span>Mood today</span><span class="diar-stat-val" id="diar-stat-mood">—</span></div>
       </div>
       <div class="diar-card diar-fade">
-        <div class="diar-panel-label" title="Your habits from the Habit Tracker, for the day this entry is about. Ticking here ticks there too.">Habits This Day</div>
+        <div class="diar-panel-hd"><div class="diar-panel-label" title="Your habits from the Habit Tracker, for the day this entry is about. Ticking here ticks there too.">Habits This Day</div><button class="diar-pick-btn" onclick="diarPickOpen()" title="Choose which habits show here">Choose</button></div>
         <div class="diar-hab-grid" id="diar-left-habits"></div>
       </div>
     </div>
@@ -3989,6 +4091,16 @@ html.birthday[data-theme="dark"]{
           <input class="diar-tag-input" id="diar-tag" placeholder="# tag this entry" oninput="diarOnTag()">
           <span class="diar-save-ind" id="diar-saved">✓ Saved</span>
         </div>
+        <div class="diar-media-bar">
+          <label class="diar-media-add">
+            📎 Attach a photo, video or voice note
+            <input type="file" id="diar-media-input" multiple hidden
+                   accept="image/*,video/*,audio/*"
+                   onchange="diarMediaAdd(this)">
+          </label>
+          <span class="diar-media-note" title="Attachments are kept in this browser's own file storage, which is far larger than the space the rest of the app uses. They are not uploaded anywhere.">Kept on this device</span>
+        </div>
+        <div id="diar-media-strip"></div>
       </div>
       <div class="diar-write-card diar-fade">
         <div class="diar-extras-grid">
@@ -4046,7 +4158,7 @@ html.birthday[data-theme="dark"]{
         <div class="diar-date-sub" id="diar-date-wd3"></div>
       </div>
       <div class="diar-card diar-fade">
-        <div class="diar-panel-label" title="Your habits from the Habit Tracker, for the day this entry is about. Ticking here ticks there too.">Habits This Day</div>
+        <div class="diar-panel-hd"><div class="diar-panel-label" title="Your habits from the Habit Tracker, for the day this entry is about. Ticking here ticks there too.">Habits This Day</div><button class="diar-pick-btn" onclick="diarPickOpen()" title="Choose which habits show here">Choose</button></div>
         <div class="diar-hab-grid" id="diar-left-habits3"></div>
       </div>
     </div>
@@ -4576,6 +4688,7 @@ function goPage(id,btn){
   if(id==='pomodoro'){renderPmDots();renderPT();updatePmStats();pmRenderHabitPicker(); renderLiveBar('pomodoro');}
   if(id==='analytics'){renderAnalytics(); renderLiveBar('analytics');}
   if(id==='diary'){diarRenderAll();}
+  if(id==='diary' && typeof diarGate==='function') diarGate();
   if(id==='stopwatch'){renderLiveBar('stopwatch');}
 }
 /* ── Sidebar drawer ────────────────────────────────────────────────
@@ -4751,8 +4864,14 @@ function _localState(){
       day: t.date || null, tag: t.tag || null, sort_order:i };
   });
 
+  /* A locked journal does not leave the device. Encrypting at rest and
+     then uploading the plaintext to a server would make the lock a lie.
+     The server keeps whatever it already had; nothing new goes up, and
+     nothing comes down over the local copy (see the merge guard). */
   const journal = {};
-  Object.entries(typeof diarEntries === 'object' && diarEntries ? diarEntries : {}).forEach(([day, e]) => {
+  const journalLocked = (typeof diarIsLocked === 'function') && diarIsLocked();
+  Object.entries(journalLocked ? {} :
+                 (typeof diarEntries === 'object' && diarEntries ? diarEntries : {})).forEach(([day, e]) => {
     if(!/^\d{4}-\d{2}-\d{2}$/.test(day) || !e) return;
     /* An untouched day is a blank template, not an entry. Syncing those
        would fill the server with empty rows for every day ever opened. */
@@ -5068,7 +5187,12 @@ function _applyMerged(m){
   S.tasks = Object.values(m.tasks).sort((a, b) => a.sort_order - b.sort_order)
     .map(t => ({ id:t.id, text:t.title, tag:t.tag || '', date:t.day, done:!!t.done }));
 
-  if(typeof diarEntries === 'object' && diarEntries){
+  /* Matching guard to the one in _localState: while the journal is
+     locked it neither uploads nor accepts anything. Writing server rows
+     into a locked journal would also mean writing them back out again
+     encrypted under a key this session may not even hold. */
+  if(typeof diarEntries === 'object' && diarEntries &&
+     !((typeof diarIsLocked === 'function') && diarIsLocked())){
     Object.values(m.journal).forEach(e => {
       const d = e.data && Object.keys(e.data).length ? e.data : { text:e.body, mood:e.mood, tag:(e.tags||[])[0] || '' };
       diarEntries[e.day] = Object.assign(diarMakeEntry(), diarEntries[e.day] || {}, d);
@@ -5298,6 +5422,17 @@ function renderSettings(){
         '<div class="sp-row-d">The app changes its accent colour on your birthday. Turn this off if you would rather it did not.</div>'+
       '</div><button class="sp-btn'+(S.bdayThemeOff?'':' primary')+'" onclick="S.bdayThemeOff=!S.bdayThemeOff;save();applyBirthdayTheme();renderSettings()">'+
         (S.bdayThemeOff?'Off':'On')+'</button></div>'+
+    '</div>'+
+    '<div class="sp-card-b">'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Journal lock</div>'+
+        '<div class="sp-row-d">'+(diarIsLocked()
+          ? 'On. Your entries are encrypted on this device and unreadable without the passcode \u2014 including to anyone poking around in browser storage. While the lock is on the journal does not sync, because uploading readable copies would defeat it.'
+          : 'Off. Set a passcode and the journal is encrypted on this device. There is no recovery: lose the passcode and the entries are gone for good.')+'</div>'+
+      '</div><button class="sp-btn'+(diarIsLocked()?'':' primary')+'" onclick="diarLockPrompt()">'+
+        (diarIsLocked()?'Remove':'Set up')+'</button></div>'+
+    '</div>'+
+    '<div class="sp-card-b">'+
       '<div class="sp-row"><div class="sp-row-txt">'+
         '<div class="sp-row-n">Summary bar on other pages</div>'+
         '<div class="sp-row-d">The strip of Habits Today / Tasks Done / Last Sleep across the top of Sleep, Stopwatch, Focus Timer and Analytics. Those pages show their own numbers, so it is repetition if you do not want it.</div>'+
@@ -9355,7 +9490,11 @@ function diarDK(d){return fd(d);}
 function diarMakeEntry(){return{text:'',mood:null,gratitude:'',habits:[],highlight:'',tag:'',prompt:diarRandPrompt()};}
 
 /* diary state stored under key 'diar1' in localStorage */
-let diarEntries=JSON.parse(localStorage.getItem('diar1')||'null')||{[diarDK(new Date())]:diarMakeEntry()};
+/* When the lock is on there is no plaintext to read — the entries
+   arrive only after the passcode decrypts them. */
+let diarEntries = localStorage.getItem('diar1-lock')
+  ? {}
+  : (JSON.parse(localStorage.getItem('diar1')||'null')||{[diarDK(new Date())]:diarMakeEntry()});
 let diarSelDate=new Date();
 let diarCalMo=new Date();
 let diarShowCal=false;
@@ -9365,8 +9504,293 @@ let diarCurView='write';
 /* Journal autosave fires on every keystroke (debounced). Unlike save() this
    had no guard, so a full or unavailable localStorage threw on each save and
    broke typing. Warn once, keep the editor usable. */
+/* ══ JOURNAL MEDIA ═════════════════════════════════════════════════
+   IndexedDB, not localStorage: that store is ~5MB for the entire app
+   and one phone video would evict the habits along with everything
+   else. Blobs, not base64, because base64 is a third larger and pushes
+   the whole file through a JS string. */
+const DIAR_MEDIA_DB = 'sv-journal-media';
+let _mediaDB = null;
+
+function _mediaOpen(){
+  if(_mediaDB) return Promise.resolve(_mediaDB);
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DIAR_MEDIA_DB, 1);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if(!db.objectStoreNames.contains('media')){
+        const st = db.createObjectStore('media', { keyPath:'id' });
+        st.createIndex('day', 'day', { unique:false });
+      }
+    };
+    r.onsuccess = () => { _mediaDB = r.result; res(_mediaDB); };
+    r.onerror = () => rej(r.error);
+  });
+}
+function _mediaTx(mode){
+  return _mediaOpen().then(db => db.transaction('media', mode).objectStore('media'));
+}
+function diarMediaList(day){
+  return _mediaTx('readonly').then(st => new Promise((res, rej) => {
+    const out = [], c = st.index('day').openCursor(IDBKeyRange.only(day));
+    c.onsuccess = e => { const cur = e.target.result;
+      if(cur){ out.push(cur.value); cur.continue(); } else res(out); };
+    c.onerror = () => rej(c.error);
+  })).catch(() => []);
+}
+function diarMediaPut(rec){
+  return _mediaTx('readwrite').then(st => new Promise((res, rej) => {
+    const r = st.put(rec); r.onsuccess = () => res(); r.onerror = () => rej(r.error);
+  }));
+}
+function diarMediaDel(id){
+  return _mediaTx('readwrite').then(st => new Promise((res, rej) => {
+    const r = st.delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error);
+  }));
+}
+
+/* A phone camera makes 4-8MB images and a journal needs none of that.
+   Video and audio are stored as-is: re-encoding them in the browser
+   would cost more than it saves. */
+function _shrinkImage(file){
+  return new Promise(res => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1600;
+      let { width:w, height:h } = img;
+      if(w > MAX || h > MAX){ const k = MAX / Math.max(w, h); w = Math.round(w*k); h = Math.round(h*k); }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      cv.toBlob(b => res(b || file), 'image/jpeg', 0.82);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); res(file); };
+    img.src = url;
+  });
+}
+
+async function diarMediaAdd(input){
+  const day = diarDK(diarSelDate);
+  const files = [...(input.files || [])];
+  input.value = '';
+  for(const f of files){
+    const isImg = /^image\//.test(f.type);
+    const blob = isImg ? await _shrinkImage(f) : f;
+    /* 40MB is generous for a journal clip and still leaves the quota
+       usable. Better to refuse clearly than to fail on write. */
+    if(blob.size > 40*1024*1024){
+      alert('"' + f.name + '" is ' + Math.round(blob.size/1048576) + 'MB, which is too large. ' +
+            'Try a shorter clip.');
+      continue;
+    }
+    try{
+      await diarMediaPut({ id: 'm'+Date.now()+Math.random().toString(36).slice(2,7),
+                           day, name:f.name, type:f.type, size:blob.size, blob });
+    }catch(e){
+      alert('Could not save "' + f.name + '": ' + (e && e.message || 'storage error'));
+    }
+  }
+  diarMediaRender();
+}
+
+let _mediaURLs = [];
+async function diarMediaRender(){
+  const box = document.getElementById('diar-media-strip');
+  if(!box) return;
+  // object URLs are a leak if they are never revoked
+  _mediaURLs.forEach(u => URL.revokeObjectURL(u)); _mediaURLs = [];
+  const items = await diarMediaList(diarDK(diarSelDate));
+  if(!items.length){ box.innerHTML = ''; return; }
+  box.innerHTML = items.map(m => {
+    const url = URL.createObjectURL(m.blob); _mediaURLs.push(url);
+    const kb = m.size > 1048576 ? (m.size/1048576).toFixed(1)+'MB' : Math.round(m.size/1024)+'KB';
+    let inner;
+    if(/^image\//.test(m.type))      inner = '<img src="'+url+'" alt="'+esc(m.name)+'">';
+    else if(/^video\//.test(m.type)) inner = '<video src="'+url+'" controls preload="metadata"></video>';
+    else if(/^audio\//.test(m.type)) inner = '<audio src="'+url+'" controls preload="metadata"></audio>';
+    else                             inner = '<div class="diar-media-file">'+esc(m.name)+'</div>';
+    return '<figure class="diar-media-item">'+inner+
+      '<figcaption>'+esc(m.name.slice(0,18))+' \u00b7 '+kb+
+      '<button onclick="diarMediaRemove('+JSON.stringify(m.id).replace(/"/g,'&quot;')+')" '+
+      'title="Remove this attachment">\u2715</button></figcaption></figure>';
+  }).join('');
+}
+async function diarMediaRemove(id){
+  await diarMediaDel(id);
+  diarMediaRender();
+}
+
+/* ══ JOURNAL LOCK ══════════════════════════════════════════════════
+   Entries are encrypted at rest, not merely hidden behind a screen.
+   A passcode screen over localStorage is theatre: the text is still
+   sitting there in plain sight for anyone who opens dev tools.
+
+   PBKDF2-SHA256 (250k iterations, random 16-byte salt per install)
+   derives an AES-GCM key. Each save gets a fresh 12-byte IV. The
+   passcode is never stored -- only a verifier blob that decrypts to a
+   known string when the passcode is right.
+
+   No recovery, by design. Said plainly in the UI before you opt in. */
+const DIAR_LOCK_KEY = 'diar1-lock';   // {salt, verifier, iv} — never the passcode
+const DIAR_ENC_KEY  = 'diar1-enc';    // {iv, data} — the ciphertext
+let _diarKey = null;                  // in memory only, for this session
+
+const _b64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const _unb64 = str => Uint8Array.from(atob(str), c => c.charCodeAt(0));
+
+function diarLockMeta(){
+  try{ return JSON.parse(localStorage.getItem(DIAR_LOCK_KEY) || 'null'); }
+  catch(e){ return null; }
+}
+function diarIsLocked(){ return !!diarLockMeta(); }
+function diarUnlocked(){ return !diarIsLocked() || !!_diarKey; }
+
+async function _diarDerive(pass, saltB64){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey('raw', enc.encode(pass), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt:_unb64(saltB64), iterations:250000, hash:'SHA-256' },
+    base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function _diarEncrypt(key, text){
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(text));
+  return { iv:_b64(iv), data:_b64(ct) };
+}
+async function _diarDecrypt(key, blob){
+  const pt = await crypto.subtle.decrypt(
+    {name:'AES-GCM', iv:_unb64(blob.iv)}, key, _unb64(blob.data));
+  return new TextDecoder().decode(pt);
+}
+
+/* Turning the lock on: encrypt what is already there, then remove the
+   plaintext copy. Order matters — the plaintext only goes once the
+   ciphertext is safely written. */
+async function diarLockEnable(pass){
+  if(!pass || pass.length < 4) return { ok:false, msg:'Use at least 4 characters.' };
+  const salt = _b64(crypto.getRandomValues(new Uint8Array(16)));
+  const key = await _diarDerive(pass, salt);
+  const verifier = await _diarEncrypt(key, 'successor-vision-journal');
+  const payload  = await _diarEncrypt(key, JSON.stringify(diarEntries));
+  localStorage.setItem(DIAR_ENC_KEY, JSON.stringify(payload));
+  localStorage.setItem(DIAR_LOCK_KEY, JSON.stringify({ salt, verifier }));
+  localStorage.removeItem('diar1');                 // plaintext gone, last
+  _diarKey = key;
+  return { ok:true };
+}
+
+async function diarLockTry(pass){
+  const meta = diarLockMeta();
+  if(!meta) return { ok:true };
+  let key;
+  try{
+    key = await _diarDerive(pass, meta.salt);
+    const check = await _diarDecrypt(key, meta.verifier);
+    if(check !== 'successor-vision-journal') throw new Error('bad');
+  }catch(e){ return { ok:false, msg:'That passcode does not match.' }; }
+  _diarKey = key;
+  try{
+    const blob = JSON.parse(localStorage.getItem(DIAR_ENC_KEY) || 'null');
+    if(blob) diarEntries = JSON.parse(await _diarDecrypt(key, blob)) || {};
+  }catch(e){
+    return { ok:false, msg:'The journal data could not be read.' };
+  }
+  return { ok:true };
+}
+
+async function diarLockRemove(pass){
+  const t = await diarLockTry(pass);
+  if(!t.ok) return t;
+  localStorage.setItem('diar1', JSON.stringify(diarEntries));
+  localStorage.removeItem(DIAR_ENC_KEY);
+  localStorage.removeItem(DIAR_LOCK_KEY);
+  _diarKey = null;
+  return { ok:true };
+}
+
+/* Locks again without a reload: drops the key and blanks what is in
+   memory, so the entries are not sitting in a variable either. */
+function diarLockNow(){
+  if(!diarIsLocked()) return;
+  _diarKey = null;
+  diarEntries = {};
+  diarGate();
+}
+
+/* The gate. Rendered over the journal page, not instead of it, so the
+   rest of the app is unaffected. */
+
+/* Setting up or removing the lock. Deliberately a two-step confirm on
+   setup: there is no recovery, and that has to land before the switch
+   flips, not after. */
+async function diarLockPrompt(){
+  if(diarIsLocked()){
+    const pass = prompt('Enter your journal passcode to remove the lock.\n\n' +
+      'The entries go back to being stored in plain text on this device.');
+    if(pass === null) return;
+    const r = await diarLockRemove(pass);
+    alert(r.ok ? 'Lock removed. The journal is readable again.' : r.msg);
+    if(r.ok){ renderSettings(); diarGate(); }
+    return;
+  }
+  const pass = prompt(
+    'Set a passcode for the journal.\n\n' +
+    'Your entries get encrypted on this device, so nobody can read them ' +
+    'without it \u2014 not even by opening browser storage.\n\n' +
+    'THERE IS NO RECOVERY. If you forget this passcode, the entries are ' +
+    'gone permanently. Write it down somewhere safe first.\n\n' +
+    'At least 4 characters:');
+  if(pass === null) return;
+  const again = prompt('Type it once more to be sure:');
+  if(again === null) return;
+  if(pass !== again){ alert('Those did not match. Nothing changed.'); return; }
+  const r = await diarLockEnable(pass);
+  alert(r.ok
+    ? 'Journal locked. It will ask for the passcode from now on.'
+    : r.msg);
+  if(r.ok) renderSettings();
+}
+
+function diarGate(){
+  const pg = document.getElementById('pg-diary');
+  const gate = document.getElementById('diar-gate');
+  if(!pg || !gate) return;
+  const locked = diarIsLocked() && !_diarKey;
+  gate.classList.toggle('on', locked);
+  pg.querySelectorAll('.diar-view').forEach(v => {
+    v.style.visibility = locked ? 'hidden' : '';
+  });
+  const hd = pg.querySelector('.diary-inner-hd');
+  if(hd) hd.style.visibility = locked ? 'hidden' : '';
+  if(locked){
+    const i = document.getElementById('diar-gate-inp');
+    if(i){ i.value=''; setTimeout(()=>i.focus(), 60); }
+    const e = document.getElementById('diar-gate-err');
+    if(e) e.textContent='';
+  }
+}
+
+async function diarGateSubmit(){
+  const i = document.getElementById('diar-gate-inp');
+  const e = document.getElementById('diar-gate-err');
+  const r = await diarLockTry(i.value);
+  if(!r.ok){ e.textContent = r.msg; i.select(); return; }
+  diarGate();
+  diarRenderAll();
+}
+
 function diarSave(){
   if(typeof syncSoon==='function') syncSoon();
+  /* With the lock on, the plaintext key must never be written again. */
+  if(_diarKey){
+    _diarEncrypt(_diarKey, JSON.stringify(diarEntries))
+      .then(b => { try{ localStorage.setItem(DIAR_ENC_KEY, JSON.stringify(b)); }catch(e){} })
+      .catch(()=>{});
+    return;
+  }
+  if(diarIsLocked()) return;      // locked and no key: nothing to save
   try{ localStorage.setItem('diar1',JSON.stringify(diarEntries)); }
   catch(e){
     if(!diarSave._warned){
@@ -9467,6 +9891,56 @@ function diarRenderStats(){
    It is the same habits and the same checks as the tracker now, for the
    date the entry is about — so writing up your day and marking it done
    are one action, not two that disagree. */
+/* Which habits the journal shows. An empty list means "all", so the
+   feature costs nothing to anyone who never opens it. */
+function diarHabShown(){
+  const pick = S.diarHabPick;
+  if(!Array.isArray(pick) || !pick.length) return S.habits;
+  const chosen = S.habits.filter(h => pick.indexOf(h.id) > -1);
+  /* Every chosen habit could have been deleted from the tracker since.
+     Falling back to all beats rendering an empty panel with no clue. */
+  return chosen.length ? chosen : S.habits;
+}
+
+function diarPickToggle(id){
+  const pick = Array.isArray(S.diarHabPick) ? S.diarHabPick.slice() : [];
+  const i = pick.indexOf(id);
+  if(i > -1) pick.splice(i,1); else pick.push(id);
+  S.diarHabPick = pick; save();
+  diarPickRender();
+  ['diar-left-habits','diar-left-habits3'].forEach(g=>diarRenderLeftHabits(g));
+  diarRenderStats();
+}
+function diarPickAll(){
+  S.diarHabPick = []; save();
+  diarPickRender();
+  ['diar-left-habits','diar-left-habits3'].forEach(g=>diarRenderLeftHabits(g));
+  diarRenderStats();
+}
+function diarPickRender(){
+  const box=document.getElementById('diar-pick-list'); if(!box) return;
+  const pick = Array.isArray(S.diarHabPick) ? S.diarHabPick : [];
+  if(!S.habits.length){
+    box.innerHTML='<div class="diar-hab-none">No habits on the tracker yet.</div>';
+    return;
+  }
+  box.innerHTML = S.habits.map(h=>{
+    const on = !pick.length || pick.indexOf(h.id) > -1;
+    return '<button class="diar-pick-row'+(on?' on':'')+'" onclick="diarPickToggle('+
+      JSON.stringify(h.id).replace(/"/g,'&quot;')+')">'+
+      '<span class="diar-pick-box">'+(on?'\u2713':'')+'</span>'+
+      esc(h.emoji)+' '+esc(h.name)+'</button>';
+  }).join('') +
+  '<button class="diar-pick-all" onclick="diarPickAll()">Show all of them</button>';
+}
+function diarPickOpen(){
+  const m=document.getElementById('diar-pick-modal'); if(!m) return;
+  diarPickRender(); m.classList.add('on');
+}
+function diarPickClose(){
+  const m=document.getElementById('diar-pick-modal'); if(m) m.classList.remove('on');
+}
+
 function diarRenderLeftHabits(gridId){
   const grid=document.getElementById(gridId); if(!grid)return;
   const ds=diarDK(diarSelDate);
@@ -9477,7 +9951,7 @@ function diarRenderLeftHabits(gridId){
       'and they will appear here for the day you are writing about.</div>';
     return;
   }
-  S.habits.forEach(h=>{
+  diarHabShown().forEach(h=>{
     const v=S.checks[h.id+'_'+ds];
     const cls = v===true?' diar-done' : v==='x'?' diar-missed' : v==='r'?' diar-rest' : '';
     const mark= v===true?'✓' : v==='x'?'✕' : v==='r'?'–' : '';
@@ -9600,6 +10074,9 @@ function diarRenderAll(){
   diarRenderWrite();
   diarRenderEntries();
   diarRenderTracker();
+  /* Attachments are per-day, so they refresh with everything else when
+     the selected date changes. */
+  if(typeof diarMediaRender === 'function') diarMediaRender();
 }
 
 /* ══ FLOW PLANNER EMBED ══ */
@@ -10822,5 +11299,21 @@ function aiPageSendInput(){
 
 </script>
 
+
+<!-- Journal habit picker -->
+<div id="diar-pick-modal" role="dialog" aria-modal="true" aria-labelledby="diar-pick-t"
+     onclick="if(event.target===this)diarPickClose()">
+  <div class="diar-pick-card">
+    <div class="diar-pick-top">
+      <div class="diar-pick-t" id="diar-pick-t">Habits in the journal</div>
+      <div class="diar-pick-s">Pick the ones worth reflecting on. The rest stay on the
+        Habit Tracker, untouched — this only changes what the journal shows.</div>
+    </div>
+    <div id="diar-pick-list"></div>
+    <div class="diar-pick-foot">
+      <button class="diar-pick-done" onclick="diarPickClose()">Done</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
