@@ -147,6 +147,44 @@ for (const doc of docs) {
   if (dead.length) dead.forEach(fn => fail(`calls ${fn}() x${missing.get(fn)} but nothing defines it`));
   else pass('no calls to undefined local helpers');
 
+  /* ---------- 2c. no top-level call that runs before its definition ----
+     Function declarations hoist inside a script block, never across
+     them. An init call placed in an earlier <script> than the function
+     it calls throws ReferenceError, and because a top-level throw
+     aborts every remaining statement in that block, it silently kills
+     unrelated code further down. That is exactly how the wiring for the
+     AI rail took out everything after it.
+
+     Only unindented calls are considered: those run immediately on
+     load. Anything inside a function body runs later, by which time
+     every block has executed. */
+  const blockDefs = scripts.map(code => {
+    const d = new Set();
+    for (const re of [/function\s+([A-Za-z_$][\w$]*)\s*\(/g,
+                      /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/g]) {
+      for (const m of code.matchAll(re)) d.add(m[1]);
+    }
+    return d;
+  });
+  let ordering = 0;
+  scripts.forEach((code, i) => {
+    const clean = code.replace(/\/\*[\s\S]*?\*\//g, ' ')
+                      .replace(/(^|[^:\\])\/\/[^\n]*/g, '$1');
+    for (const m of clean.matchAll(/^([A-Za-z_$][\w$]*)\s*\(/gm)) {
+      const fn = m[1];
+      if (/^(if|for|while|switch|catch|return|function|typeof|new|else|do|try)$/.test(fn)) continue;
+      if (blockDefs[i].has(fn)) continue;                 // defined in this block
+      const definedLater = blockDefs.findIndex(d => d.has(fn));
+      if (definedLater > i) {
+        ordering++;
+        fail(`script block ${i + 1} calls ${fn}() at top level, but ${fn} is not ` +
+             `defined until block ${definedLater + 1} — ReferenceError on load, ` +
+             `which aborts the rest of block ${i + 1}`);
+      }
+    }
+  });
+  if (!ordering) pass('no top-level call runs before its definition');
+
   /* ---------- 3. balanced divs ---------- */
   const opens = (body.match(/<div\b/g) || []).length;
   const closes = (body.match(/<\/div>/g) || []).length;
