@@ -1726,7 +1726,28 @@ html.no-minibar .live-mini-bar{display:none}
 .diary-body{flex:1;display:flex;overflow:hidden;background:linear-gradient(135deg,#f5efe6 0%,#ede3d4 50%,#e8dcc8 100%)}
 [data-theme="dark"] .diary-body{background:var(--bg) !important}
 .diar-left{width:250px;min-width:250px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;
-  padding:20px 14px;overflow-y:auto}
+  padding:20px 14px;overflow-y:auto;transition:width .22s cubic-bezier(.4,0,.2,1)}
+/* Collapsed. min-width is deliberately NOT transitioned: animating it on
+   a flex item feeds a changing constraint back into the layout every
+   frame and the column never reaches its target width. */
+/* Only where the column is genuinely a sidebar. Below 1001px the view
+   stacks, so the cards cost the editor no width and hiding them would
+   just lose content — see the stacking rules in the 1000px block. */
+@media (min-width:1001px){
+  html.diar-left-closed .diar-left{width:0;min-width:0;padding-left:0;padding-right:0;
+    overflow:hidden;opacity:0}
+}
+.diar-left-btn{position:absolute;top:14px;left:10px;z-index:6;
+  width:26px;height:26px;border-radius:var(--r-sm);
+  border:1px solid rgba(196,168,130,.5);background:rgba(255,252,245,.9);
+  color:#8b6340;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:12px;line-height:1;padding:0;transition:all .15s}
+.diar-left-btn:hover{background:#f0d9b5}
+[data-theme="dark"] .diar-left-btn{border-color:var(--border);background:var(--surface2);color:var(--text2)}
+[data-theme="dark"] .diar-left-btn:hover{background:var(--surface3);color:var(--text)}
+@media (min-width:1001px){
+  html.diar-left-closed .diar-main{padding-left:44px}
+}
 .diar-main{flex:1;display:flex;flex-direction:column;gap:14px;padding:20px 20px 20px 6px;overflow-y:auto}
 .diar-card{background:rgba(255,252,245,0.88);border-radius:var(--r-lg);padding:16px;
   box-shadow:0 2px 16px rgba(59,42,26,0.08);border:1px solid rgba(196,168,130,0.3)}
@@ -1892,7 +1913,7 @@ html.no-minibar .live-mini-bar{display:none}
 .diar-tab.diar-tab-on{background:#c4a882;color:#3b2a1a;border-color:#c4a882}
 .diar-view{display:none;background:linear-gradient(135deg,#f5efe6 0%,#ede3d4 50%,#e8dcc8 100%)}
 [data-theme="dark"] .diar-view{background:var(--bg) !important}
-.diar-view.diar-view-on{display:flex;flex:1;overflow:hidden}
+.diar-view.diar-view-on{display:flex;flex:1;overflow:hidden;position:relative}
 @keyframes diarFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .diar-fade{animation:diarFadeIn .3s ease}
 
@@ -2247,15 +2268,41 @@ canvas{max-width:100%}
      into flow here — an absolutely-positioned overlay only makes sense while
      the panel sits beside the chart. slpDrawChart() checks the computed
      position and skips the gutter when it is static, so the two stay in step. */
+  /* Once .slp-body becomes the scroller, every child that kept its own
+     overflow-y from the desktop layout turned into a squashed window:
+     the log form was a 600px porthole onto 1448px, the history a 220px
+     one onto 1597px, and .slp-right collapsed to ZERO height, which made
+     the chart — the whole point of the page — invisible on a phone.
+     The body scrolls; the sections inside it size to their content. */
   .slp-body{flex-direction:column;overflow:auto}
-  .slp-left{position:static;transform:none;width:auto;min-width:0;max-width:none}
+  .slp-left{position:static;transform:none;width:auto;min-width:0;max-width:none;
+    flex-shrink:0;overflow:visible}
   .slp-left.slp-panel-collapsed{display:none}
+  .slp-right{flex-shrink:0;overflow:visible;height:auto}
+  /* max-height, not height, is what bounded this to 220px on desktop.
+     Releasing only the height left 959px of rows spilling out of a
+     220px box with overflow:visible — worse than the scrollbar it
+     replaced. The page scrolls here, so let it run to full height. */
+  .slp-hist-area{flex-shrink:0;overflow:visible;height:auto;max-height:none}
+  /* The canvas sizes itself from this box, so it needs a real one. */
+  .slp-chart-area{flex-shrink:0;overflow:visible;height:auto;min-height:340px}
 
   /* Journal is a three-panel row; the fixed 250px side panel squeezed the
      editor itself down to ~98px. Stack the panels instead. */
   .diar-view.diar-view-on{flex-direction:column;overflow-y:auto}
-  .diar-left{width:auto;min-width:0;flex-shrink:1}
+  /* The column keeps its own overflow-y:auto from the desktop rule. Once
+     the view stacks and becomes the scroller, that made the side column a
+     40px-tall window onto 858px of cards — four cards crammed into one
+     line's worth of space. The view scrolls; the column inside it must
+     not, and must not be shrunk to fit either. */
+  .diar-left{width:auto;min-width:0;flex-shrink:0;overflow:visible}
   .diar-main{padding:16px;overflow:visible}
+  /* Once the panels stack, the side cards sit above the editor and cost
+     it no width, so collapsing buys nothing — and the button, being
+     absolutely positioned, landed on top of the first card. The collapse
+     rules themselves are scoped to min-width:1001px, so a state carried
+     over from a wide window cannot strand the cards hidden here. */
+  .diar-left-btn{display:none}
 
   /* Stopwatch is a 75/35 split where the left column carries min-width:360px.
      Below that the lap panel was crushed to 48px. Stack instead. */
@@ -2597,7 +2644,7 @@ canvas{max-width:100%}
              0 0 0 9999px rgba(12,10,8,.66)}
 /* A 22px grid cell is a speck at full-page scale. The halo pulses so
    the eye finds it without needing the target to be big. */
-.tour-spot::after{content:'';position:absolute;inset:-7px;border-radius:15px;
+.tour-spot::after{content:'';position:absolute;inset:-5px;border-radius:14px;
   border:2px solid var(--accent);opacity:.55;animation:tourPing 1.8s ease-out infinite}
 @keyframes tourPing{
   0%{transform:scale(1);opacity:.55}
@@ -3740,6 +3787,9 @@ canvas{max-width:100%}
 
   <!-- WRITE VIEW -->
   <div class="diar-view diar-view-on" id="diar-view-write">
+    <button class="diar-left-btn" onclick="diarToggleLeft()"
+            title="Hide the side cards to widen the page"
+            aria-label="Hide the side cards">‹</button>
     <div class="diar-left">
       <div class="diar-card diar-fade">
         <div class="diar-date-big" id="diar-date-md"></div>
@@ -3811,6 +3861,9 @@ canvas{max-width:100%}
 
   <!-- ENTRIES VIEW -->
   <div class="diar-view" id="diar-view-entries">
+    <button class="diar-left-btn" onclick="diarToggleLeft()"
+            title="Hide the side cards to widen the page"
+            aria-label="Hide the side cards">‹</button>
     <div class="diar-left">
       <div class="diar-card diar-fade">
         <div class="diar-date-big" id="diar-date-md2"></div>
@@ -3835,6 +3888,9 @@ canvas{max-width:100%}
 
   <!-- HABITS TRACKER VIEW -->
   <div class="diar-view" id="diar-view-habits">
+    <button class="diar-left-btn" onclick="diarToggleLeft()"
+            title="Hide the side cards to widen the page"
+            aria-label="Hide the side cards">‹</button>
     <div class="diar-left">
       <div class="diar-card diar-fade">
         <div class="diar-date-big" id="diar-date-md3"></div>
@@ -4578,6 +4634,7 @@ function _prefsFlat(){
   if(S.gamify === false) o.gamify = false;
   if(S.hideMiniBar)      o.hideMiniBar = 1;
   if(S.slpPanelClosed)   o.slpPanelClosed = 1;
+  if(S.diarLeftClosed)   o.diarLeftClosed = 1;
   if(S.ovOpen === true)  o.ovOpen = true;
   if(S.tourDone)         o.tourDone = 1;
   /* The Flow Planner's tasks live in its own store, so they were never
@@ -4598,6 +4655,7 @@ function _prefsApply(flat){
   S.gamify   = (flat.gamify === false) ? false : true;
   S.hideMiniBar = flat.hideMiniBar ? 1 : 0;
   S.slpPanelClosed = flat.slpPanelClosed ? 1 : 0;
+  S.diarLeftClosed = flat.diarLeftClosed ? 1 : 0;
   S.ovOpen   = (flat.ovOpen === true);
   S.tourDone = flat.tourDone ? 1 : 0;
   if(typeof flat.flowStore === 'string' &&
@@ -4856,6 +4914,7 @@ function _applyMerged(m){
     if(typeof applyOverviewState  === 'function') applyOverviewState();
     if(typeof applyMiniBar        === 'function') applyMiniBar();
     if(typeof slpApplyPanelState  === 'function') slpApplyPanelState();
+    if(typeof applyDiarLeft       === 'function') applyDiarLeft();
     if(typeof renderSettings === 'function' &&
        document.getElementById('pg-settings').classList.contains('on')) renderSettings();
   }
@@ -4953,6 +5012,21 @@ function togglePage(id){
 /* The top summary bar repeats what each page already shows, so it is
    optional. Hidden with a class on <html> rather than by walking the
    four copies, so pages rendered later pick it up for free. */
+/* The Journal renders three copies of .diar-left, one per view, so the
+   state lives on <html> and every copy follows it. */
+function applyDiarLeft(){
+  const closed=!!S.diarLeftClosed;
+  document.documentElement.classList.toggle('diar-left-closed', closed);
+  document.querySelectorAll('.diar-left-btn').forEach(b=>{
+    b.textContent = closed ? '\u203a' : '\u2039';
+    b.title = closed ? 'Show the side cards' : 'Hide the side cards to widen the page';
+    b.setAttribute('aria-label', b.title);
+  });
+}
+function diarToggleLeft(){
+  S.diarLeftClosed=!S.diarLeftClosed; save(); applyDiarLeft();
+}
+
 function applyMiniBar(){
   document.documentElement.classList.toggle('no-minibar', !!S.hideMiniBar);
 }
@@ -5186,6 +5260,9 @@ function tourStart(force){
   if(!force && S.tourDone) return;
   _tourSteps=_tourDeck(); _tourI=0;
   document.getElementById('tour').classList.add('on');
+  /* A walkthrough is modal: scrolling the page behind it moves the very
+     thing being pointed at out from under the spotlight. */
+  document.body.style.overflow='hidden';
   document.addEventListener('keydown', _tourKey);
   tourPaint();
   if(!_tourRaf) _tourFollow();
@@ -5223,6 +5300,14 @@ function _tourTarget(st){
   let el = st.sel ? document.querySelector(st.sel) : null;
   if(!el || el.getBoundingClientRect().width < 4)
     el = document.getElementById('sni-'+st.page);
+  /* A sidebar row is 228px wide when the drawer is open, so
+     spotlighting the button drew a band across the whole rail. The icon
+     is the thing being pointed at. Falls back to the row if the icon is
+     ever missing. */
+  if(el && el.classList && el.classList.contains('sni')){
+    const ico = el.querySelector('.ico');
+    if(ico && ico.getBoundingClientRect().width > 4) el = ico;
+  }
   return el;
 }
 
@@ -5240,7 +5325,9 @@ function tourPaint(skipNav){
   document.getElementById('tour-p').textContent=st.p;
   document.getElementById('tour-next').textContent=
     (_tourI===_tourSteps.length-1)?'Done':'Next';
-  document.getElementById('tour-back').disabled=(_tourI===0);
+  /* Hidden, not disabled, on the first step: a control that cannot do
+     anything is just clutter. */
+  document.getElementById('tour-back').style.display = _tourI===0 ? 'none' : '';
   /* Measure after the page has rendered, then measure again once
      anything animating has finished. Targets whose size depends on a
      transition — the AI composer widens as the conversation rail slides
@@ -8816,6 +8903,7 @@ renderHome();
 applyPageVisibility();
 applyOverviewState();
 applyMiniBar();
+applyDiarLeft();
 /* First run only. Deferred so it lands on a painted app rather than a
    blank one, and never on top of the sleep-age prompt. */
 setTimeout(()=>{
