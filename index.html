@@ -2673,6 +2673,75 @@ body.aip-resizing{cursor:col-resize;user-select:none}
   background:var(--green-dim);color:var(--green-txt)}
 .aih-act.warn{background:var(--red-dim);color:var(--red-txt)}
 
+
+/* ══ PROFILE IDENTITY ════════════════════════════════════════════════ */
+.pf-idrow{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.pf-avwrap{position:relative;flex-shrink:0}
+.pf-av-img{width:64px;height:64px;border-radius:50%;object-fit:cover;display:block;
+  border:2px solid var(--border)}
+.pf-av-ph{width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:700}
+.pf-av-edit{position:absolute;right:-2px;bottom:-2px;width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--surface);background:var(--surface3);color:var(--text2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;
+  padding:0;transition:all .15s}
+.pf-av-edit:hover{background:var(--accent);color:#fff}
+.pf-fields{flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px}
+.pf-field{display:flex;flex-direction:column;gap:4px}
+.pf-field label{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--text3)}
+.pf-input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:9px 12px;font-family:'Outfit',sans-serif;font-size:13.5px;color:var(--text);
+  outline:none;transition:border-color .15s;width:100%}
+.pf-input:focus{border-color:var(--accent)}
+.pf-dob-note{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5}
+
+/* ══ BIRTHDAY ════════════════════════════════════════════════════════
+   A warm, once-a-year dressing. Only the accent tokens move, so every
+   component that already uses them comes along without special cases. */
+html.birthday{
+  --accent:#e0457b; --accent-h:#c93a6c; --accent-txt:#e0457b;
+  --accent-dim:rgba(224,69,123,.12);
+}
+html.birthday[data-theme="dark"]{
+  --accent:#ff6fa5; --accent-h:#ff8ab6; --accent-txt:#ff8ab6;
+  --accent-dim:rgba(255,111,165,.18);
+}
+.bday-banner{display:flex;align-items:center;gap:12px;padding:14px 18px;
+  background:linear-gradient(100deg,var(--accent-dim),transparent 70%);
+  border:1px solid var(--accent);border-radius:var(--r-lg);margin-bottom:14px}
+.bday-banner-ico{font-size:24px;line-height:1;flex-shrink:0}
+.bday-banner-t{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-.2px}
+.bday-banner-s{font-size:12.8px;color:var(--text2);margin-top:2px;line-height:1.5}
+.bday-banner-x{margin-left:auto;background:none;border:none;color:var(--text3);
+  cursor:pointer;font-size:16px;padding:4px 8px;border-radius:var(--r-sm);flex-shrink:0}
+.bday-banner-x:hover{background:var(--surface2);color:var(--text)}
+
+.bday-overlay{position:fixed;inset:0;z-index:9500;display:none;
+  align-items:center;justify-content:center;padding:22px;
+  background:rgba(12,10,8,.6);backdrop-filter:blur(3px)}
+.bday-overlay.on{display:flex}
+.bday-card{background:var(--surface);border:1px solid var(--accent);
+  border-radius:var(--r-xl);box-shadow:0 30px 70px -20px rgba(0,0,0,.5);
+  width:100%;max-width:420px;padding:34px 30px 26px;text-align:center;
+  animation:bdayRise .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes bdayRise{from{opacity:0;transform:translateY(18px) scale(.97)}
+                    to{opacity:1;transform:none}}
+.bday-cake{font-size:52px;line-height:1;margin-bottom:14px;display:block;
+  animation:bdayBob 2.6s ease-in-out infinite}
+@keyframes bdayBob{0%,100%{transform:translateY(0) rotate(-3deg)}
+                   50%{transform:translateY(-9px) rotate(3deg)}}
+.bday-h{font-size:25px;font-weight:800;letter-spacing:-.6px;color:var(--text);
+  margin:0 0 10px;line-height:1.2}
+.bday-p{font-size:14px;line-height:1.65;color:var(--text2);margin:0 0 22px}
+.bday-btn{background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);
+  padding:11px 26px;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:background .15s}
+.bday-btn:hover{background:var(--accent-h)}
+@media (prefers-reduced-motion:reduce){
+  .bday-card{animation:none} .bday-cake{animation:none}
+}
+
 /* ══ FIRST-RUN TOUR ═════════════════════════════════════════════════
    Coach marks, not a slideshow. The page being described stays visible
    behind the bubble, with the thing being pointed at cut out of the
@@ -2918,6 +2987,15 @@ body.aip-resizing{cursor:col-resize;user-select:none}
 
 
 <!-- TOUR -->
+<div class="bday-overlay" id="bday-overlay" role="dialog" aria-modal="true" aria-labelledby="bday-h">
+  <div class="bday-card">
+    <span class="bday-cake">🎂</span>
+    <h2 class="bday-h" id="bday-h">Happy birthday!</h2>
+    <p class="bday-p" id="bday-p"></p>
+    <button class="bday-btn" onclick="bdayDismiss()">Thank you</button>
+  </div>
+</div>
+
 <div id="tour" aria-hidden="true">
   <div class="tour-spot" id="tour-spot"></div>
   <div class="tour-pop" id="tour-pop" role="dialog" aria-modal="true" aria-labelledby="tour-h">
@@ -4691,6 +4769,14 @@ function _prefsFlat(){
   if(S.slpPanelClosed)   o.slpPanelClosed = 1;
   if(S.diarLeftClosed)   o.diarLeftClosed = 1;
   if(S.aipRailW && S.aipRailW !== 252) o.aipRailW = S.aipRailW;
+  /* Identity travels with the account: signing in on a new device
+     should not mean re-introducing yourself. The photo is already
+     downscaled to 192px before it ever reaches here. */
+  if(S.profileName)  o.profileName  = S.profileName;
+  if(S.profileDob)   o.profileDob   = S.profileDob;
+  if(S.profilePhoto) o.profilePhoto = S.profilePhoto;
+  if(S.bdayNotify)   o.bdayNotify   = 1;
+  if(S.bdayThemeOff) o.bdayThemeOff = 1;
   if(S.ovOpen === true)  o.ovOpen = true;
   if(S.tourDone)         o.tourDone = 1;
   /* The Flow Planner's tasks live in its own store, so they were never
@@ -4713,6 +4799,12 @@ function _prefsApply(flat){
   S.slpPanelClosed = flat.slpPanelClosed ? 1 : 0;
   S.diarLeftClosed = flat.diarLeftClosed ? 1 : 0;
   S.aipRailW = flat.aipRailW || 252;
+  S.profileName  = flat.profileName  || '';
+  S.profileDob   = flat.profileDob   || '';
+  if(flat.profilePhoto) S.profilePhoto = flat.profilePhoto; else delete S.profilePhoto;
+  S.bdayNotify   = flat.bdayNotify   ? 1 : 0;
+  S.bdayThemeOff = flat.bdayThemeOff ? 1 : 0;
+  if(typeof applyBirthdayTheme === 'function') applyBirthdayTheme();
   if(typeof applyAipRailWidth === 'function') applyAipRailWidth();
   S.ovOpen   = (flat.ovOpen === true);
   S.tourDone = flat.tourDone ? 1 : 0;
@@ -5178,6 +5270,16 @@ function renderSettings(){
     '</div>'+
     '<div class="sp-card-b">'+
       '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Birthday notification</div>'+
+        '<div class="sp-row-d">A note on the morning of your birthday. Needs your browser\'s permission, which is only ever asked for when you switch this on.</div>'+
+      '</div><button class="sp-btn'+(S.bdayNotify?' primary':'')+'" onclick="bdayAskNotify()">'+
+        (S.bdayNotify?'On':'Off')+'</button></div>'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Birthday colours</div>'+
+        '<div class="sp-row-d">The app changes its accent colour on your birthday. Turn this off if you would rather it did not.</div>'+
+      '</div><button class="sp-btn'+(S.bdayThemeOff?'':' primary')+'" onclick="S.bdayThemeOff=!S.bdayThemeOff;save();applyBirthdayTheme();renderSettings()">'+
+        (S.bdayThemeOff?'Off':'On')+'</button></div>'+
+      '<div class="sp-row"><div class="sp-row-txt">'+
         '<div class="sp-row-n">Summary bar on other pages</div>'+
         '<div class="sp-row-d">The strip of Habits Today / Tasks Done / Last Sleep across the top of Sleep, Stopwatch, Focus Timer and Analytics. Those pages show their own numbers, so it is repetition if you do not want it.</div>'+
       '</div><button class="sp-btn'+(S.hideMiniBar?'':' primary')+'" onclick="toggleMiniBar()">'+
@@ -5213,6 +5315,138 @@ function setThemeFromSettings(dark){
 }
 
 /* ── Profile ──────────────────────────────────────────────────── */
+/* ── Profile identity ───────────────────────────────────────────── */
+function pfSetName(v){
+  S.profileName = String(v || '').slice(0, 60).trim();
+  save(); renderProfile();
+}
+function pfSetDob(v){
+  /* Stored as YYYY-MM-DD. Only month and day are ever compared, but the
+     year is kept so the card can say which one it is. */
+  S.profileDob = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';
+  save(); renderProfile(); bdayCheck();
+}
+function pfPickPhoto(){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = e => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    if(!/^image\//.test(f.type)){ _celeToast('That is not an image'); return; }
+    const fr = new FileReader();
+    fr.onload = ev => _pfResize(ev.target.result);
+    fr.readAsDataURL(f);
+  };
+  inp.click();
+}
+/* Downscaled before storage. This travels in the synced prefs, and a
+   photo straight off a phone camera is several megabytes of base64 --
+   too much for localStorage and rude to put in a jsonb column. */
+function _pfResize(dataUrl){
+  const img = new Image();
+  img.onload = () => {
+    const N = 192;
+    const c = document.createElement('canvas'); c.width = N; c.height = N;
+    const ctx = c.getContext('2d');
+    // cover-crop to a square so faces are not squashed
+    const side = Math.min(img.width, img.height);
+    ctx.drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, N, N);
+    S.profilePhoto = c.toDataURL('image/jpeg', 0.75);
+    save(); renderProfile();
+    _celeToast('Photo updated');
+  };
+  img.onerror = () => { _celeToast('Could not read that image'); };
+  img.src = dataUrl;
+}
+function pfClearPhoto(){ delete S.profilePhoto; save(); renderProfile(); }
+
+function _bdayPretty(dob){
+  const M=['January','February','March','April','May','June','July',
+           'August','September','October','November','December'];
+  const mo=+dob.slice(5,7)-1, da=+dob.slice(8,10);
+  return (M[mo]||'') + ' ' + da;
+}
+function pfDisplayName(){
+  return (S.profileName || '').trim() ||
+         (SVUser && SVUser.email ? SVUser.email.split('@')[0] : '');
+}
+
+/* ── Birthday ───────────────────────────────────────────────────────
+   Compares month and day only, so it fires every year. Guarded by the
+   year it last ran, or it would re-trigger on every reload all day. */
+function bdayIsToday(){
+  if(!S.profileDob) return false;
+  const d = new Date();
+  const mmdd = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return S.profileDob.slice(5) === mmdd;
+}
+function bdayAge(){
+  if(!S.profileDob) return null;
+  const born = +S.profileDob.slice(0, 4);
+  const now = new Date().getFullYear();
+  const age = now - born;
+  return (age > 0 && age < 130) ? age : null;
+}
+function applyBirthdayTheme(){
+  document.documentElement.classList.toggle('birthday', bdayIsToday() && !S.bdayThemeOff);
+}
+function bdayDismiss(){
+  document.getElementById('bday-overlay').classList.remove('on');
+  document.body.style.overflow = '';
+}
+function bdayCheck(){
+  applyBirthdayTheme();
+  if(!bdayIsToday()) return;
+  const year = new Date().getFullYear();
+  if(S.bdayCelebrated === year) return;      // already greeted this year
+  S.bdayCelebrated = year; save();
+
+  const name = pfDisplayName();
+  const age  = bdayAge();
+  document.getElementById('bday-h').textContent =
+    name ? ('Happy birthday, ' + name + '!') : 'Happy birthday!';
+  document.getElementById('bday-p').textContent =
+    (age ? (age + ' today. ') : '') +
+    'Whatever you build this year, we are glad to be along for it. ' +
+    'Take the day \u2014 the streaks will wait.';
+  document.getElementById('bday-overlay').classList.add('on');
+  document.body.style.overflow = 'hidden';
+  if(typeof _celebrate === 'function') _celebrate({big: true});
+  bdayNotify(name);
+}
+/* Only sends if permission was granted already. Asking for notification
+   permission unprompted on someone's birthday is a poor way to say
+   happy birthday; the Settings switch is where they opt in. */
+function bdayNotify(name){
+  try{
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    new Notification(name ? ('Happy birthday, ' + name + '!') : 'Happy birthday!',
+      { body: 'Successor Vision is wishing you a good one today.', tag: 'sv-birthday' });
+  }catch(e){}
+}
+function bdayAskNotify(){
+  if(!('Notification' in window)){ _celeToast('This browser has no notifications'); return; }
+  Notification.requestPermission().then(p => {
+    S.bdayNotify = (p === 'granted') ? 1 : 0; save();
+    _celeToast(p === 'granted' ? 'We will wish you on the day' : 'Notifications not allowed');
+    renderSettings && renderSettings();
+  });
+}
+
+/* Deferred so the greeting lands on a painted app rather than a blank
+   one, and never on top of the first-run tour or the sleep-age prompt.
+   Placed here, in the same script block as the functions it calls -- an
+   init call in an earlier block is a ReferenceError that takes out
+   everything after it. */
+setTimeout(function(){
+  try{
+    if(document.getElementById('tour').classList.contains('on')) { applyBirthdayTheme(); return; }
+    const ageOv = document.getElementById('slp-age-overlay');
+    if(ageOv && getComputedStyle(ageOv).display !== 'none') { applyBirthdayTheme(); return; }
+    bdayCheck();
+  }catch(e){}
+}, 1400);
+
 function renderProfile(){
   const box=document.getElementById('profile-body');
   if(!box) return;
@@ -5226,7 +5460,48 @@ function renderProfile(){
   const email=signedIn?SVUser.email:'';
   const initial=signedIn?(email||'?').charAt(0).toUpperCase():'\u2601';
 
+  const nm = esc(S.profileName || '');
+  const dob = S.profileDob || '';
+  const av = S.profilePhoto
+    ? '<img class="pf-av-img" src="'+S.profilePhoto+'" alt="Your profile photo">'
+    : '<div class="pf-av-ph">'+esc((pfDisplayName()||initial).charAt(0).toUpperCase())+'</div>';
+
   box.innerHTML =
+  (bdayIsToday()
+    ? '<div class="bday-banner">'+
+        '<span class="bday-banner-ico">🎂</span>'+
+        '<div><div class="bday-banner-t">Happy birthday'+(pfDisplayName()?', '+esc(pfDisplayName()):'')+'!</div>'+
+        '<div class="bday-banner-s">The app is wearing its party colours for you today.</div></div>'+
+      '</div>'
+    : '')+
+
+  '<div class="sp-card">'+
+    '<div class="sp-card-hd"><div class="sp-card-t">About you</div>'+
+      '<div class="sp-card-s">Only ever stored with your own account. The date of birth is used for one thing: wishing you on the day.</div></div>'+
+    '<div class="sp-card-b">'+
+      '<div class="pf-idrow">'+
+        '<div class="pf-avwrap">'+av+
+          '<button class="pf-av-edit" onclick="pfPickPhoto()" title="Change your photo" aria-label="Change your photo">\u270e</button>'+
+        '</div>'+
+        '<div class="pf-fields">'+
+          '<div class="pf-field"><label for="pf-name">Your name</label>'+
+            '<input class="pf-input" id="pf-name" type="text" maxlength="60" placeholder="What should we call you?" '+
+              'value="'+nm+'" onchange="pfSetName(this.value)"></div>'+
+          '<div class="pf-field"><label for="pf-dob">Date of birth</label>'+
+            '<input class="pf-input" id="pf-dob" type="date" value="'+dob+'" onchange="pfSetDob(this.value)">'+
+            '<div class="pf-dob-note">'+
+              (dob ? (bdayIsToday() ? 'That is today \u2014 many happy returns.'
+                                    : 'We will wish you on '+esc(_bdayPretty(dob))+'.')
+                   : 'Add it and the app will wish you on the day.')+
+            '</div></div>'+
+        '</div>'+
+      '</div>'+
+      (S.profilePhoto ? '<div class="sp-row" style="margin-top:12px"><div class="sp-row-txt">'+
+        '<div class="sp-row-n">Profile photo</div><div class="sp-row-d">Stored at 192px so it can travel with your account.</div>'+
+        '</div><button class="sp-btn" onclick="pfClearPhoto()">Remove</button></div>' : '')+
+    '</div>'+
+  '</div>'+
+
   '<div class="sp-card">'+
     '<div class="sp-card-b" style="padding-top:20px">'+
       '<div style="display:flex;align-items:center;gap:16px">'+
