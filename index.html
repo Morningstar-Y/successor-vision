@@ -102,6 +102,13 @@
 html,body{height:100%;overflow:hidden}
 body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;transition:background .3s,color .3s}
 button,input,select{font-family:'Outfit',sans-serif}
+/* The UA stylesheet gives <button> `color: buttontext`, which is black
+   and does not follow the theme. Any button that never sets its own
+   colour was therefore black-on-dark — 1.4:1 on the Journal's mood
+   buttons and the Settings switches. Buttons that DO set a colour are
+   more specific and still win. */
+button{color:inherit}
+
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:var(--r-sm)}
 ::-webkit-scrollbar-track{background:transparent}
@@ -780,7 +787,10 @@ html.no-minibar .live-mini-bar{display:none}
 /* Was opacity:0 until the row was hovered, which made deleting a habit
    impossible on any touch device - there is no hover to trigger it. It
    now stays visible but quiet, and firms up on hover or keyboard focus. */
-.dh-btn{background:none;border:none;color:var(--text4);font-size:14px;cursor:pointer;
+/* --text4 is the disabled token, and this control is interactive: it
+   measured 1.35:1 in dark. --text3 is ~6:1 on surface, and the .55
+   opacity below is what keeps it quiet rather than the colour. */
+.dh-btn{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;
   opacity:.55;padding:4px 6px;border-radius:var(--r-sm);transition:.15s;flex-shrink:0;
   line-height:1}
 .hr:hover .dh-btn,.dh-btn:focus-visible{opacity:1}
@@ -873,7 +883,7 @@ html.no-minibar .live-mini-bar{display:none}
 /* Planned rest, not failure - matches how the streak engine counts it. */
 .stats-val-td.nd-missed{color:var(--blue-txt);font-weight:600}
 .stats-val-td.nd-mixed{color:var(--amber-txt);font-weight:600}
-.stats-val-td.fut-stat{color:var(--text4);font-weight:400}
+.stats-val-td.fut-stat{color:var(--text3);opacity:.75;font-weight:400}
 
 /* ── PROGRESS CHART ─────────────── */
 .chart-corner-td{
