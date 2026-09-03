@@ -23,6 +23,11 @@ const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 const MODELS = (process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : [])
   .concat(['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']);
 
+/* Transient upstream states. These say "this model, right now" -- never
+   "this request is wrong" -- so they should move on to the next model
+   rather than surface to the user. */
+const RETRYABLE = new Set([429, 500, 502, 503, 504]);
+
 /* Gemini's REST Schema.type is an enum of STRING/NUMBER/OBJECT/... */
 function upperTypes(schema) {
   if (Array.isArray(schema)) return schema.map(upperTypes);
@@ -139,21 +144,41 @@ module.exports = async (req, res) => {
   let lastErr = null;
   for (const model of MODELS) {
     let r, text;
-    try {
-      r = await fetch(`${ENDPOINT}/${model}:generateContent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-        body: JSON.stringify(payload)
-      });
-      text = await r.text();
-    } catch (e) {
-      lastErr = { status: 502, body: e.message };
+    /* One quick retry per model. Capacity spikes are usually seconds
+       long, and a single 700ms wait recovers most of them without
+       risking the function's own timeout. */
+    let attempt = 0;
+    while (true) {
+      try {
+        r = await fetch(`${ENDPOINT}/${model}:generateContent`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+          body: JSON.stringify(payload)
+        });
+        text = await r.text();
+      } catch (e) {
+        r = null;
+        lastErr = { status: 502, body: e.message, model };
+      }
+      if (r && !RETRYABLE.has(r.status)) break;
+      if (attempt >= 1) break;
+      attempt++;
+      await new Promise(ok => setTimeout(ok, 700));
+    }
+    if (!r) continue;
+
+    /* Anything transient means "try the next model", not "give up".
+       Only 404 used to fall through, so a single overloaded model
+       returned 503 to the user while two perfectly healthy fallbacks
+       sat untried — which is what "the AI stopped answering" was. */
+    if (RETRYABLE.has(r.status)) {
+      lastErr = { status: r.status, body: text, model };
       continue;
     }
-
-    if (r.status === 404) { lastErr = { status: 404, body: text }; continue; }  // try next model
+    if (r.status === 404) { lastErr = { status: 404, body: text, model }; continue; }
 
     if (!r.ok) {
+      // A real error (bad key, bad request). Trying other models cannot help.
       let msg = text;
       try { msg = JSON.parse(text).error?.message || text; } catch {}
       res.status(r.status).json({ error: { message: msg } });
@@ -187,7 +212,9 @@ module.exports = async (req, res) => {
   }
 
   res.status(lastErr ? lastErr.status : 502).json({
-    error: { message: 'No available Gemini model accepted the request. ' +
-      'Tried: ' + MODELS.join(', ') + '. ' + (lastErr ? lastErr.body : '') }
+    error: { message: lastErr && RETRYABLE.has(lastErr.status)
+      ? 'Every model is busy right now. This is usually brief — try again in a moment.'
+      : ('No available Gemini model accepted the request. Tried: ' +
+         MODELS.join(', ') + '. ' + (lastErr ? lastErr.body : '')) }
   });
 };
