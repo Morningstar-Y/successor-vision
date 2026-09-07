@@ -4465,7 +4465,14 @@ let S=JSON.parse(localStorage.getItem('sv3')||'null')||{
   pomoDone:0,pomoFocusMins:0,pomoBreakMins:0,focusLog:{},pomoHabit:null,
   vy:new Date().getFullYear(),vm:new Date().getMonth(),
 };
+/* Bumped on every local write. syncNow reads local state at the start
+   but applies its merged result seconds later, so it needs a way to
+   tell whether the user edited in between. Comparing this counter is
+   cheaper and more reliable than diffing the whole state. */
+let localRev = 0;
+
 const save=()=>{
+  localRev++;
   if(typeof syncSoon==='function') syncSoon();
   try{ localStorage.setItem('sv3',JSON.stringify(S)); }
   catch(e){
@@ -5008,6 +5015,7 @@ async function syncNow(reason){
   try{
     const uid = SVUser.id;
     const L = _localState();
+    const revAtStart = localRev;   // see the guard before _applyMerged
     let  B = _snapLoad();
     /* A snapshot from another account would make that account's rows
        look like local deletions. Treat it as a first sync instead. */
@@ -5133,10 +5141,40 @@ async function syncNow(reason){
     if(pe) _sbErr(pe, 'push profile');
 
     // ── land the merged result locally ─────────────────────────────
-    _applyMerged({ habits:hm.merged, checks:cm.merged, sleep:sm.merged, focus:fm.merged,
-                   tasks:tm.merged, journal:jm.merged, theme:wantTheme, age:wantAge,
-                   prefs:pm.merged });
+    let out = { habits:hm.merged, checks:cm.merged, sleep:sm.merged, focus:fm.merged,
+                tasks:tm.merged, journal:jm.merged, theme:wantTheme, age:wantAge,
+                prefs:pm.merged };
 
+    /* Everything above was computed from L, which was read before the
+       network round trip. If the user edited while that was in flight,
+       their change is in S but not in L, and applying `out` as-is would
+       silently undo it — you type, wait a moment, and watch it revert.
+
+       Fold the edit back in with the same three-way merge: L is the
+       common ancestor (both sides started there), the CURRENT local
+       state is "local", and this sync's result is "remote". _merge3
+       resolves a genuine conflict to local, so the edit the user just
+       made wins over the value this sync was already carrying. */
+    if(localRev !== revAtStart){
+      const L3 = _localState();
+      out.habits  = _merge3(L.habits,  L3.habits,  out.habits ).merged;
+      out.checks  = _merge3(L.checks,  L3.checks,  out.checks ).merged;
+      out.sleep   = _merge3(L.sleep,   L3.sleep,   out.sleep  ).merged;
+      out.focus   = _merge3(L.focus,   L3.focus,   out.focus  ).merged;
+      out.tasks   = _merge3(L.tasks,   L3.tasks,   out.tasks  ).merged;
+      out.journal = _merge3(L.journal, L3.journal, out.journal).merged;
+      out.prefs   = _merge3(L.prefs,   L3.prefs,   out.prefs  ).merged;
+      /* Those re-merged rows have not been pushed. Queue another pass
+         so the server catches up rather than silently diverging. */
+      syncQueued = true;
+    }
+
+    _applyMerged(out);
+
+    _rtLastPushAt = Date.now();   // suppress the echo of our own writes
+    /* Read AFTER _applyMerged so the snapshot is what is really on this
+       device. Saving the pre-apply state here would make the next sync
+       read every re-merged edit as a local deletion. */
     const finalState = _localState();
     finalState._uid = uid;
     _snapSave(finalState);
@@ -5244,10 +5282,80 @@ function syncSoon(){
    binding and every internal save() call would bypass it. The trigger
    is called from inside save() and diarSave() instead. */
 
+
+/* ── Realtime ─────────────────────────────────────────────────────
+   Without this, a change made on the phone only reached the laptop on
+   the next focus, reconnect or 2.5s-after-an-edit sync — so the two
+   could sit disagreeing for as long as you left them alone.
+
+   Postgres change events on this user's own rows now pull straight
+   away. The events are only a nudge: every one still goes through the
+   same three-way merge, so a spurious or duplicated event costs a
+   round trip and changes nothing. That is what makes it safe to react
+   to our own writes too rather than trying to filter them out, which
+   Supabase gives us no reliable way to do. */
+let _rtChan = null, _rtTimer = null, _rtLastPushAt = 0;
+
+function _rtNudge(payload){
+  /* Our own push echoes back as an event. Ignoring anything within a
+     moment of a local write keeps a sync from immediately triggering
+     the next one. */
+  if(Date.now() - _rtLastPushAt < 2500) return;
+  clearTimeout(_rtTimer);
+  _rtTimer = setTimeout(() => syncNow('realtime:' + (payload && payload.table || '?')), 700);
+}
+
+function rtStart(){
+  if(!sb || !SVUser || _rtChan) return;
+  const uid = SVUser.id;
+  try{
+    _rtChan = sb.channel('sv-' + uid);
+    /* profiles keys on id; every other table keys on user_id. */
+    ['habits','habit_checks','sleep_log','focus_log','tasks','journal_entries']
+      .forEach(t => _rtChan.on('postgres_changes',
+        { event:'*', schema:'public', table:t, filter:'user_id=eq.' + uid }, _rtNudge));
+    _rtChan.on('postgres_changes',
+      { event:'*', schema:'public', table:'profiles', filter:'id=eq.' + uid }, _rtNudge);
+    _rtChan.subscribe(st => {
+      if(st === 'SUBSCRIBED')  _rtLive = true;
+      if(st === 'CLOSED' || st === 'CHANNEL_ERROR' || st === 'TIMED_OUT'){
+        _rtLive = false;
+        /* Fall back to the poll below rather than going quiet. */
+        _rtChan = null;
+      }
+      acctRender();
+    });
+  }catch(e){ console.warn('[realtime]', e.message); _rtChan = null; }
+}
+
+function rtStop(){
+  clearTimeout(_rtTimer);
+  if(_rtChan){ try{ sb.removeChannel(_rtChan); }catch(e){} _rtChan = null; }
+  _rtLive = false;
+}
+let _rtLive = false;
+
+/* Safety net for when the socket is not up: without realtime this is
+   the only thing that notices another device. Cheap, and skipped
+   entirely while the channel is live. */
+setInterval(() => {
+  if(!sb || !SVUser || _rtLive || document.hidden) return;
+  syncNow('poll');
+}, 60000);
+
+/* Reconnect on wake: a socket that died while the laptop was asleep
+   reports no error, it simply stops delivering. */
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) return;
+  if(sb && SVUser && !_rtChan) rtStart();
+});
+
 function onAuthChanged(user, event){
   if(user){
     if(event === 'SIGNED_IN' || event === 'INIT') syncNow('auth:' + event);
+    rtStart();
   }else{
+    rtStop();
     /* Signing out leaves the local copy alone - it is still their data
        on their machine - but drops the snapshot so a different account
        signing in here is treated as a first sync, not as mass deletion. */
@@ -9792,6 +9900,7 @@ async function diarGateSubmit(){
 }
 
 function diarSave(){
+  localRev++;
   if(typeof syncSoon==='function') syncSoon();
   /* With the lock on, the plaintext key must never be written again. */
   if(_diarKey){
