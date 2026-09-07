@@ -46,7 +46,7 @@
   --sh2:0 8px 28px rgba(25,22,18,.10);
   --sh3:0 20px 60px rgba(25,22,18,.18);
   --hair:rgba(25,22,18,.06);
-  --paper:#fdf8ec;--paper-bd:#e8ddc4;
+  --paper:#fdf8ec;--paper-bd:var(--paper-bd);
   --on-accent:#fff;
   /* Nine category tints. Each is a set: surface, border, ink and a bar
      colour for charts, so a category stays itself across every context
@@ -135,7 +135,10 @@
   --poor-txt:#fb923c;--critical-txt:#f87171;--extended-txt:#38bdf8;
   --shadow3:0 20px 60px rgba(0,0,0,.8);
   --prog-bg:#3d352e;--prog-fill:#4ade80;
-  --pomo-work:#6366f1;--pomo-break:#4ade80;
+  /* White text sits on --pomo-work, and #6366f1 gives 4.47:1 --
+     the same 0.03 miss --accent was moved off. --sw-ring is a stroke,
+     not a text background, so it keeps the brighter hue. */
+  --pomo-work:#5d60ef;--pomo-break:#4ade80;
   --sw-ring:#6366f1;
   --tr-h:#2a2521;
 }
@@ -751,38 +754,64 @@ html.no-minibar .live-mini-bar{display:none}
   justify-content:space-between;gap:20px;box-shadow:var(--shadow)}
 .dh-l{display:flex;align-items:center;flex-shrink:0}
 .dh-l-txt{display:flex;flex-direction:column;gap:3px}
-.dh-nav{display:flex;gap:6px;margin-right:4px}
-.dh-title{font-size:22px;font-weight:800;letter-spacing:-.3px;line-height:1}
-.dh-sub{font-size:13px;color:var(--text2)}
+/* Grouped into one control: two loose round buttons read as two
+   unrelated actions, and previous/next month are one thing. */
+.dh-nav{display:flex;align-items:center;gap:3px;padding:3px;
+  border-radius:var(--r-md);background:var(--surface3);margin-right:4px}
+.dh-nav .ib{width:30px;height:30px;border:none;border-radius:var(--r-sm);
+  background:transparent;color:var(--text2);
+  transition:background var(--d-fast) var(--e),color var(--d-fast) var(--e)}
+.dh-nav .ib:hover{background:var(--surface);color:var(--text)}
+.dh-title{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.05}
+.dh-sub{font-size:14px;color:var(--text2);margin-top:5px}
 .dh-mid{flex:1;display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:12px;min-width:0}
-.sblk{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:74px}
-.sbl{font-size:10.5px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;
-  color:var(--text3);white-space:nowrap}
-.sbv{font-size:34px;font-weight:800;line-height:1;letter-spacing:-1.2px;
-  font-variant-numeric:tabular-nums}
+/* Label above value, both mono. The label is the quiet one, so it is
+   the smaller of the two rather than the same size in caps. */
+.sblk{display:flex;flex-direction:column;align-items:center;gap:0;min-width:74px}
+.sbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;
+  letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+.sbv{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;
+  line-height:1;letter-spacing:-1px;margin-top:4px;font-variant-numeric:tabular-nums}
+/* Done Today is the number that answers the page's question, so it
+   carries the category colour and the other stays neutral. */
+.sblk:nth-child(2) .sbv{color:var(--c1-ink)}
 /* The reference put the two counts side by side with progress running
    underneath them, which reads as one block answering "where am I"
    rather than three things competing. */
-.dh-stats{display:flex;align-items:flex-end;justify-content:center;gap:34px}
+/* A hairline between the two counts, so they read as one block of two
+   figures rather than two unrelated stats that happen to be adjacent. */
+.dh-stats{display:flex;align-items:center;justify-content:center;gap:22px}
+.dh-stats::before{content:none}
+.dh-stats .sblk + .sblk{position:relative;padding-left:22px}
+.dh-stats .sblk + .sblk::before{content:'';position:absolute;left:0;top:50%;
+  transform:translateY(-50%);width:1px;height:34px;background:var(--border)}
 .prog-wrap{display:flex;flex-direction:column;gap:5px;width:100%;max-width:460px}
 .prog-row{display:flex;align-items:center;gap:12px}
 .prog-lbl{font-size:12.5px;font-weight:600;color:var(--text2);flex-shrink:0}
-.prog-bar{flex:1;height:12px;background:var(--prog-bg);border-radius:var(--r-pill);overflow:hidden}
-.prog-fill{height:100%;width:100%;background:var(--prog-fill);border-radius:var(--r-pill);
-  transform-origin:left center;transform:scaleX(0);transition:transform .4s}
-.prog-pct{font-size:14px;font-weight:800;color:var(--text);min-width:42px;text-align:right;
-  font-family:'JetBrains Mono',monospace;letter-spacing:-.3px}
+.prog-bar{flex:1;height:8px;background:var(--surface3);border-radius:var(--r-pill);overflow:hidden}
+.prog-fill{height:100%;width:100%;background:var(--c1-bar);border-radius:var(--r-pill);
+  transform-origin:left center;transform:scaleX(0);
+  transition:transform 700ms var(--e)}
+.prog-pct{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;
+  color:var(--c1-ink);min-width:42px;text-align:right;letter-spacing:-.3px;
+  font-variant-numeric:tabular-nums}
+.prog-lbl{font-size:12.5px;font-weight:400;color:var(--text3);flex-shrink:0}
 .dh-r{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .dh-r .overview-toggle-btn{margin-left:4px}
 .ib{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);
   border-radius:var(--r-lg);font-size:16px;color:var(--text2);display:flex;align-items:center;
   justify-content:center;cursor:pointer;transition:all .2s}
 .ib:hover{background:var(--surface3);color:var(--text)}
-.cta{background:var(--accent);color:#fff;border:none;border-radius:var(--r-md);
-  padding:0 18px;height:38px;font-size:13px;font-weight:600;
-  display:flex;align-items:center;gap:7px;cursor:pointer;transition:background .2s;white-space:nowrap}
-.cta:hover{background:var(--accent-h)}
+/* Green, not indigo: on this page the primary action creates a habit,
+   and the whole page counts habits in green. Indigo is the app's
+   navigation accent and saying both at once made neither mean anything. */
+.cta{background:var(--c1-bar);color:#fff;border:none;border-radius:var(--r-md);
+  padding:0 16px;height:38px;font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap;
+  transition:filter var(--d-fast) var(--e)}
+.cta:hover{filter:brightness(.94)}
+.cta:active{filter:brightness(.88)}
 
 /* grid */
 #pg-dashboard{overflow:hidden;flex-direction:column;height:100%}
@@ -878,7 +907,7 @@ html.no-minibar .live-mini-bar{display:none}
      missed gesture never reaches the page. Also removes the 300ms
      click delay, so a single tap ticks instantly. */
   touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.hcb:hover:not(.done):not(.missed):not(.rest){border-color:var(--accent);background:var(--accent-dim)}
+.hcb:hover:not(.done):not(.missed):not(.rest){border-color:var(--c1-bar);background:var(--c1-bg)}
 .hcb.done{background:var(--green);border-color:var(--green)}
 .hcb.done::after{content:'✓';font-size:13px;color:#fff;font-weight:800;line-height:1;position:absolute}
 /* Missed: recorded by the user, so it is informative rather than
@@ -1431,8 +1460,10 @@ html.no-minibar .live-mini-bar{display:none}
   color:var(--text);line-height:1;letter-spacing:-2px}
 .sw-cs{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:400;
   color:var(--text2);letter-spacing:0.5px}
+/* --accent-txt on --accent-dim is 4.15:1 in dark. The c9 set is the
+   same indigo family but built as an ink/tint pair: 6.91:1. */
 .sw-lap-badge{margin-top:4px;font-size:12px;font-weight:700;letter-spacing:.5px;
-  color:var(--accent-txt);background:var(--accent-dim);
+  color:var(--c9-ink);background:var(--c9-bg);border:1px solid var(--c9-bd);
   padding:2px 10px;border-radius:var(--r-md)}
 
 /* Controls */
@@ -1862,7 +1893,7 @@ html.no-minibar .live-mini-bar{display:none}
 
 /* ── DIARY PAGE ─────────────────── */
 #pg-diary{overflow:hidden;flex-direction:column}
-.diary-body{flex:1;display:flex;overflow:hidden;background:linear-gradient(135deg,#f5efe6 0%,#ede3d4 50%,#e8dcc8 100%)}
+.diary-body{flex:1;display:flex;overflow:hidden;background:var(--bg)}
 [data-theme="dark"] .diary-body{background:var(--bg) !important}
 .diar-left{width:250px;min-width:250px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;
   padding:20px 14px;overflow-y:auto;transition:width .22s cubic-bezier(.4,0,.2,1)}
@@ -1879,9 +1910,9 @@ html.no-minibar .live-mini-bar{display:none}
 .diar-left-btn{position:absolute;top:14px;left:10px;z-index:6;
   width:26px;height:26px;border-radius:var(--r-sm);
   border:1px solid rgba(196,168,130,.5);background:rgba(255,252,245,.9);
-  color:#8b6340;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;
   font-size:12px;line-height:1;padding:0;transition:all .15s}
-.diar-left-btn:hover{background:#f0d9b5}
+.diar-left-btn:hover{background:var(--surface3)}
 [data-theme="dark"] .diar-left-btn{border-color:var(--border);background:var(--surface2);color:var(--text2)}
 [data-theme="dark"] .diar-left-btn:hover{background:var(--surface3);color:var(--text)}
 @media (min-width:1001px){
@@ -1895,22 +1926,22 @@ html.no-minibar .live-mini-bar{display:none}
 [data-theme="dark"] .diar-card{background:var(--surface2) !important;border-color:var(--border) !important;
   box-shadow:var(--shadow) !important}
 .diar-panel-label{font-family:'Playfair Display',serif;font-size:12.5px;font-weight:700;
-  color:#6b4c2a;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px}
+  color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px}
 [data-theme="dark"] .diar-panel-label{color:var(--text3)}
-.diar-date-big{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#3b2a1a;line-height:1.1}
+.diar-date-big{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--text);line-height:1.1}
 [data-theme="dark"] .diar-date-big{color:var(--text)}
-.diar-date-yr{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#8b6340;margin-top:2px}
+.diar-date-yr{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text2);margin-top:2px}
 [data-theme="dark"] .diar-date-yr{color:var(--text2)}
 .diar-date-sub{font-size:12.5px;color:var(--diary-muted);margin-top:3px}
 [data-theme="dark"] .diar-date-sub{color:var(--text3)}
 .diar-date-nav{display:flex;gap:8px;margin-top:10px}
-.diar-nav-btn{flex:1;padding:7px;border:1px solid #d4b896;border-radius:var(--r-md);background:transparent;
-  color:#6b4c2a;cursor:pointer;font-size:12.5px;transition:all .2s;font-family:'Outfit',sans-serif}
+.diar-nav-btn{flex:1;padding:7px;border:1px solid var(--paper-bd);border-radius:var(--r-md);background:transparent;
+  color:var(--text2);cursor:pointer;font-size:12.5px;transition:all .2s;font-family:'Outfit',sans-serif}
 [data-theme="dark"] .diar-nav-btn{border-color:var(--border);color:var(--text2);background:var(--surface3)}
-.diar-nav-btn:hover{background:#f0d9b5}
+.diar-nav-btn:hover{background:var(--surface3)}
 [data-theme="dark"] .diar-nav-btn:hover{background:var(--surface3);color:var(--text)}
-.diar-cal-btn{width:100%;margin-top:8px;padding:7px;border:1px dashed #c4a882;border-radius:var(--r-md);
-  background:transparent;color:#8b6340;cursor:pointer;font-size:12.5px;
+.diar-cal-btn{width:100%;margin-top:8px;padding:7px;border:1px dashed var(--paper-bd);border-radius:var(--r-md);
+  background:transparent;color:var(--text2);cursor:pointer;font-size:12.5px;
   font-family:'Outfit',sans-serif;transition:all .2s}
 [data-theme="dark"] .diar-cal-btn{border-color:var(--border2);color:var(--accent-txt)}
 .diar-cal-btn:hover{background:#f5efe6}
@@ -1920,41 +1951,41 @@ html.no-minibar .live-mini-bar{display:none}
   box-shadow:0 8px 32px rgba(59,42,26,0.18);border:1px solid rgba(196,168,130,0.4)}
 [data-theme="dark"] .diar-cal-popup{background:var(--surface) !important;border-color:var(--border)}
 .diar-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.diar-cal-month{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#3b2a1a}
+.diar-cal-month{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--text)}
 [data-theme="dark"] .diar-cal-month{color:var(--text)}
-.diar-cal-nav{background:none;border:none;cursor:pointer;color:#8b6340;font-size:15px;padding:2px 5px;border-radius:var(--r-sm)}
-.diar-cal-nav:hover{background:#f0d9b5}
+.diar-cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:15px;padding:2px 5px;border-radius:var(--r-sm)}
+.diar-cal-nav:hover{background:var(--surface3)}
 [data-theme="dark"] .diar-cal-nav:hover{background:var(--surface3)}
 .diar-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .diar-cal-dl{text-align:center;font-size:11.5px;color:var(--diary-muted);letter-spacing:0.5px;padding:3px 0;text-transform:uppercase}
 .diar-cal-day{text-align:center;padding:5px 1px;font-size:12.5px;cursor:pointer;border-radius:var(--r-sm);
   color:#5a3e28;position:relative;transition:all .15s}
 [data-theme="dark"] .diar-cal-day{color:var(--text2)}
-.diar-cal-day:hover{background:#f0d9b5}
+.diar-cal-day:hover{background:var(--surface3)}
 [data-theme="dark"] .diar-cal-day:hover{background:var(--surface3)}
-.diar-cal-day.diar-today{font-weight:700;color:#8b4513}
+.diar-cal-day.diar-today{font-weight:700;color:var(--accent-txt)}
 [data-theme="dark"] .diar-cal-day.diar-today{color:var(--accent-txt)}
-.diar-cal-day.diar-sel{background:#8b6340;color:#fff}
+.diar-cal-day.diar-sel{background:var(--text2);color:#fff}
 .diar-cal-day.diar-has::after{content:'';position:absolute;bottom:2px;left:50%;
-  transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#c4a882}
+  transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--paper-bd)}
 .diar-cal-day.diar-sel::after{background:rgba(255,255,255,0.6)}
 /* mood */
 .diar-mood-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
 .diar-mood-btn{display:flex;flex-direction:column;align-items:center;padding:7px 3px;
-  border:1px solid #e0cdb5;border-radius:var(--r-md);background:transparent;cursor:pointer;transition:all .2s;gap:2px}
+  border:1px solid var(--paper-bd);border-radius:var(--r-md);background:transparent;cursor:pointer;transition:all .2s;gap:2px}
 [data-theme="dark"] .diar-mood-btn{border-color:var(--border);background:var(--surface3)}
-.diar-mood-btn:hover{background:#faf5ee;transform:scale(1.05)}
+.diar-mood-btn:hover{background:var(--paper);transform:scale(1.05)}
 [data-theme="dark"] .diar-mood-btn:hover{background:var(--surface3)}
-.diar-mood-btn.diar-mood-on{background:#f5ece0;border-color:#c4a882;box-shadow:0 0 0 2px rgba(196,168,130,0.3)}
+.diar-mood-btn.diar-mood-on{background:var(--paper);border-color:var(--paper-bd);box-shadow:0 0 0 2px rgba(196,168,130,0.3)}
 [data-theme="dark"] .diar-mood-btn.diar-mood-on{background:var(--accent-dim);border-color:var(--accent)}
 .diar-mood-emoji{font-size:17px}
 .diar-mood-lbl{font-size:11px;color:var(--diary-muted);letter-spacing:0.3px}
 /* stats */
 .diar-stat-row{display:flex;justify-content:space-between;align-items:center;
-  padding:5px 0;border-bottom:1px solid #f0e8d8;font-size:12.5px;color:#6b4c2a}
+  padding:5px 0;border-bottom:1px solid #f0e8d8;font-size:12.5px;color:var(--text2)}
 [data-theme="dark"] .diar-stat-row{border-bottom-color:var(--border);color:var(--text2)}
 .diar-stat-row:last-child{border-bottom:none}
-.diar-stat-val{font-weight:700;color:#3b2a1a;font-family:'Playfair Display',serif;font-size:15px}
+.diar-stat-val{font-weight:700;color:var(--text);font-family:'Playfair Display',serif;font-size:15px}
 [data-theme="dark"] .diar-stat-val{color:var(--text)}
 
 
@@ -1962,23 +1993,23 @@ html.no-minibar .live-mini-bar{display:none}
 /* Journal media */
 .diar-media-bar{display:flex;align-items:center;gap:10px;margin-top:10px}
 .diar-media-add{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;
-  border:1px dashed #c4a882;border-radius:var(--r-md);background:transparent;
-  color:#8b6340;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600}
-.diar-media-add:hover{background:#f0d9b5}
+  border:1px dashed var(--paper-bd);border-radius:var(--r-md);background:transparent;
+  color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:600}
+.diar-media-add:hover{background:var(--surface3)}
 [data-theme="dark"] .diar-media-add{border-color:var(--border2);color:var(--accent-txt)}
 [data-theme="dark"] .diar-media-add:hover{background:var(--surface3)}
-.diar-media-note{font-size:11.5px;color:#a08a6f}
+.diar-media-note{font-size:11.5px;color:var(--text3)}
 [data-theme="dark"] .diar-media-note{color:var(--text3)}
 #diar-media-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 #diar-media-strip:empty{margin-top:0}
-.diar-media-item{margin:0;width:150px;border:1px solid #e0cdb5;border-radius:var(--r-md);
+.diar-media-item{margin:0;width:150px;border:1px solid var(--paper-bd);border-radius:var(--r-md);
   overflow:hidden;background:rgba(255,252,245,.7)}
 [data-theme="dark"] .diar-media-item{border-color:var(--border);background:var(--surface2)}
 .diar-media-item img,.diar-media-item video{display:block;width:100%;height:104px;object-fit:cover}
 .diar-media-item audio{width:100%;margin:8px 0 2px}
 .diar-media-file{padding:22px 10px;font-size:12px;text-align:center;color:var(--text3)}
 .diar-media-item figcaption{display:flex;align-items:center;justify-content:space-between;
-  gap:6px;padding:6px 8px;font-size:10.5px;color:#8b6340;border-top:1px solid #e8dcc8}
+  gap:6px;padding:6px 8px;font-size:10.5px;color:var(--text2);border-top:1px solid #e8dcc8}
 [data-theme="dark"] .diar-media-item figcaption{color:var(--text3);border-top-color:var(--border)}
 .diar-media-item figcaption button{border:none;background:none;cursor:pointer;
   color:#b0392e;font-size:12px;padding:2px 4px;border-radius:4px;flex-shrink:0}
@@ -1986,19 +2017,19 @@ html.no-minibar .live-mini-bar{display:none}
 /* Journal lock */
 #diar-gate{position:absolute;inset:0;z-index:40;display:none;
   align-items:center;justify-content:center;padding:24px;
-  background:linear-gradient(135deg,#f5efe6 0%,#ede3d4 50%,#e8dcc8 100%)}
+  background:var(--bg)}
 [data-theme="dark"] #diar-gate{background:var(--bg)}
 #diar-gate.on{display:flex}
 .diar-gate-card{width:100%;max-width:330px;text-align:center}
 .diar-gate-ico{font-size:38px;line-height:1;margin-bottom:14px}
 .diar-gate-t{font-family:'Playfair Display',serif;font-size:23px;font-weight:700;
-  color:#3b2a1a;margin-bottom:6px}
+  color:var(--text);margin-bottom:6px}
 [data-theme="dark"] .diar-gate-t{color:var(--text)}
-.diar-gate-s{font-size:13px;color:#8b6340;line-height:1.55;margin-bottom:18px}
+.diar-gate-s{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:18px}
 [data-theme="dark"] .diar-gate-s{color:var(--text2)}
-.diar-gate-inp{width:100%;padding:12px 14px;border:1.5px solid #d4b896;
+.diar-gate-inp{width:100%;padding:12px 14px;border:1.5px solid var(--paper-bd);
   border-radius:var(--r-md);background:rgba(255,252,245,.9);
-  font-family:'Outfit',sans-serif;font-size:15px;color:#3b2a1a;outline:none;text-align:center;
+  font-family:'Outfit',sans-serif;font-size:15px;color:var(--text);outline:none;text-align:center;
   letter-spacing:2px}
 .diar-gate-inp:focus{border-color:var(--accent)}
 [data-theme="dark"] .diar-gate-inp{background:var(--surface2);border-color:var(--border);color:var(--text)}
@@ -2010,9 +2041,9 @@ html.no-minibar .live-mini-bar{display:none}
 /* Habit picker */
 .diar-panel-hd{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .diar-pick-btn{background:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;
-  font-size:11px;font-weight:700;color:#8b6340;padding:3px 7px;border-radius:var(--r-sm);
+  font-size:11px;font-weight:700;color:var(--text2);padding:3px 7px;border-radius:var(--r-sm);
   transition:background .15s}
-.diar-pick-btn:hover{background:#f0d9b5}
+.diar-pick-btn:hover{background:var(--surface3)}
 [data-theme="dark"] .diar-pick-btn{color:var(--accent-txt)}
 [data-theme="dark"] .diar-pick-btn:hover{background:var(--surface3)}
 
@@ -2048,12 +2079,12 @@ html.no-minibar .live-mini-bar{display:none}
 /* habit grid in left panel */
 .diar-hab-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .diar-hab-btn{display:flex;align-items:center;gap:6px;padding:8px 10px;
-  border:1px solid #e0cdb5;border-radius:var(--r-md);background:transparent;cursor:pointer;
-  font-family:'Outfit',sans-serif;font-size:12.5px;color:#6b4c2a;transition:all .2s}
+  border:1px solid var(--paper-bd);border-radius:var(--r-md);background:transparent;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--text2);transition:all .2s}
 [data-theme="dark"] .diar-hab-btn{border-color:var(--border);color:var(--text2);background:var(--surface3)}
-.diar-hab-btn:hover{background:#faf5ee}
+.diar-hab-btn:hover{background:var(--paper)}
 [data-theme="dark"] .diar-hab-btn:hover{background:rgba(196,152,82,0.12)}
-.diar-hab-btn.diar-done{background:#e8f4e8;border-color:#8fbc8f;color:#3a6b3a}
+.diar-hab-btn.diar-done{background:var(--c1-bg);border-color:var(--c1-bd);color:var(--c1-ink)}
 .diar-hab-btn.diar-missed{background:var(--red-dim);border-color:var(--red);color:var(--red-txt)}
 .diar-hab-btn.diar-rest{background:var(--surface3);border-color:var(--border2);
   color:var(--text2);border-style:dashed}
@@ -2062,84 +2093,86 @@ html.no-minibar .live-mini-bar{display:none}
 .diar-hab-chk{width:14px;height:14px;border-radius:50%;border:1.5px solid currentColor;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px}
 /* write area */
+/* The one warm surface left: the page it is written on. */
 .diar-write-card{background:rgba(255,252,245,0.92);border-radius:var(--r-xl);padding:24px 28px;
   box-shadow:0 2px 24px rgba(59,42,26,0.1);border:1px solid rgba(196,168,130,0.25)}
 [data-theme="dark"] .diar-write-card{background:var(--surface) !important;border-color:var(--border) !important}
 .diar-write-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;
-  color:#3b2a1a;margin-bottom:3px;line-height:1.1}
+  color:var(--text);margin-bottom:3px;line-height:1.1}
 [data-theme="dark"] .diar-write-title{color:var(--text)}
 .diar-write-sub{font-size:12.5px;color:var(--diary-muted);letter-spacing:0.8px;text-transform:uppercase;
   margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #f0e8d8}
 [data-theme="dark"] .diar-write-sub{border-bottom-color:var(--border);color:var(--text3)}
-.diar-prompt-box{background:linear-gradient(135deg,#fdf6ec,#f7edd9);border:1px solid #e3d3b0;
+.diar-prompt-box{background:var(--paper);border:1px solid var(--paper-bd);
   border-radius:0 9px 9px 0;padding:10px 14px;margin-bottom:14px;font-style:italic;
   font-size:13px;color:#7a5535;display:flex;align-items:center;justify-content:space-between;gap:8px}
 [data-theme="dark"] .diar-prompt-box{background:var(--surface3);border-left-color:var(--accent);color:var(--text2)}
-.diar-prompt-refresh{background:none;border:none;cursor:pointer;color:#c4a882;font-size:15px;
+/* --paper-bd is a border value; as text it measured 1.09:1. */
+.diar-prompt-refresh{background:none;border:none;cursor:pointer;color:var(--text3);font-size:15px;
   flex-shrink:0;transition:transform .3s}
 .diar-prompt-refresh:hover{transform:rotate(180deg)}
 .diar-textarea{width:100%;min-height:200px;background:transparent;border:none;outline:none;
-  font-family:'Lora',Georgia,serif;font-size:15px;line-height:1.9;color:#3b2a1a;resize:none;
+  font-family:'Lora',Georgia,serif;font-size:15px;line-height:1.9;color:var(--text);resize:none;
   background-image:repeating-linear-gradient(transparent,transparent 34px,#e8dcc8 34px,#e8dcc8 35px);
   background-size:100% 35px;padding-top:6px}
 [data-theme="dark"] .diar-textarea{color:var(--text);background-image:repeating-linear-gradient(transparent,transparent 34px,var(--border) 34px,var(--border) 35px)}
-.diar-textarea::placeholder{color:#c4a882;font-style:italic}
+.diar-textarea::placeholder{color:var(--paper-bd);font-style:italic}
 .diar-write-footer{display:flex;align-items:center;justify-content:space-between;
   padding-top:12px;border-top:1px solid #f0e8d8;gap:10px}
 [data-theme="dark"] .diar-write-footer{border-top-color:var(--border)}
 .diar-word-count{font-size:12px;color:var(--diary-muted);letter-spacing:0.5px}
-.diar-tag-input{background:#faf5ee;border:1px solid #e0cdb5;border-radius:var(--r-pill);padding:5px 12px;
-  font-family:'Outfit',sans-serif;font-size:12.5px;color:#6b4c2a;outline:none;width:130px}
+.diar-tag-input{background:var(--paper);border:1px solid var(--paper-bd);border-radius:var(--r-pill);padding:5px 12px;
+  font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--text2);outline:none;width:130px}
 [data-theme="dark"] .diar-tag-input{background:rgba(30,25,18,0.8);border-color:#5a3e22;color:#b8966a}
-.diar-save-ind{font-size:12px;color:#8fbc8f;opacity:0;transition:opacity .3s}
+.diar-save-ind{font-size:12px;color:var(--c1-ink);opacity:0;transition:opacity .3s}
 .diar-save-ind.diar-saved{opacity:1}
 .diar-extras-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .diar-extra-lbl{font-size:12px;letter-spacing:0.8px;text-transform:uppercase;color:var(--diary-muted);
   margin-bottom:5px;font-weight:700}
-.diar-extra-ta{width:100%;background:#faf5ee;border:1px solid #e0cdb5;border-radius:var(--r-md);
-  padding:9px 12px;font-family:'Lora',serif;font-size:13px;color:#3b2a1a;outline:none;
+.diar-extra-ta{width:100%;background:var(--paper);border:1px solid var(--paper-bd);border-radius:var(--r-md);
+  padding:9px 12px;font-family:'Lora',serif;font-size:13px;color:var(--text);outline:none;
   line-height:1.6;resize:none;transition:border-color .2s}
 [data-theme="dark"] .diar-extra-ta{background:rgba(30,25,18,0.8);border-color:#5a3e22;color:#e8d5b5}
-.diar-extra-ta:focus{border-color:#c4a882}
-.diar-extra-ta::placeholder{color:#c4a882;font-style:italic}
+.diar-extra-ta:focus{border-color:var(--paper-bd)}
+.diar-extra-ta::placeholder{color:var(--paper-bd);font-style:italic}
 /* past entries */
 .diar-entry-item{padding:12px 14px;background:rgba(255,252,245,0.85);border-radius:var(--r-lg);
   border:1px solid rgba(196,168,130,0.3);margin-bottom:9px;cursor:pointer;
   transition:all .2s;box-shadow:0 1px 6px rgba(59,42,26,0.06)}
 [data-theme="dark"] .diar-entry-item{background:rgba(30,25,18,0.85);border-color:rgba(130,100,60,0.3)}
 .diar-entry-item:hover{box-shadow:0 4px 16px rgba(59,42,26,0.12);transform:translateY(-1px)}
-.diar-entry-date{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:#3b2a1a}
+.diar-entry-date{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text)}
 [data-theme="dark"] .diar-entry-date{color:#e8d5b5}
-.diar-entry-preview{font-size:12.5px;color:#8b6340;margin-top:3px;line-height:1.5}
+.diar-entry-preview{font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5}
 [data-theme="dark"] .diar-entry-preview{color:#c49060}
 .diar-entry-mood{float:right;font-size:17px}
-.diar-entry-tag{display:inline-block;font-size:11.5px;background:#f0d9b5;color:#6b4c2a;
+.diar-entry-tag{display:inline-block;font-size:11.5px;background:var(--surface3);color:var(--text2);
   padding:2px 7px;border-radius:var(--r-pill);margin-top:5px;letter-spacing:0.5px}
 [data-theme="dark"] .diar-entry-tag{background:rgba(196,152,82,0.2);color:#b8966a}
 /* habits tracker table */
 .diar-tracker-grid{display:grid;grid-template-columns:110px repeat(7,1fr);gap:3px}
 .diar-tracker-hd{text-align:center;font-size:11.5px;color:var(--diary-muted);letter-spacing:0.5px;padding:5px 2px}
-.diar-tracker-name{font-size:12.5px;color:#6b4c2a;padding:7px 8px;display:flex;align-items:center}
+.diar-tracker-name{font-size:12.5px;color:var(--text2);padding:7px 8px;display:flex;align-items:center}
 [data-theme="dark"] .diar-tracker-name{color:#b8966a}
 .diar-tracker-cell{display:flex;align-items:center;justify-content:center;padding:6px}
-.diar-tracker-dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #e0cdb5;
+.diar-tracker-dot{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--paper-bd);
   background:transparent;display:flex;align-items:center;justify-content:center;
   font-size:12px;cursor:pointer;transition:all .2s;user-select:none}
 [data-theme="dark"] .diar-tracker-dot{border-color:#5a3e22}
-.diar-tracker-dot:hover{border-color:#c4a882;background:#faf5ee}
+.diar-tracker-dot:hover{border-color:var(--paper-bd);background:var(--paper)}
 [data-theme="dark"] .diar-tracker-dot:hover{background:rgba(196,152,82,0.15)}
-.diar-tracker-dot.diar-dot-on{background:#8b6340;border-color:#8b6340;color:#fff}
+.diar-tracker-dot.diar-dot-on{background:var(--text2);border-color:var(--text2);color:#fff}
 /* inner tabs */
 .diary-inner-hd{background:rgba(59,42,26,0.06);border-bottom:1px solid rgba(196,168,130,0.3);
   padding:10px 20px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 [data-theme="dark"] .diary-inner-hd{background:rgba(196,152,82,0.06);border-bottom-color:rgba(130,100,60,0.3)}
 .diar-tab{padding:6px 14px;border-radius:var(--r-pill);border:1px solid rgba(196,168,130,0.35);
-  background:transparent;color:#8b6340;cursor:pointer;font-family:'Outfit',sans-serif;
+  background:transparent;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif;
   font-size:13px;font-weight:500;transition:all .2s}
-[data-theme="dark"] .diar-tab{color:#c4956a;border-color:rgba(130,100,60,0.35)}
+[data-theme="dark"] .diar-tab{color:var(--text2);border-color:var(--paper-bd)}
 .diar-tab:hover{background:rgba(196,168,130,0.15)}
-.diar-tab.diar-tab-on{background:#c4a882;color:#3b2a1a;border-color:#c4a882}
-.diar-view{display:none;background:linear-gradient(135deg,#f5efe6 0%,#ede3d4 50%,#e8dcc8 100%)}
+.diar-tab.diar-tab-on{background:var(--paper-bd);color:var(--text);border-color:var(--paper-bd)}
+.diar-view{display:none;background:var(--bg)}
 [data-theme="dark"] .diar-view{background:var(--bg) !important}
 .diar-view.diar-view-on{display:flex;flex:1;overflow:hidden;position:relative}
 @keyframes diarFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -3155,9 +3188,18 @@ html.birthday[data-theme="dark"]{
 
 /* The legend explains the cells, so it sits with the cells. In the
    header it competed with the headline numbers for the same glance. */
-.grid-legend-bar{display:flex;justify-content:flex-end;padding:8px 24px 0;
-  background:var(--surface);flex-shrink:0}
-.grid-legend-bar .hcb-legend{margin-right:0}
+/* A full-width strip on its own ground, hairlines above and below.
+   Squeezed to the right it read as an afterthought bolted to the
+   header; here it belongs to the grid it explains. */
+.grid-legend-bar{display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+  padding:11px 24px;background:var(--surface2);
+  border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);
+  flex-shrink:0}
+.grid-legend-bar .hcb-legend{margin-right:0;gap:22px;font-size:12.5px;font-weight:400;
+  color:var(--text2)}
+.grid-legend-bar .hcb-legend i{width:14px;height:14px;border-radius:3px}
+/* Pushes the hint to the far end of the strip. */
+.grid-legend-bar .hcb-legend span:last-child{margin-left:auto}
 /* Under ~480px the label is what pushes the actions onto a third row.
    The + and the tooltip carry the meaning on their own. */
 @media (max-width:480px){
@@ -3553,7 +3595,7 @@ html.birthday[data-theme="dark"]{
           <span class="dov-ico">✅</span>
           <span class="dov-label">Today's Habits</span>
         </div>
-        <span class="dov-badge" id="dov-hab-badge" style="background:var(--green-dim);color:var(--green-txt)">—</span>
+        <span class="dov-badge" id="dov-hab-badge" style="background:var(--c1-bg);color:var(--c1-ink);border:1px solid var(--c1-bd)">—</span>
       </div>
       <div class="dov-val" id="dov-hab-val" style="color:var(--accent-txt)">—</div>
       <div class="dov-bar-wrap"><div class="dov-bar-fill" id="dov-hab-bar" style="transform:scaleX(0);background:var(--green)"></div></div>
@@ -7429,6 +7471,11 @@ function slpEntryColor(e, variant) {
     const hex = slpResolveColor(variant === 'txt' ? v.replace(')', '-txt)') : v);
     if (hex) return hex;
   }
+  /* The fallback has to respect the variant too. It returned --green
+     for both, so any entry without a colorVar -- an older one, or one
+     synced from a device on a previous version -- drew its TEXT in a
+     fill colour: 3.24:1 on surface. */
+  if (variant === 'txt') return slpResolveColor('var(--green-txt)');
   return (e && e.colorHex) || slpResolveColor('var(--green)');
 }
 
