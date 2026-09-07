@@ -222,8 +222,12 @@ for (const doc of docs) {
   // properties the code sets at runtime are defined too, just not in CSS
   for (const m of doc.html.matchAll(/setProperty\(\s*['"](--[\w-]+)['"]/g)) definedVars.add(m[1]);
   for (const m of doc.html.matchAll(/style="[^"]*?(--[\w-]+)\s*:/g)) definedVars.add(m[1]);
+  /* Only var() WITHOUT a fallback can invalidate a declaration.
+     `var(--x, 0ms)` is valid by design when --x is unset — that is what
+     the fallback is for — so flagging it was wrong. Match only the
+     closing paren form. */
   const used = new Map();
-  for (const m of css.matchAll(/var\(\s*(--[\w-]+)\s*[,)]/g)) {   // require a real close/fallback
+  for (const m of css.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)) {
     used.set(m[1], (used.get(m[1]) || 0) + 1);
   }
   const undef = [...used.keys()].filter(v => !definedVars.has(v));

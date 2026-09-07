@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Successor Vision</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 /* ── MOTION SYSTEM ─────────────────────────────────────────────────
    Premium exponential ease-out curves (replacing dated bounce/elastic).
@@ -20,6 +20,12 @@
      corner silently fell back to 0px — the whole dark theme rendered
      square. They are theme-independent and belong here. */
   --r-xs:6px;--r-sm:8px;--r-md:12px;--r-lg:18px;--r-xl:26px;--r-pill:999px;
+
+  /* ── Redesign foundation ──────────────────────────────────────
+     Named motion, so a transition reads as a decision rather than a
+     number picked per call site. --e is the design's single easing. */
+  --e:cubic-bezier(.16,1,.3,1);
+  --d-fast:120ms;--d-state:200ms;--d-layout:340ms;--d-reveal:440ms;
 }
 [data-theme="light"]{
   --bg:#f4f2ed;--surface:#fffdf9;--surface2:#faf7f1;--surface3:#efebe3;
@@ -34,6 +40,26 @@
   --check:#1e293b;
   --shadow:0 1px 4px rgba(0,0,0,.07);
   --shadow2:0 8px 32px rgba(0,0,0,.12);
+  /* Three-step elevation from the redesign. --sh1 is the resting card,
+     --sh2 a lifted panel, --sh3 a modal. */
+  --sh1:0 1px 2px rgba(25,22,18,.05);
+  --sh2:0 8px 28px rgba(25,22,18,.10);
+  --sh3:0 20px 60px rgba(25,22,18,.18);
+  --hair:rgba(25,22,18,.06);
+  --paper:#fdf8ec;--paper-bd:#e8ddc4;
+  --on-accent:#fff;
+  /* Nine category tints. Each is a set: surface, border, ink and a bar
+     colour for charts, so a category stays itself across every context
+     instead of being re-picked per component. */
+  --c1-bg:#eef7ea;--c1-bd:#cfe6c4;--c1-ink:#2f6d20;--c1-bar:#5da444;
+  --c2-bg:#e8f1fa;--c2-bd:#c4dcef;--c2-ink:#14618c;--c2-bar:#3f95c7;
+  --c3-bg:#fdf2e0;--c3-bd:#f0d9ae;--c3-ink:#9a5b06;--c3-bar:#e0a03a;
+  --c4-bg:#e7f4f0;--c4-bd:#c2e0d9;--c4-ink:#0e6b5f;--c4-bar:#3ba597;
+  --c5-bg:#fdeee8;--c5-bd:#f4cdbd;--c5-ink:#b2431a;--c5-bar:#e97f4f;
+  --c6-bg:#f2eee6;--c6-bd:#ddd5c6;--c6-ink:#5b5346;--c6-bar:#a2977f;
+  --c7-bg:#f7ecf8;--c7-bd:#e3c9e6;--c7-ink:#852c8f;--c7-bar:#bd68c4;
+  --c8-bg:#fdeeea;--c8-bd:#f2cdc6;--c8-ink:#a5384d;--c8-bar:#dd7488;
+  --c9-bg:#eeedfb;--c9-bd:#cfcdf3;--c9-ink:#4038c9;--c9-bar:#7b74ea;
   /* Elevation for accent-coloured controls. Brand-tinted on light surfaces,
      neutral on dark — a coloured shadow over #0c0e14 reads as a neon glow
      rather than lift, which is why these were hardcoded before and looked
@@ -80,6 +106,21 @@
   --check:#818cf8;
   --shadow:0 2px 6px rgba(0,0,0,.55);
   --shadow2:0 10px 34px rgba(0,0,0,.7);
+  --sh1:0 1px 2px rgba(0,0,0,.4);
+  --sh2:0 10px 34px rgba(0,0,0,.55);
+  --sh3:0 24px 70px rgba(0,0,0,.7);
+  --hair:rgba(240,234,224,.07);
+  --paper:#211d16;--paper-bd:#3b3327;
+  --on-accent:#fff;
+  --c1-bg:#17261b;--c1-bd:#27412b;--c1-ink:#6fd189;--c1-bar:#4e9c5f;
+  --c2-bg:#13222d;--c2-bd:#1f3a4a;--c2-ink:#6ac8f2;--c2-bar:#3d8cb8;
+  --c3-bg:#2b2010;--c3-bd:#47351a;--c3-ink:#eaad42;--c3-bar:#b8822c;
+  --c4-bg:#112520;--c4-bd:#1d3c35;--c4-ink:#5cc8b3;--c4-bar:#3e9184;
+  --c5-bg:#2b1813;--c5-bd:#452a20;--c5-ink:#f5946d;--c5-bar:#c26a45;
+  --c6-bg:#211e19;--c6-bd:#37312a;--c6-ink:#b8ad9c;--c6-bar:#7d7464;
+  --c7-bg:#26152a;--c7-bd:#3e2343;--c7-ink:#dd90e6;--c7-bar:#a55fac;
+  --c8-bg:#2a171a;--c8-bd:#45262b;--c8-ink:#f48ba1;--c8-bar:#bc5f74;
+  --c9-bg:#1b1a37;--c9-bd:#2c2a55;--c9-ink:#a3a4f9;--c9-bar:#6f6bd6;
   --elev-accent-sm:0 4px 14px rgba(0,0,0,.55);
   --elev-accent-md:0 8px 20px rgba(0,0,0,.55);
   --elev-accent-lg:0 6px 24px rgba(0,0,0,.65);
@@ -170,12 +211,13 @@ button{color:inherit}
 .sb-cloud-btn:active{transform:scale(.95)}
 
 /* The cloud SVG itself */
+/* The coloured drop-shadow read as a glow rather than lift, which is
+   the one thing the redesign's flat surfaces do not do anywhere else. */
 .sb-cloud-btn .cloud-svg{
   width:44px;height:32px;overflow:visible;
-  filter:drop-shadow(0 2px 6px rgba(99,102,241,.45));
-  transition:filter .3s;
+  transition:filter var(--d-state) var(--e);
 }
-.sb-cloud-btn:hover .cloud-svg{filter:drop-shadow(0 3px 10px rgba(99,102,241,.65))}
+.sb-cloud-btn:hover .cloud-svg{filter:drop-shadow(0 2px 8px var(--accent-dim))}
 
 /* Rail mode gave the cloud a bigger box (48x36). That was a layout change on
    toggle; a scale on the SVG is the same 1.09x visually, on the compositor. */
@@ -188,11 +230,14 @@ button{color:inherit}
 /* Brand text */
 .sb-brand{display:flex;flex-direction:column;gap:0px;white-space:nowrap;
   opacity:1;transition:opacity .2s;overflow:hidden;padding-left:2px;min-width:0}
-.sb-brand-line1{font-size:12px;font-weight:900;letter-spacing:1.1px;text-transform:uppercase;
-  background:linear-gradient(135deg,#a78bfa,#6366f1,#38bdf8);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2}
-.sb-brand-line2{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
-  color:var(--text3);line-height:1;margin-top:1px}
+/* Was gradient-clipped 900-weight uppercase on both lines — a
+   background-clip:text lockup, which the redesign bans outright and
+   which read as a logo rather than a name. Set plainly now: the weight
+   contrast between the two words carries it. */
+.sb-brand-line1{font-size:13.5px;font-weight:700;letter-spacing:-.2px;
+  color:var(--text);line-height:1.15;text-transform:none}
+.sb-brand-line2{font-size:13.5px;font-weight:400;letter-spacing:-.2px;
+  color:var(--text2);line-height:1.15;text-transform:none}
 #sb.slim .sb-brand{opacity:0;pointer-events:none}   /* clip hides it; fade is for polish */
 
 /* ── NAV — icons always visible, labels fade ── */
@@ -201,12 +246,18 @@ button{color:inherit}
    the 62px rail — and it no longer shifts 4px when toggling, which the old
    justify-content:center rail rule caused. */
 .sni{display:flex;align-items:center;gap:11px;padding:10px 10px 10px 14px;border-radius:var(--r-md);
-  border:none;background:none;color:var(--text2);font-size:13.5px;font-weight:500;
-  cursor:pointer;transition:all .2s;white-space:nowrap;text-align:left;width:100%;
-  min-height:40px;position:relative}
+  border:none;background:none;color:var(--text2);font-size:14px;font-weight:500;
+  cursor:pointer;white-space:nowrap;text-align:left;width:100%;
+  min-height:40px;position:relative;
+  transition:background var(--d-fast) var(--e),color var(--d-fast) var(--e)}
 .sni:hover{background:var(--surface3);color:var(--text)}
 .sni.on{background:var(--accent-dim);color:var(--accent-txt);font-weight:600}
-.sni .ico{font-size:18px;flex-shrink:0;width:22px;text-align:center;transition:transform .2s}
+/* Line icons now, not emoji: they take the theme's colour, render the
+   same everywhere, and 'Habits' and 'Stats' are finally distinct. */
+.sni .ico{flex-shrink:0;width:22px;height:22px;display:flex;align-items:center;
+  justify-content:center;transition:transform var(--d-fast) var(--e)}
+.sni .ico svg{width:19px;height:19px;display:block;opacity:.92}
+.sni.on .ico svg{opacity:1}
 .sni:hover .ico{transform:scale(1.15)}
 /* Opacity only — #sb animates its own width with overflow:hidden over the
    same .3s, so the parent's moving clip already does the reveal. Animating
@@ -238,7 +289,12 @@ button{color:inherit}
 #sb.slim .sni::after{
   content:attr(data-short);
   font-family:'Outfit',sans-serif;font-size:8.5px;font-weight:700;
-  letter-spacing:.2px;color:var(--text3);line-height:1;
+  letter-spacing:.2px;color:var(--text3);
+  /* line-height:1 gives the glyph box no room below the baseline, and
+     with overflow:hidden the descenders were sliced off every label —
+     'Habits', 'Journal' and 'Settings' all lost their bottom edge. The
+     block needs to be as tall as the text actually is. */
+  line-height:1.35;min-height:12px;
   max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 #sb.slim .sni.on::after{color:var(--accent-txt)}
@@ -1676,17 +1732,35 @@ html.no-minibar .live-mini-bar{display:none}
 
 .hm-card{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
-  padding:16px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;
-  transition:box-shadow .2s,border-color .25s,transform .15s;position:relative;overflow:hidden;
+  padding:16px 18px;box-shadow:var(--sh1);display:flex;flex-direction:column;gap:12px;
+  transition:box-shadow var(--d-state) var(--e),border-color var(--d-state) var(--e);
+  position:relative;overflow:hidden;
+  animation:sv-rise var(--d-reveal) var(--e) var(--sv-delay,0ms) both;
 }
-.hm-card:hover{box-shadow:var(--shadow2);border-color:var(--border2);transform:translateY(-1px)}
-.hm-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px}
-.hm-card--habits::before{background:linear-gradient(90deg,var(--accent) 0%,#7c3aed 100%)}
-.hm-card--sleep::before{background:linear-gradient(90deg,var(--blue) 0%,#0ea5e9 100%)}
-.hm-card--todo::before{background:linear-gradient(90deg,var(--green) 0%,#10b981 100%)}
-.hm-card--sw::before{background:linear-gradient(90deg,var(--amber) 0%,#f59e0b 100%)}
-.hm-card--pomo::before{background:linear-gradient(90deg,#ef4444 0%,#f97316 100%)}
-.hm-card--monthly::before{background:linear-gradient(90deg,var(--accent) 0%,var(--green) 100%)}
+/* Each card a beat after the one before, so the grid reads left to
+   right rather than appearing all at once. */
+.hm-bento > .hm-card:nth-child(1){--sv-delay:30ms}
+.hm-bento > .hm-card:nth-child(2){--sv-delay:60ms}
+.hm-bento > .hm-card:nth-child(3){--sv-delay:90ms}
+.hm-bento > .hm-card:nth-child(4){--sv-delay:120ms}
+.hm-bento > .hm-card:nth-child(5){--sv-delay:150ms}
+.hm-bento > .hm-card:nth-child(6){--sv-delay:180ms}
+/* Lift on hover only. The translate was a second signal for the same
+   thing and made a grid of cards twitch as the pointer crossed it. */
+.hm-card:hover{box-shadow:var(--sh2);border-color:var(--border2)}
+
+/* The six gradient top-bars are gone. A card is identified by the
+   colour of its header tile now — the same nine-category set the
+   charts and legends use — so a category looks like itself wherever
+   it appears, instead of every card carrying its own gradient. */
+.hm-card-ico{width:26px;height:26px;border-radius:var(--r-xs);display:inline-flex;
+  align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0}
+.hm-card--habits  .hm-card-ico{background:var(--c9-bg);border:1px solid var(--c9-bd);color:var(--c9-ink)}
+.hm-card--sleep   .hm-card-ico{background:var(--c2-bg);border:1px solid var(--c2-bd);color:var(--c2-ink)}
+.hm-card--todo    .hm-card-ico{background:var(--c1-bg);border:1px solid var(--c1-bd);color:var(--c1-ink)}
+.hm-card--sw      .hm-card-ico{background:var(--c3-bg);border:1px solid var(--c3-bd);color:var(--c3-ink)}
+.hm-card--pomo    .hm-card-ico{background:var(--c5-bg);border:1px solid var(--c5-bd);color:var(--c5-ink)}
+.hm-card--monthly .hm-card-ico{background:var(--c4-bg);border:1px solid var(--c4-bd);color:var(--c4-ink)}
 
 .hm-card-hd{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .hm-card-title{font-size:12px;font-weight:800;display:flex;align-items:center;gap:6px;letter-spacing:0.6px;text-transform:uppercase;color:var(--text2)}
@@ -2860,6 +2934,159 @@ html.birthday[data-theme="dark"]{
   .bday-card{animation:none} .bday-cake{animation:none}
 }
 
+
+
+/* ══ HOME: SKY HERO ══════════════════════════════════════════════
+   Four gradients stacked and cross-faded by the real hour, with an orb
+   on an arc, stars after dusk and clouds in daylight. Only opacity and
+   transform animate, so this is composited and costs nothing to leave
+   running. */
+.sky{position:relative;border-radius:var(--r-xl);overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--sh1);
+  animation:sv-rise var(--d-reveal) var(--e) both;isolation:isolate}
+.sky-l{position:absolute;inset:0;opacity:0;transition:opacity 900ms var(--e)}
+.sky-morning  {background:linear-gradient(175deg,#bfe0f5 0%,#ffe1b8 62%,#ffd0a1 100%)}
+.sky-afternoon{background:linear-gradient(180deg,#7cc4ee 0%,#b9e2f7 58%,#e7f4fb 100%)}
+.sky-evening  {background:linear-gradient(180deg,#3a3a72 0%,#a4568c 52%,#f08a5d 100%)}
+.sky-night    {background:linear-gradient(180deg,#0a0f2c 0%,#1b2450 55%,#2c3566 100%)}
+
+.sky-stars{position:absolute;inset:0;opacity:0;transition:opacity 900ms var(--e)}
+.sky-stars i{position:absolute;display:block;border-radius:var(--r-pill);background:#fff;
+  animation:sv-twinkle var(--tw,4s) ease-in-out var(--td,0s) infinite}
+.sky-clouds{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 900ms var(--e)}
+.sky-clouds div{position:absolute;left:0;animation:sv-drift var(--cd,60s) linear var(--cdl,0s) infinite;
+  transform-origin:left center}
+.sky-clouds span{display:block;width:120px;height:26px;border-radius:var(--r-pill);
+  background:rgba(255,255,255,.55);filter:blur(1px)}
+
+.sky-orb{position:absolute;transform:translate(-50%,-50%);
+  transition:left 1200ms var(--e),top 1200ms var(--e)}
+.sky-orb-glow{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border-radius:var(--r-pill);filter:blur(26px);opacity:.85;
+  animation:sv-breathe 6s ease-in-out infinite;transition:background 900ms var(--e)}
+.sky-orb-ball{position:relative;border-radius:var(--r-pill);
+  transition:background 900ms var(--e),width 900ms var(--e),height 900ms var(--e)}
+
+/* The text sits at the foot of the hero, and two of the four skies are
+   light down there — evening ends orange, where white measures 2.47:1.
+   A scrim under the text buys the contrast back without flattening the
+   sky: over evening's #f08a5d it takes white to 8.1:1. Only present
+   when the ink is light; the daylight skies use dark ink and need
+   nothing. */
+.sky-scrim{position:absolute;inset:0;pointer-events:none;opacity:0;
+  transition:opacity 900ms var(--e);
+  background:linear-gradient(180deg,rgba(8,10,26,0) 30%,rgba(8,10,26,.62) 100%)}
+.sky.ink-light .sky-scrim{opacity:1}
+
+.sky-in{position:relative;padding:34px 36px;display:flex;align-items:flex-end;
+  justify-content:space-between;gap:32px;min-height:184px;flex-wrap:wrap}
+/* Ink flips to light once the sky is dark enough that dark text stops
+   working. Set from script alongside the gradient. */
+.sky-meta{display:flex;align-items:center;gap:10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  letter-spacing:1.6px;text-transform:uppercase;color:var(--sky-ink2,var(--text2));
+  transition:color 900ms var(--e)}
+.sky-meta-sep{width:1px;height:11px;background:currentColor;display:block;opacity:.6}
+.sky-greet{margin:10px 0 0;font-size:42px;font-weight:800;letter-spacing:-1.4px;
+  line-height:1;color:var(--sky-ink,var(--text));transition:color 900ms var(--e);
+  text-wrap:balance}
+.sky-line{margin:10px 0 0;font-size:16px;line-height:1.5;max-width:460px;
+  color:var(--sky-ink2,var(--text2));text-wrap:pretty;transition:color 900ms var(--e)}
+.sky-r-col{display:flex;flex-direction:column;align-items:flex-end;gap:14px}
+.sky-clock{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:700;
+  letter-spacing:-2px;line-height:1;color:var(--sky-ink,var(--text));
+  font-variant-numeric:tabular-nums;transition:color 900ms var(--e)}
+.sky-stats{display:flex;gap:18px}
+.sky-stat{text-align:right;line-height:1.2}
+.sky-stat b{display:block;font-family:'JetBrains Mono',monospace;font-size:19px;
+  font-weight:700;letter-spacing:-.8px;color:var(--sky-ink,var(--text));
+  font-variant-numeric:tabular-nums;transition:color 900ms var(--e)}
+.sky-stat span{display:block;font-size:11.5px;margin-top:2px;
+  color:var(--sky-ink2,var(--text2));transition:color 900ms var(--e)}
+
+@media (max-width:760px){
+  .sky-in{padding:24px 22px;min-height:0;gap:20px}
+  .sky-greet{font-size:30px;letter-spacing:-1px}
+  .sky-clock{font-size:30px}
+  .sky-r-col{align-items:flex-start}
+  .sky-stats{gap:22px}
+  .sky-stat{text-align:left}
+}
+
+/* ══ REDESIGN: MOTION ════════════════════════════════════════════
+   The design's own keyframes. Every one is suppressed under
+   prefers-reduced-motion by the global rule further down. */
+@keyframes sv-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sv-fade{from{opacity:0}to{opacity:1}}
+@keyframes sv-pop{0%{transform:scale(1)}45%{transform:scale(.88)}100%{transform:scale(1)}}
+@keyframes sv-drift{from{transform:translateX(-8%)}to{transform:translateX(108%)}}
+@keyframes sv-twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes sv-breathe{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.06);opacity:.8}}
+@keyframes sv-tickpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+
+/* Staggered reveal. The delay is the only thing that varies, so it is a
+   variable rather than seven near-identical rules. */
+.sv-rise{animation:sv-rise var(--d-reveal) var(--e) var(--sv-delay,0ms) both}
+.sv-fade{animation:sv-fade var(--d-layout) var(--e) both}
+
+/* ══ REDESIGN: COMPONENTS ════════════════════════════════════════
+   One card, one tile, one stat. The audit found 34 button shapes and
+   28 font sizes across the app; the fix is a named vocabulary, not
+   another bespoke rule per page. */
+.sv-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-lg);box-shadow:var(--sh1);padding:16px 18px}
+.sv-card-lg{padding:20px 22px}
+.sv-card-tight{padding:12px 14px}
+
+/* Section heading: mono, small caps, wide tracking. Used once per
+   region, never as an eyebrow above every block. */
+.sv-eyebrow{font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;
+  letter-spacing:1.3px;text-transform:uppercase;color:var(--text3)}
+
+/* Data numerals. Tabular so a changing value does not shift the layout. */
+.sv-num{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:-1px;
+  line-height:1;font-variant-numeric:tabular-nums}
+.sv-num-lg{font-size:38px;letter-spacing:-2px}
+.sv-num-md{font-size:22px}
+.sv-num-sm{font-size:16px;letter-spacing:-.5px}
+
+/* Category tile. The colour set is chosen by .c1..c9 so a category
+   keeps one identity across cards, charts and legends. */
+.sv-tile{width:34px;height:34px;border-radius:var(--r-sm);display:flex;
+  align-items:center;justify-content:center;padding:7px;box-sizing:border-box;
+  flex-shrink:0;font-size:16px;line-height:1}
+.sv-tile svg{width:100%;height:100%;display:block}
+.c1{background:var(--c1-bg);border:1px solid var(--c1-bd);color:var(--c1-ink)}
+.c2{background:var(--c2-bg);border:1px solid var(--c2-bd);color:var(--c2-ink)}
+.c3{background:var(--c3-bg);border:1px solid var(--c3-bd);color:var(--c3-ink)}
+.c4{background:var(--c4-bg);border:1px solid var(--c4-bd);color:var(--c4-ink)}
+.c5{background:var(--c5-bg);border:1px solid var(--c5-bd);color:var(--c5-ink)}
+.c6{background:var(--c6-bg);border:1px solid var(--c6-bd);color:var(--c6-ink)}
+.c7{background:var(--c7-bg);border:1px solid var(--c7-bd);color:var(--c7-ink)}
+.c8{background:var(--c8-bg);border:1px solid var(--c8-bd);color:var(--c8-ink)}
+.c9{background:var(--c9-bg);border:1px solid var(--c9-bd);color:var(--c9-ink)}
+
+/* Stat card: tile, number, label. The shape the redesign uses on Home
+   and repeats on every page header. */
+.sv-stat{display:flex;align-items:center;gap:13px}
+.sv-stat-v{min-width:0}
+.sv-stat-l{font-size:12.5px;color:var(--text2);margin-top:4px}
+.sv-stat-sub{color:var(--text4)}
+
+/* Responsive stat row with no breakpoints: cards reflow at their own
+   minimum rather than at a width someone guessed. */
+.sv-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+
+/* Tinted notice band, in any category colour. */
+.sv-band{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  border-radius:var(--r-lg);padding:14px 20px}
+.sv-band.c1{background:var(--c1-bg);border:1px solid var(--c1-bd)}
+.sv-band.c2{background:var(--c2-bg);border:1px solid var(--c2-bd)}
+.sv-band.c3{background:var(--c3-bg);border:1px solid var(--c3-bd)}
+.sv-band.c5{background:var(--c5-bg);border:1px solid var(--c5-bd)}
+.sv-band-t{font-size:14.5px;font-weight:700}
+.sv-band-s{font-size:12.5px;margin-top:2px;opacity:.85}
+
 /* ══ FIRST-RUN TOUR ═════════════════════════════════════════════════
    Coach marks, not a slideshow. The page being described stays visible
    behind the bubble, with the thing being pointed at cut out of the
@@ -3043,42 +3270,42 @@ html.birthday[data-theme="dark"]{
   </div>
   <nav class="sb-nav">
     <button class="sni on" id="sni-home" data-short="Home" title="Home" onclick="goPage('home',this)">
-      <span class="ico">🏠</span><span class="lbl">Home</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.2 8.4 10 3l6.8 5.4"/><path d="M4.8 9.6V16a1 1 0 0 0 1 1h8.4a1 1 0 0 0 1-1V9.6"/><path d="M8.2 17v-4.2h3.6V17"/></svg></span><span class="lbl">Home</span>
     </button>
     <button class="sni" id="sni-ai" data-short="AI" title="AI Assistant" onclick="goPage('ai',this)">
-      <span class="ico">✨</span><span class="lbl">AI Assistant</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.6l1.5 4.2 4.2 1.5-4.2 1.5L10 14l-1.5-4.2L4.3 8.3l4.2-1.5z"/><path d="M15.4 13.2l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg></span><span class="lbl">AI Assistant</span>
     </button>
     <div class="sb-div"></div>
     <button class="sni" id="sni-dashboard" data-short="Habits" title="Habit Tracker" onclick="goPage('dashboard',this)">
-      <span class="ico">📊</span><span class="lbl">Habit Tracker</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.8" y="3.4" width="14.4" height="13.2" rx="2.2"/><path d="M2.8 7.6h14.4"/><path d="M7.2 7.6v9"/><path d="M9.6 11.6l1.5 1.5 3-3"/></svg></span><span class="lbl">Habit Tracker</span>
     </button>
     <button class="sni" id="sni-sleep" data-short="Sleep" title="Sleep Tracker" onclick="goPage('sleep',this)">
-      <span class="ico">🌙</span><span class="lbl">Sleep Tracker</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.2 11.6A6.6 6.6 0 0 1 8 3.6a6.8 6.8 0 1 0 8.2 8z"/></svg></span><span class="lbl">Sleep Tracker</span>
     </button>
     <button class="sni" id="sni-todo" data-short="Flow" title="Flow Planner" onclick="goPage('todo',this)">
-      <span class="ico">🌊</span><span class="lbl">Flow Planner</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.6 6.4c1.6-1.5 3.1-1.5 4.7 0s3.1 1.5 4.7 0 3.1-1.5 4.7 0"/><path d="M2.6 10.6c1.6-1.5 3.1-1.5 4.7 0s3.1 1.5 4.7 0 3.1-1.5 4.7 0"/><path d="M2.6 14.8c1.6-1.5 3.1-1.5 4.7 0s3.1 1.5 4.7 0 3.1-1.5 4.7 0"/></svg></span><span class="lbl">Flow Planner</span>
     </button>
     <div class="sb-div"></div>
     <button class="sni" id="sni-stopwatch" data-short="Stopwatch" title="Stopwatch" onclick="goPage('stopwatch',this)">
-      <span class="ico">⏱️</span><span class="lbl">Stopwatch</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="11.4" r="6.2"/><path d="M10 8.4v3l1.8 1.4"/><path d="M8 2.6h4"/><path d="M15.4 6l1-1"/></svg></span><span class="lbl">Stopwatch</span>
     </button>
     <button class="sni" id="sni-pomodoro" data-short="Focus" title="Focus Timer" onclick="goPage('pomodoro',this)">
-      <span class="ico">🎯</span><span class="lbl">Focus Timer</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3.4"/><circle cx="10" cy="10" r=".6" fill="currentColor"/></svg></span><span class="lbl">Focus Timer</span>
     </button>
     <div class="sb-div"></div>
     <button class="sni" id="sni-analytics" data-short="Stats" title="Analytics" onclick="goPage('analytics',this)">
-      <span class="ico">📈</span><span class="lbl">Analytics</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 16.4h14"/><path d="M4.4 13.2l3.4-3.9 2.9 2.4 4.6-5.3"/><path d="M12.4 6.4h3v3"/></svg></span><span class="lbl">Analytics</span>
     </button>
     <div class="sb-div"></div>
     <button class="sni" id="sni-diary" data-short="Journal" title="Journal" onclick="goPage('diary',this)">
-      <span class="ico">📔</span><span class="lbl">Journal</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.4 3.6h9.2a2 2 0 0 1 2 2v11.2H6.4a2 2 0 0 1-2-2z"/><path d="M4.4 14.2h11.2"/><path d="M7.6 7h5"/><path d="M7.6 9.8h3.4"/></svg></span><span class="lbl">Journal</span>
     </button>
     <div class="sb-div"></div>
     <button class="sni" id="sni-profile" data-short="You" title="Profile" onclick="goPage('profile',this)">
-      <span class="ico">👤</span><span class="lbl">Profile</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="7.2" r="3.1"/><path d="M4.4 16.6a5.6 5.6 0 0 1 11.2 0"/></svg></span><span class="lbl">Profile</span>
     </button>
     <button class="sni" id="sni-settings" data-short="Settings" title="Settings" onclick="goPage('settings',this)">
-      <span class="ico">⚙️</span><span class="lbl">Settings</span>
+      <span class="ico"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="2.6"/><path d="M15.6 12.2a1.3 1.3 0 0 0 .26 1.43l.05.05a1.55 1.55 0 1 1-2.2 2.2l-.05-.05a1.3 1.3 0 0 0-1.43-.26 1.3 1.3 0 0 0-.79 1.19v.13a1.55 1.55 0 1 1-3.1 0v-.07a1.3 1.3 0 0 0-.85-1.19 1.3 1.3 0 0 0-1.43.26l-.05.05a1.55 1.55 0 1 1-2.2-2.2l.05-.05a1.3 1.3 0 0 0 .26-1.43 1.3 1.3 0 0 0-1.19-.79h-.13a1.55 1.55 0 1 1 0-3.1h.07a1.3 1.3 0 0 0 1.19-.85 1.3 1.3 0 0 0-.26-1.43l-.05-.05a1.55 1.55 0 1 1 2.2-2.2l.05.05a1.3 1.3 0 0 0 1.43.26h.06a1.3 1.3 0 0 0 .79-1.19v-.13a1.55 1.55 0 1 1 3.1 0v.07a1.3 1.3 0 0 0 .79 1.19 1.3 1.3 0 0 0 1.43-.26l.05-.05a1.55 1.55 0 1 1 2.2 2.2l-.05.05a1.3 1.3 0 0 0-.26 1.43v.06a1.3 1.3 0 0 0 1.19.79h.13a1.55 1.55 0 1 1 0 3.1h-.07a1.3 1.3 0 0 0-1.19.79z"/></svg></span><span class="lbl">Settings</span>
     </button>
   </nav>
   <div class="sb-foot">
@@ -3156,26 +3383,36 @@ html.birthday[data-theme="dark"]{
 <div class="page on" id="pg-home">
   <div class="hm-scroll">
 
-    <!-- Hero Banner -->
-    <div class="hm-herobar" id="hm-herobar">
-      <div class="hm-hero-left">
-        <div class="hm-tod-badge" id="hm-tod-badge">🌅 Morning</div>
-        <div class="hm-greeting" id="hm-greeting">Good morning ☀️</div>
-        <div class="hm-name" id="hm-hero-name">Successor Vision</div>
-        <div class="hm-date" id="hm-date"></div>
+    <!-- Sky hero. Layers cross-fade on the real hour; see skyRender(). -->
+    <div class="sky" id="sky">
+      <div class="sky-l sky-morning"   id="sky-morning"></div>
+      <div class="sky-l sky-afternoon" id="sky-afternoon"></div>
+      <div class="sky-l sky-evening"   id="sky-evening"></div>
+      <div class="sky-l sky-night"     id="sky-night"></div>
+      <div class="sky-stars" id="sky-stars" aria-hidden="true"></div>
+      <div class="sky-clouds" id="sky-clouds" aria-hidden="true"></div>
+      <div class="sky-scrim" aria-hidden="true"></div>
+      <div class="sky-orb" id="sky-orb" aria-hidden="true">
+        <div class="sky-orb-glow" id="sky-orb-glow"></div>
+        <div class="sky-orb-ball" id="sky-orb-ball"></div>
       </div>
-      <div class="hm-hero-stats">
-        <div class="hm-hstat">
-          <div class="hm-hstat-v" id="hm-hs1">—</div>
-          <div class="hm-hstat-l">Habits Done</div>
+      <div class="sky-in">
+        <div class="sky-l-col">
+          <div class="sky-meta">
+            <span id="hm-date"></span>
+            <span class="sky-meta-sep"></span>
+            <span id="hm-tod-badge">Morning</span>
+          </div>
+          <h1 class="sky-greet" id="hm-greeting">Good morning</h1>
+          <p class="sky-line" id="hm-hero-name">Successor Vision</p>
         </div>
-        <div class="hm-hstat">
-          <div class="hm-hstat-v" id="hm-hs2">—</div>
-          <div class="hm-hstat-l">Tasks Done</div>
-        </div>
-        <div class="hm-hstat">
-          <div class="hm-hstat-v" id="hm-hs3">—</div>
-          <div class="hm-hstat-l">Hours Slept</div>
+        <div class="sky-r-col">
+          <div class="sky-clock" id="sky-clock">--:--</div>
+          <div class="sky-stats">
+            <div class="sky-stat"><b id="hm-hs1">—</b><span>Habits</span></div>
+            <div class="sky-stat"><b id="hm-hs2">—</b><span>Tasks</span></div>
+            <div class="sky-stat"><b id="hm-hs3">—</b><span>Slept</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -3502,7 +3739,7 @@ html.birthday[data-theme="dark"]{
                 <div class="slp-calc-u">hrs slept</div>
               </div>
             </div>
-            <div class="slp-calc-badge" id="slp-calc-badge" style="background:var(--accent-dim);color:var(--accent-txt)">—</div>
+            <div class="slp-calc-badge" id="slp-calc-badge" style="background:var(--c9-bg);color:var(--c9-ink);border:1px solid var(--c9-bd)">—</div>
           </div>
           <button class="slp-save-btn" id="slp-save-btn" onclick="saveSleep()">
             <span>💾</span> Save Sleep Log
@@ -3600,9 +3837,9 @@ html.birthday[data-theme="dark"]{
         <div class="slp-rn-t">🔬 Sleep Science</div>
         The body releases <strong>~70% of daily growth hormone</strong> during the first deep-sleep cycle. This cellular repair peaks between <strong>10 PM – 2 AM</strong>. After 2 AM, REM takes over for memory &amp; emotion. Aligning bedtime with natural <strong>melatonin rise</strong> (~9–10 PM) and waking with the <strong>cortisol surge</strong> (6–7 AM) maximises full recovery.
         <div class="slp-rn-window">
-          <div class="slp-rn-tag" style="background:var(--accent-dim);color:var(--accent-txt)" id="slp-rn-bed-tag">10–11 PM → Ideal Bedtime</div>
-          <div class="slp-rn-tag" style="background:var(--green-dim);color:var(--green-txt)" id="slp-rn-dur-tag">7.5h → 5 full cycles</div>
-          <div class="slp-rn-tag" style="background:var(--amber-dim);color:var(--amber-txt)" id="slp-rn-wake-tag">6 AM → Cortisol rise</div>
+          <div class="slp-rn-tag" style="background:var(--c9-bg);color:var(--c9-ink);border:1px solid var(--c9-bd)" id="slp-rn-bed-tag">10–11 PM → Ideal Bedtime</div>
+          <div class="slp-rn-tag" style="background:var(--c1-bg);color:var(--c1-ink);border:1px solid var(--c1-bd)" id="slp-rn-dur-tag">7.5h → 5 full cycles</div>
+          <div class="slp-rn-tag" style="background:var(--c3-bg);color:var(--c3-ink);border:1px solid var(--c3-bd)" id="slp-rn-wake-tag">6 AM → Cortisol rise</div>
         </div>
       </div>
 
@@ -7724,6 +7961,11 @@ function slpScoreOf(bedStr, wakeStr, forDate) {
   const total=Math.max(0,Math.min(100, Math.round(durScore+circScore+rhythmScore+timeScore)));
 
   let grade,label,emoji,colorVar;
+  /* Which of the redesign's nine ink/tint sets each grade wears. The
+     pair is what has to clear AA, so it is chosen as a pair rather than
+     derived from one hue at some alpha. */
+  const GRADE_CAT = { Excellent:'c1', Good:'c4', Fair:'c3',
+                      Poor:'c5', Critical:'c8', Extended:'c2' };
   if      (total>=85){grade='Excellent';label='Peak Recovery';    emoji='\u2728';colorVar='var(--excellent)';}
   else if (total>=70){grade='Good';     label='Well Rested';      emoji='\ud83d\ude0a';colorVar='var(--good)';}
   else if (total>=55){grade='Fair';     label='Partially Rested'; emoji='\ud83d\ude10';colorVar='var(--fair)';}
@@ -7746,6 +7988,7 @@ function slpScoreOf(bedStr, wakeStr, forDate) {
     durScore, circScore, rhythmScore, timeScore,
     nightFrac:split.night, dayFrac:split.day, drift, consistency, baseline:base,
     grade, label, emoji, colorVar,
+    cat: GRADE_CAT[grade] || 'c6',
     colorHex: slpResolveColor(colorVar),
     colorTxt: slpResolveColor(colorVar.replace(')','-txt)')),
     stars: total>=85?5:total>=70?4:total>=55?3:total>=35?2:1,
@@ -7796,8 +8039,12 @@ function slpOnTimeChange() {
 
   const badge = document.getElementById('slp-calc-badge');
   badge.textContent = s.grade;
-  badge.style.color = s.colorTxt;          // text: AA shade
-  badge.style.background = s.colorHex + '22';   // tint: original hue, unchanged
+  /* Ink and tint from one category set, measured against each other.
+     The old pairing was the hue at 13% alpha under the hue's own -txt
+     shade: 2.80:1. */
+  badge.style.color      = 'var(--' + s.cat + '-ink)';
+  badge.style.background = 'var(--' + s.cat + '-bg)';
+  badge.style.border     = '1px solid var(--' + s.cat + '-bd)';
 
   const circ = 2 * Math.PI * 27;
   /* For extended sleep, show a calm partial arc rather than a low score arc */
@@ -8300,12 +8547,18 @@ function slpRenderHist() {
     const col    = slpEntryColor(e);          // bar fill + badge tint
     const colTxt = slpEntryColor(e, 'txt');   // badge label
     const lbl = e.grade === 'Extended' ? `🌊 ${e.label||'Extended'}` : (e.grade || (e.hrs >= 7.5 ? 'Good' : e.hrs >= 6 ? 'Fair' : 'Poor'));
+    /* Same sets as the score badge, so a grade looks the same in the
+       history as it does on the ring. The label may carry a leading
+       emoji, hence the strip. */
+    const cat = ({Excellent:'c1',Good:'c4',Fair:'c3',Poor:'c5',
+                  Critical:'c8',Extended:'c2'})[
+                  String(lbl).replace(/^[^A-Za-z]+/,'').split(' ')[0]] || 'c6';
     return `<div class="slp-hr-row" style="animation-delay:${i*20}ms">
       <div class="slp-hr-date">${fmtDate(e.date)}</div>
       <div class="slp-hr-times">${tr}</div>
       <div class="slp-hr-bar-w"><div class="slp-hr-bar-f" style="transform:scaleX(${pct/100});background:${col}"></div></div>
       <div class="slp-hr-hrs">${slpFmtHrs(e.hrs)}</div>
-      <div class="slp-hr-badge" style="background:${col}22;color:${colTxt}">${lbl}</div>
+      <div class="slp-hr-badge" style="background:var(--${cat}-bg);color:var(--${cat}-ink);border:1px solid var(--${cat}-bd)">${lbl}</div>
     </div>`;
   }).join('');
 }
@@ -9286,25 +9539,130 @@ function drawAnSleepChart(monthData, labels, dk){
 }
 
 /* ──────── HOME DASHBOARD ──────── */
+
+/* ── The sky ───────────────────────────────────────────────────────
+   One source of truth for what time of day it is, shared by the hero's
+   gradient, its ink colour, the orb's position and the greeting. The
+   design file drove this from a preview button because a mockup has no
+   clock; the app reads the real one. */
+function skyPhase(h){
+  if(h >= 5  && h < 11) return 'morning';
+  if(h >= 11 && h < 17) return 'afternoon';
+  if(h >= 17 && h < 20) return 'evening';
+  return 'night';
+}
+
+let _skyBuilt = false, _skyTimer = null;
+
+function skyBuild(){
+  if(_skyBuilt) return;
+  const stars = document.getElementById('sky-stars');
+  const clouds = document.getElementById('sky-clouds');
+  if(!stars || !clouds) return;
+  /* Fixed positions from a seeded sequence rather than Math.random, so
+     the sky does not rearrange itself on every render. */
+  let seed = 20260908;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  let sHtml = '';
+  for(let i = 0; i < 26; i++){
+    const size = (rnd() * 1.6 + 1).toFixed(1);
+    sHtml += '<i style="left:' + (rnd()*100).toFixed(1) + '%;top:' + (rnd()*62).toFixed(1) + '%;' +
+             'width:' + size + 'px;height:' + size + 'px;' +
+             '--tw:' + (2.5 + rnd()*3).toFixed(1) + 's;--td:' + (rnd()*3).toFixed(1) + 's"></i>';
+  }
+  stars.innerHTML = sHtml;
+  let cHtml = '';
+  for(let i = 0; i < 3; i++){
+    cHtml += '<div style="top:' + (12 + i*16) + '%;--cd:' + (52 + i*19) + 's;--cdl:-' + (i*17) + 's">' +
+             '<span style="transform:scale(' + (0.7 + i*0.28).toFixed(2) + ')"></span></div>';
+  }
+  clouds.innerHTML = cHtml;
+  _skyBuilt = true;
+}
+
+function skyRender(){
+  const el = document.getElementById('sky');
+  if(!el) return;
+  skyBuild();
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const phase = skyPhase(h);
+
+  ['morning','afternoon','evening','night'].forEach(k => {
+    const l = document.getElementById('sky-' + k);
+    if(l) l.style.opacity = (k === phase) ? '1' : '0';
+  });
+
+  const night = (phase === 'night' || phase === 'evening');
+  const stars = document.getElementById('sky-stars');
+  const clouds = document.getElementById('sky-clouds');
+  if(stars)  stars.style.opacity  = phase === 'night' ? '1' : (phase === 'evening' ? '.45' : '0');
+  if(clouds) clouds.style.opacity = (phase === 'morning' || phase === 'afternoon') ? '1' : '0';
+
+  /* Dark gradients need light ink; the two daylight ones keep the
+     theme's own text colours so the hero still reads as part of the
+     page rather than as a poster. */
+  el.style.setProperty('--sky-ink',  night ? '#fff' : 'var(--text)');
+  el.style.setProperty('--sky-ink2', night ? 'rgba(255,255,255,.82)' : 'var(--text2)');
+  el.classList.toggle('ink-light', night);   // drives the scrim
+
+  /* The orb travels an arc: sun 5am-8pm, moon overnight. Fraction of
+     the way through the current span drives x, and a sine of it lifts
+     the arc so it rises and sets rather than sliding. */
+  const orb  = document.getElementById('sky-orb');
+  const ball = document.getElementById('sky-orb-ball');
+  const glow = document.getElementById('sky-orb-glow');
+  if(orb && ball && glow){
+    const mins = h * 60 + m;
+    const dayStart = 5 * 60, dayEnd = 20 * 60;
+    let frac;
+    if(mins >= dayStart && mins < dayEnd) frac = (mins - dayStart) / (dayEnd - dayStart);
+    else{ const t = mins < dayStart ? mins + (24*60 - dayEnd) : mins - dayEnd;
+          frac = t / (24*60 - (dayEnd - dayStart)); }
+    const x = 8 + frac * 84;
+    const y = 62 - Math.sin(frac * Math.PI) * 42;
+    orb.style.left = x.toFixed(1) + '%';
+    orb.style.top  = y.toFixed(1) + '%';
+    const r = night ? 26 : 44;
+    ball.style.width = ball.style.height = r + 'px';
+    glow.style.width = glow.style.height = (r * 1.1) + 'px';
+    ball.style.background = night ? '#f4f1e4'
+      : (phase === 'morning' ? '#ffd28a' : '#fff6d8');
+    glow.style.background = night ? 'rgba(226,232,255,.45)'
+      : (phase === 'morning' ? 'rgba(255,190,120,.75)' : 'rgba(255,244,200,.85)');
+  }
+
+  const clock = document.getElementById('sky-clock');
+  if(clock) clock.textContent =
+    String(h % 12 || 12) + ':' + String(m).padStart(2,'0') + (h < 12 ? ' AM' : ' PM');
+
+  const badge = document.getElementById('hm-tod-badge');
+  if(badge) badge.textContent = phase.charAt(0).toUpperCase() + phase.slice(1);
+
+  /* Re-render on the minute rather than on a fixed interval, so the
+     clock never sits a beat behind. */
+  clearTimeout(_skyTimer);
+  _skyTimer = setTimeout(skyRender, (60 - now.getSeconds()) * 1000 + 250);
+}
+
 function renderHome(){
   // greeting + date
   const h=TODAY.getHours();
-  const greet=h<12?'Good morning ☀️':h<17?'Good afternoon 🌤️':h<21?'Good evening 🌇':'Good night 🌙';
+  /* Derived from skyPhase, not from a second set of hour bounds. The
+     two disagreed: at 02:58 the sky read NIGHT while the greeting said
+     "Good morning", because h<12 is true at 2am. One source of truth
+     for what time of day it is. */
+  const GREET={morning:'Good morning',afternoon:'Good afternoon',
+               evening:'Good evening',night:'Good night'};
+  const greet=GREET[skyPhase(h)];
   document.getElementById('hm-greeting').textContent=greet;
   document.getElementById('hm-date').textContent=TODAY.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   renderWeekNudge();
 
-  // ── Time-of-day hero theming ──
-  const herobar = document.getElementById('hm-herobar');
-  const todBadge = document.getElementById('hm-tod-badge');
-  herobar.classList.remove('tod-morning','tod-afternoon','tod-evening','tod-night');
-  let todClass, todLabel;
-  if(h>=5&&h<12){todClass='tod-morning';todLabel='🌅 Morning';}
-  else if(h>=12&&h<17){todClass='tod-afternoon';todLabel='☀️ Afternoon';}
-  else if(h>=17&&h<21){todClass='tod-evening';todLabel='🌇 Evening';}
-  else{todClass='tod-night';todLabel='🌙 Night';}
-  herobar.classList.add(todClass);
-  if(todBadge) todBadge.textContent=todLabel;
+  /* The hero is the sky now: gradient, orb, stars and the phase label
+     all come from skyRender, which reads the clock directly and
+     re-runs on the minute. */
+  skyRender();
 
   // hero stats — today's habits
   const todayHabits=S.habits.length;
