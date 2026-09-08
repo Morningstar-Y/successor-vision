@@ -256,6 +256,20 @@ for (const doc of docs) {
          ` — the whole declaration silently becomes invalid`));
   else pass(`all ${used.size} custom properties are defined`);
 
+  /* ---------- 4b. no hand-rolled chart palettes ---------- */
+  /* Canvas drawing code used to pick its own colours per chart:
+     `const tc = dk ? '#424d68' : '#9ea5bc'`, six times over, drifting
+     apart and bypassing the tokens. That particular axis ink measured
+     2.41:1 and 2.08:1 against its surfaces — every chart label in the
+     app failed AA. chartTokens() reads the real ones; this keeps the
+     literals from creeping back. */
+  const themeLiterals = [...doc.html.matchAll(
+    /\bdk\s*\?[^;\n]{0,40}?['"]#[0-9a-fA-F]{3,8}['"]\s*:/g)];
+  if (themeLiterals.length)
+    fail(`${themeLiterals.length} hardcoded per-theme colour literal(s)` +
+         ` (dk ? '#…' : '#…') — read them from chartTokens() instead`);
+  else pass('no hand-rolled per-theme colour literals');
+
   /* ---------- 5. no secrets ---------- */
   const secrets = [
     [/AQ\.Ab8[A-Za-z0-9_-]+/, 'Gemini API key'],
