@@ -256,6 +256,42 @@ for (const doc of docs) {
          ` — the whole declaration silently becomes invalid`));
   else pass(`all ${used.size} custom properties are defined`);
 
+  /* ---------- 4c. type and shape scales ---------- */
+  /* Scoped to the app for now. The embedded planner is a separate
+     document that still carries its own 113 font sizes and 62 radii —
+     it gets migrated next, and this widens to cover it then. */
+  if (doc.name === 'main document') {
+  /* The app had grown 31 distinct font sizes over 503 declarations —
+     12px, 12.5px and 13px alone were 234 of them, and no reader can
+     tell those apart. They are eleven --fs-* steps now. Emoji and icon
+     glyphs are exempt: their font-size is a picture's dimensions, not
+     a typographic step, so the same selector test the migration used
+     applies here. */
+  const ICON_SEL = /\.[A-Za-z0-9_-]*(?:-ico|-icon|-cake|-emoji)\b|\.ei\b/;
+  const cssLines = css.split('\n');
+  const rawType = [];
+  cssLines.forEach((ln, i) => {
+    const m = ln.match(/font-size:\s*[0-9.]+px/);
+    if (!m) return;
+    const ctx = cssLines.slice(Math.max(0, i - 3), i + 1).join('\n');
+    if (!ICON_SEL.test(ctx)) rawType.push(`${m[0]} (line ${i + 1})`);
+  });
+  if (rawType.length)
+    fail(`${rawType.length} literal font-size(s) outside the scale` +
+         ` — use var(--fs-*): ${rawType.slice(0, 4).join(', ')}`);
+  else pass('type scale: no literal font-size outside icon glyphs');
+
+  /* Radii below 6px are legitimately finer than --r-xs (a 6px round on
+     an 11px swatch is nearly a circle). At or above it, use a token. */
+  const rawRadius = [...css.matchAll(/border-radius:([^;}]*)/g)]
+    .filter(m => /\b(?:[6-9]|[1-9][0-9]+)px/.test(m[1]) && !/var\(/.test(m[1])
+                 && !/tour-spot/.test(css.slice(Math.max(0, m.index - 260), m.index)));
+  if (rawRadius.length)
+    fail(`${rawRadius.length} literal border-radius >= 6px — use var(--r-*): ` +
+         rawRadius.slice(0, 4).map(m => m[0].trim()).join(', '));
+  else pass('shape scale: no literal border-radius above --r-xs');
+  }
+
   /* ---------- 4b. no hand-rolled chart palettes ---------- */
   /* Canvas drawing code used to pick its own colours per chart:
      `const tc = dk ? '#424d68' : '#9ea5bc'`, six times over, drifting
