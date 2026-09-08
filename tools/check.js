@@ -147,6 +147,26 @@ for (const doc of docs) {
   if (dead.length) dead.forEach(fn => fail(`calls ${fn}() x${missing.get(fn)} but nothing defines it`));
   else pass('no calls to undefined local helpers');
 
+  /* ---------- 2b2. inline handlers call real functions ----------------
+     check 2b only scans <script> blocks, so a handler written straight
+     into the markup was never checked. onclick="slpOpenSci()" shipped
+     that way -- a name that never existed anywhere, on a visible
+     button, silently doing nothing when pressed. */
+  const inlineCalls = new Map();
+  for (const m of doc.html.matchAll(/\son(?:click|input|change|submit|keydown|keyup|focus|blur|pointerdown|pointerup|pointerleave|contextmenu)="([^"]*)"/g)) {
+    for (const c of m[1].matchAll(/(?<![\w.$])([A-Za-z_$][\w$]*)\s*\(/g)) {
+      const fn = c[1];
+      if (/^(if|for|while|switch|return|typeof|new|this|event|alert|confirm)$/.test(fn)) continue;
+      inlineCalls.set(fn, (inlineCalls.get(fn) || 0) + 1);
+    }
+  }
+  const deadInline = [...inlineCalls.keys()].filter(fn =>
+    !defined.has(fn) && !NOT_OURS.has(fn) && typeof globalThis[fn] === 'undefined');
+  if (deadInline.length)
+    deadInline.forEach(fn => fail(`inline handler calls ${fn}() x${inlineCalls.get(fn)} ` +
+      `but nothing defines it — the control does nothing when used`));
+  else pass(`all ${inlineCalls.size} inline-handler calls resolve`);
+
   /* ---------- 2c. no top-level call that runs before its definition ----
      Function declarations hoist inside a script block, never across
      them. An init call placed in an earlier <script> than the function

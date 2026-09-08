@@ -434,9 +434,9 @@ button{color:inherit}
   display:none;
 }
 .auth-msg.on{display:block}
-.auth-msg.err{background:var(--red-dim);color:var(--red-txt);border-left:3px solid var(--red)}
-.auth-msg.ok{background:var(--green-dim);color:var(--green-txt);border-left:3px solid var(--green)}
-.auth-msg.info{background:var(--blue-dim);color:var(--blue-txt);border-left:3px solid var(--blue)}
+.auth-msg.err{background:var(--c8-bg);border:1px solid var(--c8-bd);color:var(--c8-ink)}
+.auth-msg.ok{background:var(--c1-bg);border:1px solid var(--c1-bd);color:var(--c1-ink)}
+.auth-msg.info{background:var(--c2-bg);border:1px solid var(--c2-bd);color:var(--c2-ink)}
 
 .auth-foot{
   margin-top:22px;padding-top:18px;border-top:1px solid var(--border);
@@ -558,18 +558,23 @@ button{color:inherit}
 .wr-empty{font-size:12.5px;color:var(--text2)}
 .wr-action{margin-top:22px;padding:14px 16px;border-radius:var(--r-lg);font-size:13px;
   line-height:1.55;color:var(--text);background:var(--surface2);
-  border-left:3px solid var(--text2)}
-.wr-action.warn{background:var(--amber-dim);border-left-color:var(--amber);color:var(--amber-txt)}
-.wr-action.good{background:var(--green-dim);border-left-color:var(--green);color:var(--green-txt)}
-.wr-action.info{background:var(--blue-dim);border-left-color:var(--blue);color:var(--blue-txt)}
+  border:1px solid var(--border)}
+/* Full tinted surfaces instead of a coloured bar down the side. The
+   ink/tint sets already pair correctly, which the old --dim + --txt
+   combinations did not. */
+.wr-action.warn{background:var(--c3-bg);border-color:var(--c3-bd);color:var(--c3-ink)}
+.wr-action.good{background:var(--c1-bg);border-color:var(--c1-bd);color:var(--c1-ink)}
+.wr-action.info{background:var(--c2-bg);border-color:var(--c2-bd);color:var(--c2-ink)}
 .wr-act-l{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;
   text-transform:uppercase;opacity:.75;margin-bottom:5px}
 @media (max-width:900px){ .wr-grid{grid-template-columns:1fr;gap:22px} }
 
 /* Home nudge: one line, once a week, dismissable. */
+/* --accent-txt on --accent-dim is 4.07:1 in dark. c9 is the same
+   indigo family, built as an ink/tint pair. */
 .hm-nudge{display:flex;align-items:center;gap:12px;margin-bottom:16px;
-  padding:11px 15px;border-radius:var(--r-md);background:var(--accent-dim);
-  border:1px solid var(--border);font-size:12.5px;color:var(--accent-txt)}
+  padding:11px 15px;border-radius:var(--r-md);background:var(--c9-bg);
+  border:1px solid var(--c9-bd);font-size:12.5px;color:var(--c9-ink)}
 .hm-nudge b{font-weight:700}
 .hm-nudge-go{margin-left:auto;flex-shrink:0;background:var(--accent);color:#fff;border:none;
   border-radius:var(--r-md);padding:6px 13px;font-family:'Outfit',sans-serif;font-size:12px;
@@ -1613,14 +1618,35 @@ html.no-minibar .live-mini-bar{display:none}
 
 /* KPI cards */
 .an-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 22px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:box-shadow .2s}
-.kpi:hover{box-shadow:var(--shadow2)}
-.kpi-icon{font-size:26px;margin-bottom:2px}
-.kpi-val{font-size:32px;font-weight:900;line-height:1;letter-spacing:-.5px}
-.kpi-lbl{font-size:12.5px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:var(--text3)}
-.kpi-bar{position:absolute;bottom:0;left:0;height:3px;width:100%;border-radius:0 2px 0 0;
-  transform-origin:left center;transform:scaleX(0);transition:transform .6s}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:18px 20px 20px;display:flex;flex-direction:column;gap:5px;box-shadow:var(--sh1);
+  position:relative;transition:box-shadow var(--d-state) var(--e)}
+.kpi:hover{box-shadow:var(--sh2)}
+.kpi-icon{font-size:15px;line-height:1;width:32px;height:32px;margin-bottom:6px;
+  border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;
+  background:var(--c9-bg);border:1px solid var(--c9-bd)}
+/* Mono and tabular, like every other figure in the app. 900 weight at
+   32px was heavier than the page titles, which made a supporting stat
+   shout louder than the thing it supports. */
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700;
+  line-height:1;letter-spacing:-1.4px;font-variant-numeric:tabular-nums}
+.kpi-lbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;
+  letter-spacing:1.2px;text-transform:uppercase;color:var(--text3)}
+/* This bar is data -- it encodes a proportion -- so it gets a track and
+   sits inside the card, rather than bleeding along the bottom edge
+   where it read as decoration. */
+.kpi-bar-track{height:4px;border-radius:var(--r-pill);background:var(--surface3);
+  overflow:hidden;margin-top:10px}
+.kpi-bar{height:4px;width:100%;border-radius:var(--r-pill);
+  transform-origin:left center;transform:scaleX(0);
+  transition:transform 800ms var(--e)}
 .kpi-sub{font-size:12.5px;color:var(--text2);margin-top:2px}
+/* Each card takes a different category, so the four are distinguishable
+   at a glance instead of four identical white boxes. */
+.an-kpis .kpi:nth-child(1) .kpi-icon{background:var(--c9-bg);border-color:var(--c9-bd)}
+.an-kpis .kpi:nth-child(2) .kpi-icon{background:var(--c1-bg);border-color:var(--c1-bd)}
+.an-kpis .kpi:nth-child(3) .kpi-icon{background:var(--c2-bg);border-color:var(--c2-bd)}
+.an-kpis .kpi:nth-child(4) .kpi-icon{background:var(--c5-bg);border-color:var(--c5-bd)}
 
 /* Chart cards */
 .an-charts{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -2636,12 +2662,19 @@ canvas{max-width:100%}
 
 /* ══ PROFILE & SETTINGS ══════════════════════════════════════════ */
 .sp-scroll{flex:1;overflow-y:auto;padding:0 0 40px}
+/* Geometry comes from .pg-head now; this only keeps the page's own
+   ground and the rule under it. */
 .sp-hd{background:var(--surface);border-bottom:1px solid var(--border);
-  padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px}
-.sp-title{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--text)}
-.sp-sub{font-size:13px;color:var(--text2);margin-top:3px}
-.sp-body{padding:22px 28px;display:flex;flex-direction:column;gap:18px;
-  max-width:860px}
+  padding-bottom:22px;margin-bottom:0}
+/* The header sits on its own full-width ground, but its contents track
+   the body's measure so title and cards share one left edge. */
+.sp-hd.pg-head{padding-left:max(28px,calc((100% - 900px) / 2 + 28px));
+  padding-right:max(28px,calc((100% - 900px) / 2 + 28px))}
+.sp-sub{font-size:14px;color:var(--text2);margin-top:8px}
+/* Centred, not pinned left. At 1440 the old max-width left the right
+   half of the page empty while the content sat against the sidebar. */
+.sp-body{padding:22px 28px 48px;display:flex;flex-direction:column;gap:18px;
+  max-width:900px;margin:0 auto;width:100%}
 
 .sp-card{background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
@@ -2699,7 +2732,7 @@ canvas{max-width:100%}
 .sp-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px}
 .sp-stat{background:var(--surface2);border:1px solid var(--border);
   border-radius:var(--r-md);padding:14px 16px}
-.sp-stat-v{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.6px;line-height:1}
+.sp-stat-v{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;line-height:1;letter-spacing:-1px;font-variant-numeric:tabular-nums;color:var(--text)}
 .sp-stat-l{font-size:11.5px;font-weight:600;color:var(--text2);margin-top:5px}
 
 .sp-av{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;
@@ -2968,6 +3001,73 @@ html.birthday[data-theme="dark"]{
 }
 
 
+
+
+
+/* AI rail search and grouping */
+.aip-search{padding:4px 12px 10px}
+.aip-search > div, .aip-search{position:relative}
+.aip-search svg{position:absolute;left:22px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;color:var(--text3);pointer-events:none}
+.aip-search input{width:100%;height:34px;padding:0 11px 0 32px;border:none;
+  border-radius:var(--r-md);background:var(--surface3);color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:13.5px;outline:none}
+.aip-search input::placeholder{color:var(--text3)}
+.aip-search input:focus{box-shadow:0 0 0 2px var(--accent-dim)}
+/* The clear affordance the browser adds is the wrong colour in dark. */
+.aip-search input::-webkit-search-cancel-button{filter:grayscale(1) opacity(.6)}
+.aip-rail-group{font-size:11.5px;font-weight:600;letter-spacing:.3px;
+  color:var(--text3);padding:12px 10px 6px}
+.aip-rail-group:first-child{padding-top:4px}
+
+/* ══ SHARED PAGE HEADER ══════════════════════════════════════════
+   Every screen's masthead. Five pages had grown five versions of this;
+   one of them had none at all. */
+.pg-head{display:flex;align-items:flex-end;justify-content:space-between;
+  gap:32px;flex-wrap:wrap;padding:26px 28px 0;flex-shrink:0}
+.pg-head-l{min-width:0}
+.pg-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.pg-title{margin:8px 0 0;font-size:36px;font-weight:800;letter-spacing:-1.1px;
+  line-height:1;color:var(--text);text-wrap:balance}
+.pg-sub{margin:8px 0 0;font-size:14px;color:var(--text2);max-width:60ch;text-wrap:pretty}
+.pg-head-r{display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+
+/* Time-of-day chip. Same phase the Home sky uses, so the app never
+   disagrees with itself about what time it is. */
+.tod-chip{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 12px;
+  border-radius:var(--r-pill);font-family:'JetBrains Mono',monospace;font-size:11px;
+  font-weight:700;letter-spacing:1.2px;text-transform:uppercase;white-space:nowrap;
+  transition:background 900ms var(--e),color 900ms var(--e),border-color 900ms var(--e)}
+.tod-chip i{width:8px;height:8px;border-radius:var(--r-pill);display:block;flex-shrink:0;
+  animation:sv-breathe 4s ease-in-out infinite}
+.tod-morning  {background:var(--c3-bg);border:1px solid var(--c3-bd);color:var(--c3-ink)}
+.tod-morning i{background:var(--c3-bar)}
+.tod-afternoon{background:var(--c2-bg);border:1px solid var(--c2-bd);color:var(--c2-ink)}
+.tod-afternoon i{background:var(--c2-bar)}
+.tod-evening  {background:var(--c5-bg);border:1px solid var(--c5-bd);color:var(--c5-ink)}
+.tod-evening i{background:var(--c5-bar)}
+.tod-night    {background:var(--c9-bg);border:1px solid var(--c9-bd);color:var(--c9-ink)}
+.tod-night i{background:var(--c9-bar)}
+
+/* A quiet secondary action, matching the design's outline button. */
+.pg-btn{height:34px;padding:0 15px;border-radius:var(--r-sm);
+  border:1px solid var(--border2);background:var(--surface);color:var(--text);
+  font-size:13.5px;font-weight:600;cursor:pointer;display:inline-flex;
+  align-items:center;gap:8px;white-space:nowrap;
+  transition:background var(--d-fast) var(--e),border-color var(--d-fast) var(--e)}
+.pg-btn:hover{background:var(--surface2);border-color:var(--text3)}
+
+@media (max-width:700px){
+  .pg-head{padding:18px 16px 0;gap:16px}
+  .pg-title{font-size:27px;letter-spacing:-.7px}
+  /* flex-shrink:0 made this group hold its content width and overflow
+     the viewport by a few pixels instead of wrapping. On a phone the
+     actions should wrap and, if it comes to it, shrink. */
+  .pg-head-r{flex-shrink:1;min-width:0;row-gap:8px}
+  .tod-chip{min-width:0;overflow:hidden}
+  .tod-chip span{overflow:hidden;text-overflow:ellipsis}
+}
 
 /* ══ HOME: SKY HERO ══════════════════════════════════════════════
    Four gradients stacked and cross-faded by the real hour, with an orb
@@ -3708,6 +3808,17 @@ html.birthday[data-theme="dark"]{
 <!-- PAGE: SLEEP -->
 <div class="page" id="pg-sleep">
 
+  <div class="pg-head">
+    <div class="pg-head-l">
+      <div class="pg-eyebrow">Tonight</div>
+      <h1 class="pg-title">Sleep Tracker</h1>
+    </div>
+    <div class="pg-head-r">
+      <span class="tod-chip" id="tod-sleep"><i></i><span>—</span></span>
+      <button class="pg-btn" onclick="slpSciOpen()" title="How the score is worked out">Sleep Science</button>
+    </div>
+  </div>
+
   <!-- Live mini overview bar (Bug 6 fix) -->
   <div class="live-mini-bar" id="lmb-sleep">
     <div class="lmb-item"><span class="lmb-ico">📊</span><div class="lmb-stack"><span class="lmb-val" id="lmb-sleep-hab">—</span><span class="lmb-lbl">Habits Today</span></div></div>
@@ -3718,18 +3829,11 @@ html.birthday[data-theme="dark"]{
 
   <!-- KPI bar -->
   <div class="slp-kpi-bar">
-    <div class="slp-brand">
-      <span class="slp-brand-ico">🌙</span>
-      <span class="slp-brand-title">SLEEP <em>TRACKER</em></span>
-    </div>
     <span class="slp-date" id="slp-date"></span>
     <div id="slp-profile-chip" onclick="slpOpenAgeOverlay(true)" style="display:none;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r-pill);background:var(--accent-dim);border:1px solid var(--accent);cursor:pointer;transition:all .2s" title="Change age profile">
       <span style="font-size:12.5px;font-weight:700;color:var(--accent-txt)" id="slp-chip-label">Adult · 7–9h</span>
       <span style="font-size:12px;color:var(--accent-txt);opacity:.7">✏️</span>
     </div>
-    <button onclick="slpSciOpen()" style="display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--r-md);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif" title="View Sleep Science Research">
-      🔬 Sleep Science
-    </button>
     <div class="slp-spacer"></div>
     <div class="slp-kpis">
       <div class="slp-hk"><div class="slp-hk-v" id="slp-kp-avg">—</div><div class="slp-hk-l">7-day avg</div></div>
@@ -4178,6 +4282,15 @@ html.birthday[data-theme="dark"]{
 
 <!-- PAGE: ANALYTICS -->
 <div class="page" id="pg-analytics">
+  <div class="pg-head">
+    <div class="pg-head-l">
+      <div class="pg-eyebrow">Review</div>
+      <h1 class="pg-title">Analytics</h1>
+    </div>
+    <div class="pg-head-r">
+      <span class="tod-chip" id="tod-analytics"><i></i><span>—</span></span>
+    </div>
+  </div>
   <!-- Live mini overview bar (Bug 6 fix) -->
   <div class="live-mini-bar" id="lmb-analytics">
     <div class="lmb-item"><span class="lmb-ico">📊</span><div class="lmb-stack"><span class="lmb-val" id="lmb-an-hab">—</span><span class="lmb-lbl">Habits Today</span></div></div>
@@ -4190,8 +4303,8 @@ html.birthday[data-theme="dark"]{
     <!-- Header -->
     <div class="an-hd">
       <div>
-        <div class="an-title">Analytics — <span id="an-yr-label">2026</span></div>
-        <div class="an-sub">Your full-year habit & sleep performance at a glance.</div>
+        <div class="an-sub">Your full-year habit &amp; sleep performance at a glance.
+          <span id="an-yr-label" hidden></span></div>
       </div>
       <div class="an-yr">
         <button class="an-arw" onclick="anChYear(-1)">‹</button>
@@ -4207,28 +4320,28 @@ html.birthday[data-theme="dark"]{
         <div class="kpi-val" id="an-k1">—</div>
         <div class="kpi-lbl">Total Check-ins</div>
         <div class="kpi-sub" id="an-k1s">habit completions this year</div>
-        <div class="kpi-bar" id="an-k1b" style="transform:scaleX(.6);background:var(--accent)"></div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="an-k1b" style="transform:scaleX(.6);background:var(--accent)"></div></div>
       </div>
       <div class="kpi">
         <div class="kpi-icon">🏆</div>
         <div class="kpi-val" id="an-k2">—</div>
         <div class="kpi-lbl">Best Month</div>
         <div class="kpi-sub" id="an-k2s">highest avg completion</div>
-        <div class="kpi-bar" id="an-k2b" style="transform:scaleX(.8);background:var(--green)"></div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="an-k2b" style="transform:scaleX(.8);background:var(--green)"></div></div>
       </div>
       <div class="kpi">
         <div class="kpi-icon">😴</div>
         <div class="kpi-val" id="an-k3">—</div>
         <div class="kpi-lbl">Avg Sleep / Night</div>
         <div class="kpi-sub" id="an-k3s">across logged nights</div>
-        <div class="kpi-bar" id="an-k3b" style="transform:scaleX(.7);background:var(--blue)"></div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="an-k3b" style="transform:scaleX(.7);background:var(--blue)"></div></div>
       </div>
       <div class="kpi">
         <div class="kpi-icon">🔥</div>
         <div class="kpi-val" id="an-k4">—</div>
         <div class="kpi-lbl">Active Months</div>
         <div class="kpi-sub" id="an-k4s">months with any data</div>
-        <div class="kpi-bar" id="an-k4b" style="transform:scaleX(.5);background:var(--amber)"></div>
+        <div class="kpi-bar-track"><div class="kpi-bar" id="an-k4b" style="transform:scaleX(.5);background:var(--amber)"></div></div>
       </div>
     </div>
 
@@ -4468,9 +4581,10 @@ html.birthday[data-theme="dark"]{
 <!-- PROFILE -->
 <div class="page" id="pg-profile">
   <div class="sp-scroll">
-    <div class="sp-hd">
-      <div>
-        <div class="sp-title">Profile</div>
+    <div class="sp-hd pg-head">
+      <div class="pg-head-l">
+        <div class="pg-eyebrow">You</div>
+        <h1 class="pg-title">Profile</h1>
         <div class="sp-sub">Who you are, and where your data lives.</div>
       </div>
     </div>
@@ -4481,9 +4595,10 @@ html.birthday[data-theme="dark"]{
 <!-- SETTINGS -->
 <div class="page" id="pg-settings">
   <div class="sp-scroll">
-    <div class="sp-hd">
-      <div>
-        <div class="sp-title">Settings</div>
+    <div class="sp-hd pg-head">
+      <div class="pg-head-l">
+        <div class="pg-eyebrow">Preferences</div>
+        <h1 class="pg-title">Settings</h1>
         <div class="sp-sub">Shape the app around how you actually use it.</div>
       </div>
     </div>
@@ -4504,6 +4619,14 @@ html.birthday[data-theme="dark"]{
         <span style="font-size:16px;line-height:1">+</span><span>New chat</span>
       </button>
       <div class="aip-rail-ttl">Recent</div>
+      <div class="aip-search">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" aria-hidden="true">
+          <circle cx="9" cy="9" r="5.4"/><path d="M13.2 13.2 17 17"/>
+        </svg>
+        <input id="aip-search-inp" type="search" placeholder="Search chats"
+               oninput="renderAiChatList()" aria-label="Search conversations">
+      </div>
       <div class="aip-rail-list" id="aip-rail-list"></div>
     </div>
   </aside>
@@ -4979,6 +5102,9 @@ function goPage(id,btn){
   if(id==='settings'){ renderSettings(); renderAiHistory(); }
   if(id==='profile')  renderProfile();
   if(id==='dashboard'){applyOverviewState();buildGrid(); updStats();} // Bug 3 fix: refresh grid & header stats on every navigation to dashboard
+  /* Chips live on several pages, so they refresh on entry as well as
+     on the sky's minute tick. */
+  if(typeof todChips === 'function') todChips();
   if(id==='sleep'){renderSleep(); renderLiveBar('sleep'); slpApplyPanelState();}
   // 'todo' page now hosts the Flow Planner iframe — loaded via blob URL below
   if(id==='pomodoro'){renderPmDots();renderPT();updatePmStats();pmRenderHabitPicker(); renderLiveBar('pomodoro');}
@@ -7503,7 +7629,12 @@ function slpAgeFromNumber(age) {
 }
 
 function slpGetProfile() {
-  return SLEEP_PROFILES[S.sleepProfile || 'adult'];
+  /* An unknown key used to return undefined, and every caller then read
+     .opt off it and threw -- inside renderSleep, which runs inside
+     goPage, so the whole navigation died with it. A stored value can be
+     unknown for ordinary reasons: an import from an older export, or a
+     profile synced from a device on a different version. */
+  return SLEEP_PROFILES[S.sleepProfile] || SLEEP_PROFILES.adult;
 }
 
 /* Age overlay logic */
@@ -9179,7 +9310,15 @@ function _wrDays(offset, n){
 
 function weeklyReview(){
   const cur=_wrDays(0,7), prev=_wrDays(7,7);
-  const avg=a=>a.length ? a.reduce((s,x)=>s+x,0)/a.length : null;
+  /* Ignore anything that is not a number. It only guarded on length
+     before, so a single sleep entry without a `total` -- one logged
+     before scoring existed, or synced from a device on an older
+     version -- turned the whole average into NaN, and the weekly
+     review rendered "NaN" with a "NaN" delta beside it. */
+  const avg=a=>{
+    const n=a.filter(x=>typeof x==='number' && isFinite(x));
+    return n.length ? n.reduce((s,x)=>s+x,0)/n.length : null;
+  };
 
   /* Habits. Deliberately skipped days shrink the denominator - you are
      not penalised for rest you planned. */
@@ -9275,8 +9414,10 @@ function renderWeeklyReview(){
   const sl = r.sleep.n
     ? '<div class="wr-big">'+r.sleep.hrs.toFixed(1)+'<span>h</span></div>'+
       '<div class="wr-sub">average across '+r.sleep.n+' night'+(r.sleep.n===1?'':'s')+'</div>'+
-      '<div class="wr-line"><span>Sleep score</span><b>'+Math.round(r.sleep.score)+
-        '</b>'+dl(r.sleep.prevScore===null?0:Math.round(r.sleep.score-r.sleep.prevScore))+'</div>'+
+      (r.sleep.score===null
+        ? '<div class="wr-line wr-dim"><span>Sleep score</span><b>not scored</b></div>'
+        : '<div class="wr-line"><span>Sleep score</span><b>'+Math.round(r.sleep.score)+
+          '</b>'+dl(r.sleep.prevScore===null?0:Math.round(r.sleep.score-r.sleep.prevScore))+'</div>')+
       (r.sleep.spread!==null
         ? '<div class="wr-line"><span>Timing drift</span><b>\u00b1'+_slpFmtM(r.sleep.spread)+'</b></div>'
         : '<div class="wr-line wr-dim"><span>Timing drift</span><b>needs 3 nights</b></div>')
@@ -9592,6 +9733,24 @@ function drawAnSleepChart(monthData, labels, dk){
    gradient, its ink colour, the orb's position and the greeting. The
    design file drove this from a preview button because a mockup has no
    clock; the app reads the real one. */
+
+/* Time-of-day chips. They read skyPhase, so a chip can never disagree
+   with the Home sky about what time of day it is. Refreshed whenever a
+   page opens and on the same minute tick as the hero. */
+function todChips(){
+  const h = new Date().getHours();
+  const phase = (typeof skyPhase === 'function') ? skyPhase(h) : 'morning';
+  const label = phase.charAt(0).toUpperCase() + phase.slice(1);
+  const time = String(h % 12 || 12) + ':' + String(new Date().getMinutes()).padStart(2,'0') +
+               (h < 12 ? ' AM' : ' PM');
+  document.querySelectorAll('.tod-chip').forEach(c => {
+    c.classList.remove('tod-morning','tod-afternoon','tod-evening','tod-night');
+    c.classList.add('tod-' + phase);
+    const txt = c.querySelector('span');
+    if(txt) txt.textContent = label + ' \u00b7 ' + time;
+  });
+}
+
 function skyPhase(h){
   if(h >= 5  && h < 11) return 'morning';
   if(h >= 11 && h < 17) return 'afternoon';
@@ -9685,6 +9844,7 @@ function skyRender(){
 
   const badge = document.getElementById('hm-tod-badge');
   if(badge) badge.textContent = phase.charAt(0).toUpperCase() + phase.slice(1);
+  todChips();
 
   /* Re-render on the minute rather than on a fixed interval, so the
      clock never sits a beat behind. */
@@ -11518,21 +11678,62 @@ function _aiChatSave(){
   renderAiChatList();
 }
 
+/* Which recency bucket a chat falls in. Derived from the same
+   timestamp the list is sorted by, so the heading can never disagree
+   with the order beneath it. */
+function _aiChatBucket(t){
+  const d = new Date(t), now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  if(t >= midnight) return 'Today';
+  if(t >= midnight - 864e5) return 'Yesterday';
+  if(t >= midnight - 7*864e5) return 'Previous 7 days';
+  if(t >= midnight - 30*864e5) return 'Previous 30 days';
+  return d.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+}
+
 function renderAiChatList(){
   const box = document.getElementById('aip-rail-list');
   if(!box) return;
+  const q = (document.getElementById('aip-search-inp')?.value || '').trim().toLowerCase();
   const all = _aiChats().slice().sort((a,b)=>b.t-a.t);
+
   if(!all.length){
     box.innerHTML = '<div class="aip-rail-empty">No conversations yet. Anything you ask here is saved so you can come back to it.</div>';
     return;
   }
-  box.innerHTML = all.map(c=>
+
+  /* Search the messages, not just the title. The title is the first 70
+     characters of the opening message, so title-only search would miss
+     everything actually discussed. */
+  const hits = q ? all.filter(c =>
+      String(c.title||'').toLowerCase().includes(q) ||
+      (c.msgs||[]).some(m => String(m.content||'').toLowerCase().includes(q))
+    ) : all;
+
+  if(!hits.length){
+    box.innerHTML = '<div class="aip-rail-empty">Nothing matches \u201c' + esc(q) + '\u201d.</div>';
+    return;
+  }
+
+  const row = c =>
     '<div class="aip-conv'+(c.id===_aiChatId?' on':'')+'" onclick="aiChatOpen(&quot;'+c.id+'&quot;)" '+
       'title="'+esc(c.title)+'">'+
       '<span class="aip-conv-t">'+esc(c.title||'New chat')+'</span>'+
       '<button class="aip-conv-x" onclick="aiChatDelete(&quot;'+c.id+'&quot;,event)" '+
         'title="Delete this conversation" aria-label="Delete conversation">\u00d7</button>'+
-    '</div>').join('');
+    '</div>';
+
+  /* While searching, the buckets are noise -- what matters is the
+     matches, not when they happened. */
+  if(q){ box.innerHTML = hits.map(row).join(''); return; }
+
+  let html = '', last = null;
+  hits.forEach(c => {
+    const bucket = _aiChatBucket(c.t);
+    if(bucket !== last){ html += '<div class="aip-rail-group">' + esc(bucket) + '</div>'; last = bucket; }
+    html += row(c);
+  });
+  box.innerHTML = html;
 }
 
 function aiChatOpen(id){
