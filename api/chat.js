@@ -94,7 +94,61 @@ function fromGemini(parts) {
   return out;
 }
 
-module.exports = async (req, res) => {
+/* The endpoint is public, so a request is not from this app just because
+   it says so. These are the tools the app defines and the models it asks
+   for; anything else is refused rather than proxied to a paid API.
+   Keep in step with _aiTools in index.html. */
+const TOOLS = new Set(['add_habit', 'rename_habit', 'delete_habit', 'set_habit_day',
+  'add_task', 'complete_task', 'delete_task', 'log_sleep', 'delete_sleep',
+  'write_journal', 'read_journal', 'focus_timer', 'set_setting', 'show_page', 'navigate_to']);
+const CLIENT_MODELS = new Set(['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']);
+
+/* Per-request cost ceiling. The edge rate limit caps how MANY requests get
+   through; these cap how expensive any one of them can be, so the two
+   together bound the spend. A real turn is ~9KB: a 4KB system prompt, 5KB
+   of tool schemas and a handful of short messages. */
+const LIMIT = { body: 120000, messages: 60000, message: 30000, count: 40, system: 20000, tools: 20000 };
+
+/* Returns a refusal reason, or null when the body is shaped like something
+   this app sends. 'TOO_LONG' is answered with 413 because the app has a
+   specific "clear the chat" message for it; everything else is a 400.
+   Without this a message whose content was an object (not a string or a
+   list of blocks) reached toGemini and threw. */
+function checkBody(body) {
+  if (!body || typeof body !== 'object' || !Array.isArray(body.messages))
+    return 'Expected { messages: [...] }';
+  if (body.messages.length > LIMIT.count) return 'TOO_LONG';
+  for (const m of body.messages) {
+    if (!m || typeof m !== 'object') return 'A message is not an object';
+    if (m.role !== 'user' && m.role !== 'assistant') return 'A message has an unknown role';
+    const c = m.content;
+    if (!(typeof c === 'string' ||
+          (Array.isArray(c) && c.every(b => b && typeof b === 'object' && typeof b.type === 'string'))))
+      return 'A message has unreadable content';
+    if (Array.isArray(c) && c.some(b => typeof b.name === 'string' && !TOOLS.has(b.name)))
+      return 'That tool is not part of this app';
+    if (JSON.stringify(m).length > LIMIT.message) return 'TOO_LONG';
+  }
+  if (JSON.stringify(body.messages).length > LIMIT.messages) return 'TOO_LONG';
+  if (body.system != null && typeof body.system !== 'string') return 'The system prompt is not text';
+  if (body.system && body.system.length > LIMIT.system) return 'TOO_LONG';
+  if (body.tools != null) {
+    if (!Array.isArray(body.tools)) return 'tools is not a list';
+    if (body.tools.length > TOOLS.size) return 'too many tools';
+    for (const t of body.tools) {
+      if (!t || typeof t !== 'object' || !TOOLS.has(t.name)) return 'That tool is not part of this app';
+      if (t.input_schema != null && (typeof t.input_schema !== 'object' || Array.isArray(t.input_schema)))
+        return 'A tool schema is not an object';
+    }
+    if (JSON.stringify(body.tools).length > LIMIT.tools) return 'TOO_LONG';
+  }
+  if (body.model != null && !CLIENT_MODELS.has(body.model)) return 'That model is not one this app uses';
+  if (body.max_tokens != null && (typeof body.max_tokens !== 'number' || !(body.max_tokens > 0)))
+    return 'max_tokens is not a number';
+  return null;
+}
+
+async function handle(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: { message: 'POST only' } });
     return;
@@ -107,22 +161,24 @@ module.exports = async (req, res) => {
     return;
   }
 
-  let body = req.body;
-  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
-  if (!body || !Array.isArray(body.messages)) {
-    res.status(400).json({ error: { message: 'Expected { messages: [...] }' } });
+  /* Refused on the header, before the body is read into memory. */
+  if (Number(req.headers['content-length']) > LIMIT.body) {
+    res.status(413).json({ error: { code: 'TOO_LARGE',
+      message: 'That conversation is too long. Clear the chat and start again.' } });
     return;
   }
 
-  /* Per-request cost ceiling. The edge rate limit caps how MANY requests
-     get through; this caps how expensive any one of them can be, so the
-     two together bound the spend. Without it a single allowed request
-     could carry a megabyte of context.
-     A real chat turn is a handful of messages and a few KB. */
-  const size = JSON.stringify(body.messages).length;
-  if (body.messages.length > 40 || size > 60000) {
+  let body = req.body;
+  if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = null; } }
+
+  const bad = body && JSON.stringify(body).length > LIMIT.body ? 'TOO_LONG' : checkBody(body);
+  if (bad === 'TOO_LONG') {
     res.status(413).json({ error: { code: 'TOO_LARGE',
       message: 'That conversation is too long. Clear the chat and start again.' } });
+    return;
+  }
+  if (bad) {
+    res.status(400).json({ error: { message: bad } });
     return;
   }
 
@@ -178,10 +234,12 @@ module.exports = async (req, res) => {
     if (r.status === 404) { lastErr = { status: 404, body: text, model }; continue; }
 
     if (!r.ok) {
-      // A real error (bad key, bad request). Trying other models cannot help.
-      let msg = text;
-      try { msg = JSON.parse(text).error?.message || text; } catch {}
-      res.status(r.status).json({ error: { message: msg } });
+      /* A real error (bad key, bad request). Trying other models cannot
+         help. The upstream body stays in the server log: it can name
+         quota, project and model internals, and the user can do nothing
+         with any of it. */
+      console.error('[api/chat] upstream', r.status, model, text && text.slice(0, 2000));
+      res.status(r.status).json({ error: { message: 'The model could not answer that. Try again in a moment.' } });
       return;
     }
 
@@ -211,10 +269,21 @@ module.exports = async (req, res) => {
     return;
   }
 
+  if (lastErr) console.error('[api/chat] no model accepted the request', lastErr.status,
+    lastErr.model, lastErr.body && String(lastErr.body).slice(0, 2000));
   res.status(lastErr ? lastErr.status : 502).json({
     error: { message: lastErr && RETRYABLE.has(lastErr.status)
       ? 'Every model is busy right now. This is usually brief — try again in a moment.'
-      : ('No available Gemini model accepted the request. Tried: ' +
-         MODELS.join(', ') + '. ' + (lastErr ? lastErr.body : '')) }
+      : 'No available model accepted the request. Try again in a moment.' }
   });
+}
+
+/* Nothing unexpected should reach the platform's own 500 page: that tells
+   the user nothing and tells us nothing either. */
+module.exports = async (req, res) => {
+  try { await handle(req, res); }
+  catch (e) {
+    console.error('[api/chat] unhandled:', (e && e.stack) || e);
+    if (!res.headersSent) res.status(500).json({ error: { message: 'Something went wrong on the server.' } });
+  }
 };
