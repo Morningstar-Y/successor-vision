@@ -5016,10 +5016,16 @@ let S=_svLoad('sv3')||{
    tell whether the user edited in between. Comparing this counter is
    cheaper and more reliable than diffing the whole state. */
 let localRev = 0;
+/* True while sync writes its own result back. Those writes are not edits:
+   counting them made every sync schedule the next one, forever. */
+let _syncWriting = false;
+function _syncOwn(fn){ _syncWriting = true; try{ fn(); } finally{ _syncWriting = false; } }
 
 const save=()=>{
-  localRev++;
-  if(typeof syncSoon==='function') syncSoon();
+  if(!_syncWriting){
+    localRev++;
+    if(typeof syncSoon==='function') syncSoon();
+  }
   try{ if(!_svHold.sv3) localStorage.setItem('sv3',JSON.stringify(S)); }
   catch(e){
     // localStorage full or unavailable — notify user once
@@ -5658,6 +5664,8 @@ async function syncNow(reason){
     const uid = SVUser.id;
     const L = _localState();
     const revAtStart = localRev;   // see the guard before _applyMerged
+    const jLocked = () => (typeof diarIsLocked === 'function') && diarIsLocked();
+    const jLockedAtStart = jLocked();
     let  B = _snapLoad();
     /* A snapshot from another account would make that account's rows
        look like local deletions. Treat it as a first sync instead. */
@@ -5720,7 +5728,7 @@ async function syncNow(reason){
       });
       S.checks = nc;
       if(S.pomoHabit && idMap[S.pomoHabit]) S.pomoHabit = idMap[S.pomoHabit];
-      save();
+      _syncOwn(save);   // sync's own write, not an edit
 
       /* The merge result is still keyed by the ids it was computed with.
          Leaving it that way writes the snapshot in the old id space, so
@@ -5743,10 +5751,16 @@ async function syncNow(reason){
 
     // ── the rest ───────────────────────────────────────────────────
     const cm = _merge3(B && B.checks  ? _remapKeys(B.checks, remap, idMap) : null, L2.checks,  R.checks);
+    /* A check whose habit is gone (older versions left them behind) fails
+       the foreign key, and with it every push from then on. Not pushed. */
+    cm.push = cm.push.filter(k => cm.merged[k].habit_id in hm.merged);
     const sm = _merge3(B && B.sleep,   L2.sleep,   R.sleep);
     const fm = _merge3(B && B.focus,   L2.focus,   R.focus);
     const tm = _merge3(B && B.tasks,   L2.tasks,   R.tasks);
-    const jm = _merge3(B && B.journal, L2.journal, R.journal);
+    /* A locked journal reads as empty, and merged like that every server
+       row looked deleted here - so it was deleted there. While locked the
+       journal is skipped entirely: nothing pulled into it, pushed or dropped. */
+    const jm = (jLockedAtStart || jLocked()) ? null : _merge3(B && B.journal, L2.journal, R.journal);
 
     // ── push ───────────────────────────────────────────────────────
     const habitRows = Object.values(hm.merged).map(h => ({
@@ -5764,7 +5778,7 @@ async function syncNow(reason){
       'habit_id,day', k => ({ habit_id:k.slice(0, k.lastIndexOf('_')), day:k.slice(k.lastIndexOf('_') + 1) }));
     await _pushSet('sleep_log', uid, sm, k => sm.merged[k], 'user_id,day', k => ({ day:k }));
     await _pushSet('focus_log', uid, fm, k => fm.merged[k], 'user_id,day', k => ({ day:k }));
-    await _pushSet('journal_entries', uid, jm, k => jm.merged[k], 'user_id,day', k => ({ day:k }));
+    if(jm) await _pushSet('journal_entries', uid, jm, k => jm.merged[k], 'user_id,day', k => ({ day:k }));
 
     /* Tasks made on this device carry numeric ids; the server mints uuids.
        Habits already swap theirs for the server's - tasks did not, so the
@@ -5784,7 +5798,7 @@ async function syncNow(reason){
     if(taskRows.length){ const e = (await sb.from('tasks').upsert(taskRows)).error; if(e) _sbErr(e, 'push tasks'); }
     if(Object.keys(tIdMap).length){
       (S.tasks || []).forEach(t => { if(tIdMap[t.id]) t.id = tIdMap[t.id]; });
-      save();
+      _syncOwn(save);
       /* The merge result is still keyed by the ids it was computed with, and
          the snapshot is written from it - leave it and the next sync reads
          the server's own row as a stranger. */
@@ -5815,8 +5829,9 @@ async function syncNow(reason){
 
     // ── land the merged result locally ─────────────────────────────
     let out = { habits:hm.merged, checks:cm.merged, sleep:sm.merged, focus:fm.merged,
-                tasks:tm.merged, journal:jm.merged, theme:wantTheme, age:wantAge,
+                tasks:tm.merged, journal:jm ? jm.merged : null, theme:wantTheme, age:wantAge,
                 prefs:pm.merged };
+    const pushed = Object.assign({}, out);   // what the server now holds; see the snapshot
 
     /* Everything above was computed from L, which was read before the
        network round trip. If the user edited while that was in flight,
@@ -5835,20 +5850,33 @@ async function syncNow(reason){
       out.sleep   = _merge3(L.sleep,   L3.sleep,   out.sleep  ).merged;
       out.focus   = _merge3(L.focus,   L3.focus,   out.focus  ).merged;
       out.tasks   = _merge3(L.tasks,   L3.tasks,   out.tasks  ).merged;
-      out.journal = _merge3(L.journal, L3.journal, out.journal).merged;
+      if(out.journal && !jLocked()) out.journal = _merge3(L.journal, L3.journal, out.journal).merged;
       out.prefs   = _merge3(L.prefs,   L3.prefs,   out.prefs  ).merged;
       /* Those re-merged rows have not been pushed. Queue another pass
          so the server catches up rather than silently diverging. */
       syncQueued = true;
     }
 
-    _applyMerged(out);
+    _syncOwn(() => _applyMerged(out));
 
     _rtLastPushAt = Date.now();   // suppress the echo of our own writes
-    /* Read AFTER _applyMerged so the snapshot is what is really on this
-       device. Saving the pre-apply state here would make the next sync
-       read every re-merged edit as a local deletion. */
+    /* The snapshot is the next sync's base, so it must be what the SERVER
+       holds, not what this device holds. Read after _applyMerged so rows
+       are in exactly the shape _localState gives; then, wherever an edit
+       made during the round trip was folded into `out` but never pushed,
+       put back what was pushed. Taking the device's state here made the
+       next sync see base == local for that edit and take the server's
+       older value: the edit was undone one sync later. */
     const finalState = _localState();
+    ['habits','checks','sleep','focus','tasks','journal','prefs'].forEach(c => {
+      if(!pushed[c]) return;
+      new Set([...Object.keys(pushed[c]), ...Object.keys(out[c])]).forEach(k => {
+        if(_eq(pushed[c][k], out[c][k])) return;
+        if(pushed[c][k] === undefined) delete finalState[c][k]; else finalState[c][k] = pushed[c][k];
+      });
+    });
+    // A skipped (locked) journal keeps its base for when the lock comes off.
+    if(!jm) finalState.journal = (B && B.journal) || {};
     finalState._uid = uid;
     _snapSave(finalState);
     acctRender('Synced');
@@ -5912,7 +5940,7 @@ function _applyMerged(m){
      locked it neither uploads nor accepts anything. Writing server rows
      into a locked journal would also mean writing them back out again
      encrypted under a key this session may not even hold. */
-  if(typeof diarEntries === 'object' && diarEntries &&
+  if(m.journal && typeof diarEntries === 'object' && diarEntries &&
      !((typeof diarIsLocked === 'function') && diarIsLocked())){
     Object.values(m.journal).forEach(e => {
       const d = e.data && Object.keys(e.data).length ? e.data : { text:e.body, mood:e.mood, tag:(e.tags||[])[0] || '' };
@@ -10863,8 +10891,10 @@ async function diarGateSubmit(){
 }
 
 function diarSave(){
-  localRev++;
-  if(typeof syncSoon==='function') syncSoon();
+  if(!_syncWriting){
+    localRev++;
+    if(typeof syncSoon==='function') syncSoon();
+  }
   /* With the lock on, the plaintext key must never be written again. */
   if(_diarKey){
     _diarEncrypt(_diarKey, JSON.stringify(diarEntries))
