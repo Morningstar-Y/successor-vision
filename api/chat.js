@@ -154,6 +154,28 @@ async function handle(req, res) {
     return;
   }
 
+  /* Only this app's own page has a reason to call this, and it calls it
+     from this origin with JSON. A cross-origin POST with Content-Type
+     text/plain is a "simple request": no CORS preflight, so the browser
+     sends it and the function runs whether or not the reply is readable
+     — and the attacker never needs to read it, the quota is already
+     spent. It is spent on the victim's IP too, which is exactly what
+     the per-IP edge limit counts, so that limit does not help here.
+     Both halves matter: the origin check turns away the foreign page,
+     the content-type check removes the trick that skipped the preflight
+     in the first place. A missing Origin is a server-side caller (curl,
+     a health check), not a page, and is allowed. */
+  const host = req.headers['x-forwarded-host'] || req.headers.host;
+  const origin = req.headers.origin;
+  let sameOrigin = !origin;
+  if (origin) { try { sameOrigin = new URL(origin).host === host; } catch { sameOrigin = false; } }
+  const ctype = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  if (!sameOrigin || ctype !== 'application/json') {
+    /* Deliberately says nothing about which half refused. */
+    res.status(403).json({ error: { message: 'This endpoint only answers the app itself.' } });
+    return;
+  }
+
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
     res.status(503).json({ error: { code: 'NO_SERVER_KEY',

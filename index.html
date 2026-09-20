@@ -5488,7 +5488,6 @@ let syncBusy = false, syncQueued = false, syncTimer = null;
 
 function _snapLoad(){ try{ return JSON.parse(localStorage.getItem(SNAP_KEY) || 'null'); }catch(e){ return null; } }
 function _snapSave(v){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(v)); }catch(e){} }
-function _snapClear(){ try{ localStorage.removeItem(SNAP_KEY); }catch(e){} }
 
 /* The local world, flattened into the same keyed shape the server uses
    so the two can be compared key by key. */
@@ -5666,10 +5665,14 @@ async function syncNow(reason){
     const revAtStart = localRev;   // see the guard before _applyMerged
     const jLocked = () => (typeof diarIsLocked === 'function') && diarIsLocked();
     const jLockedAtStart = jLocked();
-    let  B = _snapLoad();
-    /* A snapshot from another account would make that account's rows
-       look like local deletions. Treat it as a first sync instead. */
-    if(B && B._uid && B._uid !== uid) B = null;
+    const B = _snapLoad();
+    /* A snapshot is proof this device has synced before, and whose it
+       was. Treating a stranger's snapshot as no snapshot at all is what
+       leaked person A's habits, tasks, sleep and journal into person
+       B's account on a shared device: with no base every local row
+       reads as a local addition and gets pushed. Handled after the
+       pull instead — see the adopt branch. */
+    const switched = !!(B && B._uid !== uid);
 
     // ── pull ───────────────────────────────────────────────────────
     const [rh, rc, rs, rf, rt, rj, rp] = await Promise.all([
@@ -5695,6 +5698,47 @@ async function syncNow(reason){
     rf.data.forEach(e => R.focus[e.day] = { day:e.day, minutes:e.minutes, sessions:e.sessions });
     rt.data.filter(t => _okRow(t, 'id')).forEach(t => R.tasks[t.id] = { id:t.id, title:t.title, done:t.done, day:t.day, tag:t.tag, sort_order:t.sort_order });
     rj.data.forEach(e => R.journal[e.day] = { day:e.day, body:e.body, mood:e.mood, tags:e.tags || [], data:e.data || {} });
+
+    /* ── a different account than the one this device last synced as ──
+       Everything local belongs to the previous account, so none of it
+       goes up: this account's own server state is adopted wholesale and
+       the snapshot restarts here. The previous copy is kept on the
+       device (unsynced edits exist nowhere else) but comes off the
+       screen — their journal and planner are not this account's to
+       read — and the banner says both things. */
+    if(switched){
+      let kept = true;
+      try{
+        localStorage.setItem('sv-prev-account.' + Date.now(),
+          JSON.stringify(Object.assign({ sv3: localStorage.getItem('sv3') }, _sideStores())));
+      }catch(e){ kept = false; }
+      /* A locked journal is left exactly as it is: the ciphertext is
+         unreadable without the previous user's passcode, so it is
+         neither pushed nor replaced here. */
+      if(!jLockedAtStart){
+        try{ localStorage.removeItem('diar1'); }catch(e){}
+        if(typeof diarEntries === 'object' && diarEntries)
+          Object.keys(diarEntries).forEach(k => { delete diarEntries[k]; });
+      }
+      try{ localStorage.removeItem('flow_web_v2'); }catch(e){}
+
+      const pr0 = rp.data || {};
+      _syncOwn(() => _applyMerged({ habits:R.habits, checks:R.checks, sleep:R.sleep,
+        focus:R.focus, tasks:R.tasks, journal: jLockedAtStart ? null : R.journal,
+        theme: pr0.theme || L.profile.theme, age: pr0.sleep_profile_age || null,
+        prefs: pr0.prefs || {} }));
+
+      const adopted = _localState();
+      adopted._uid = uid;
+      _snapSave(adopted);
+      acctRender('Synced');
+      svBanner('This device last synced as a different account, so nothing that was already here has been '
+        + 'uploaded to ' + (SVUser.email || 'this account') + ' — you are seeing this account’s own data. '
+        + (kept ? 'The previous copy was kept on this device under sv-prev-account.'
+                : 'There was no room on this device to keep the previous copy, so it was replaced.'));
+      syncFailures = 0;
+      return;                      // the finally below still runs
+    }
 
     // ── habits first: local numeric ids must become server uuids ────
     const hm = _merge3(B && B.habits, L.habits, R.habits);   // mutated below after id remap
@@ -6057,10 +6101,11 @@ function onAuthChanged(user, event){
     rtStart();
   }else{
     rtStop();
-    /* Signing out leaves the local copy alone - it is still their data
-       on their machine - but drops the snapshot so a different account
-       signing in here is treated as a first sync, not as mass deletion. */
-    _snapClear();
+    /* The snapshot stays. It is the only record of WHO this device last
+       synced as, and dropping it made the next account's first sync
+       indistinguishable from a genuine offline first sync — which is
+       how the previous user's data got pushed into the next one's
+       account. syncNow reads _uid and decides. */
     acctRender();
   }
 }
