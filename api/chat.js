@@ -19,9 +19,12 @@ const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 /* Tried in order, so a key without access to a given model still works
    instead of failing with an opaque 404. `gemini-flash-latest` leads
    because it is an alias Google repoints at the current flash model —
-   pinning a version just means it quietly 404s the day it is retired. */
+   pinning a version just means it quietly 404s the day it is retired.
+   gemini-2.0-flash was retired (Google now answers 404 and names
+   gemini-3.6-flash as its replacement). */
+const DEFAULT_MODELS = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-2.5-flash'];
 const MODELS = (process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : [])
-  .concat(['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']);
+  .concat(DEFAULT_MODELS.filter(m => m !== process.env.GEMINI_MODEL));
 
 /* Transient upstream states. These say "this model, right now" -- never
    "this request is wrong" -- so they should move on to the next model
@@ -101,7 +104,7 @@ function fromGemini(parts) {
 const TOOLS = new Set(['add_habit', 'rename_habit', 'delete_habit', 'set_habit_day',
   'add_task', 'complete_task', 'delete_task', 'log_sleep', 'delete_sleep',
   'write_journal', 'read_journal', 'focus_timer', 'set_setting', 'show_page', 'navigate_to']);
-const CLIENT_MODELS = new Set(['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash']);
+const CLIENT_MODELS = new Set(DEFAULT_MODELS);
 
 /* Per-request cost ceiling. The edge rate limit caps how MANY requests get
    through; these cap how expensive any one of them can be, so the two
@@ -220,6 +223,7 @@ async function handle(req, res) {
   }
 
   let lastErr = null;
+  const tried = [];   // every model's outcome, for the log: only the last reached it before
   for (const model of MODELS) {
     let r, text;
     /* One quick retry per model. Capacity spikes are usually seconds
@@ -243,7 +247,8 @@ async function handle(req, res) {
       attempt++;
       await new Promise(ok => setTimeout(ok, 700));
     }
-    if (!r) continue;
+    if (!r) { tried.push(model + ':network'); continue; }
+    if (!r.ok) tried.push(model + ':' + r.status + ' ' + String(text || '').slice(0, 200).replace(/\s+/g, ' '));
 
     /* Anything transient means "try the next model", not "give up".
        Only 404 used to fall through, so a single overloaded model
@@ -292,7 +297,7 @@ async function handle(req, res) {
   }
 
   if (lastErr) console.error('[api/chat] no model accepted the request', lastErr.status,
-    lastErr.model, lastErr.body && String(lastErr.body).slice(0, 2000));
+    lastErr.model, lastErr.body && String(lastErr.body).slice(0, 2000), '| tried:', tried.join(' || '));
   res.status(lastErr ? lastErr.status : 502).json({
     error: { message: lastErr && RETRYABLE.has(lastErr.status)
       ? 'Every model is busy right now. This is usually brief — try again in a moment.'
