@@ -5807,7 +5807,10 @@ async function syncNow(reason){
     const jm = (jLockedAtStart || jLocked()) ? null : _merge3(B && B.journal, L2.journal, R.journal);
 
     // ── push ───────────────────────────────────────────────────────
-    const habitRows = Object.values(hm.merged).map(h => ({
+    /* Only habits that changed. Upserting every habit every pass sent one
+       realtime event per habit to every other open device, each of which
+       answered with a pass of its own. */
+    const habitRows = hm.push.map(k => hm.merged[k]).filter(Boolean).map(h => ({
       id: idMap[h.id] || h.id, user_id:uid, name:h.name, emoji:h.emoji, sort_order:h.sort_order }));
     if(habitRows.length){
       const e = (await sb.from('habits').upsert(habitRows, { onConflict:'id' })).error;
@@ -5867,9 +5870,21 @@ async function syncNow(reason){
     /* Merged per key, so two devices changing different settings both
        keep their change instead of the later sync winning outright. */
     const pm = _merge3(B && B.prefs, L2.prefs, pr.prefs || {});
-    const pe = (await sb.from('profiles')
-      .upsert({ id:uid, theme:wantTheme, sleep_profile_age:wantAge, prefs:pm.merged })).error;
-    if(pe) _sbErr(pe, 'push profile');
+    /* Only when something changed. Writing it every pass bumped the row,
+       which woke every other open device into a pass that wrote it back —
+       the "keeps syncing every few seconds" loop. Compared ignoring key
+       order: Postgres hands jsonb keys back in its own order. */
+    const _canon = v => v === null || v === undefined ? 'null'
+      : typeof v !== 'object' ? JSON.stringify(v)
+      : Array.isArray(v) ? '[' + v.map(_canon).join(',') + ']'
+      : '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + _canon(v[k])).join(',') + '}';
+    const profileNow  = { theme:wantTheme, age:wantAge || null, prefs:pm.merged };
+    const profileWas  = { theme:pr.theme || null, age:pr.sleep_profile_age || null, prefs:pr.prefs || {} };
+    if(!rp.data || _canon(profileNow) !== _canon(profileWas)){
+      const pe = (await sb.from('profiles')
+        .upsert({ id:uid, theme:wantTheme, sleep_profile_age:wantAge, prefs:pm.merged })).error;
+      if(pe) _sbErr(pe, 'push profile');
+    }
 
     // ── land the merged result locally ─────────────────────────────
     let out = { habits:hm.merged, checks:cm.merged, sleep:sm.merged, focus:fm.merged,
@@ -6020,7 +6035,7 @@ function _applyMerged(m){
 function syncSoon(){
   if(!sb || !SVUser) return;
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => syncNow('edit'), 2500);
+  syncTimer = setTimeout(() => syncNow('edit'), 800);
 }
 /* save() is declared with const, so it is not a window property and
    cannot be wrapped from outside - the wrapper would be a different
@@ -6042,12 +6057,15 @@ function syncSoon(){
 let _rtChan = null, _rtTimer = null, _rtLastPushAt = 0;
 
 function _rtNudge(payload){
-  /* Our own push echoes back as an event. Ignoring anything within a
-     moment of a local write keeps a sync from immediately triggering
-     the next one. */
-  if(Date.now() - _rtLastPushAt < 2500) return;
+  /* Our own push echoes back as an event, and a sync straight after our
+     own write finds nothing. But an event in that moment can just as well
+     be another device's change — dropping it left the two disagreeing
+     until the next focus, which is how a change "in a certain second"
+     never arrived. So it is deferred past the echo, never dropped. A pass
+     with nothing to do writes nothing, so the echo ends there. */
   clearTimeout(_rtTimer);
-  _rtTimer = setTimeout(() => syncNow('realtime:' + (payload && payload.table || '?')), 700);
+  const wait = Math.max(700, _rtLastPushAt + 2500 - Date.now());
+  _rtTimer = setTimeout(() => syncNow('realtime:' + (payload && payload.table || '?')), wait);
 }
 
 function rtStart(){
