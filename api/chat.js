@@ -227,6 +227,7 @@ async function handle(req, res) {
   let lastErr = null;
   const tried = [];   // every model's outcome, for the log: only the last reached it before
   let busy = false;   // any model overloaded or unreachable: worth retrying
+  let quota = false;  // the key's Google quota ran out (429): the free tier allows a few calls a minute
   for (const model of MODELS) {
     let r, text;
     /* One quick retry per model. Capacity spikes are usually seconds
@@ -259,6 +260,7 @@ async function handle(req, res) {
        sat untried — which is what "the AI stopped answering" was. */
     if (RETRYABLE.has(r.status)) {
       busy = true;
+      if (r.status === 429) quota = true;
       lastErr = { status: r.status, body: text, model };
       continue;
     }
@@ -306,6 +308,11 @@ async function handle(req, res) {
      no /api/chat", which sent the owner looking for a missing endpoint
      when the models were only busy. Busy anywhere means try again (503);
      every model gone means the list needs updating (502). */
+  if (quota) {
+    res.status(429).json({ error: { code: 'QUOTA',
+      message: 'The AI key has used its Google quota for the moment. Wait a minute and try again.' } });
+    return;
+  }
   res.status(busy ? 503 : 502).json({
     error: { message: busy
       ? 'Every model is busy right now. This is usually brief — try again in a moment.'

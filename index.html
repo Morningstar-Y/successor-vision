@@ -11915,7 +11915,13 @@ async function _aiFetch(systemPrompt, msgs){
     /* The edge rate limiter denies with 403 and an HTML block page, and
        the generic handler below treats a bare 403 as "unreachable" —
        which sends the user off debugging their connection. Name it. */
-    if(res.status===403 || res.status===429) throw new Error('RATE_LIMITED');
+    if(res.status===429){
+      /* 429 is either this app's edge limit or Google's quota on the key;
+         the function says which, so the message can be honest. */
+      let code=''; try{ code=(await res.clone().json()).error.code||''; }catch(e){}
+      throw new Error(code==='QUOTA' ? 'QUOTA' : 'RATE_LIMITED');
+    }
+    if(res.status===403) throw new Error('RATE_LIMITED');
     if(res.status===413) throw new Error('TOO_LARGE');
     const txt=await res.text();
     let data=null; try{ data=JSON.parse(txt); }catch(e){}
@@ -11951,7 +11957,13 @@ function _aiErrorMessage(err){
   const m=(err&&err.message)||String(err||'');
   if(m==='RATE_LIMITED'){
     return `**Slow down a moment — that's the rate limit.**\n\n`+
-      `The coach accepts 12 messages a minute, which stops anyone who finds this endpoint from running up the bill. Wait about a minute and it will answer again.\n\n`+
+      `The coach accepts 30 requests a minute, which stops anyone who finds this endpoint from running up the bill. Wait about a minute and it will answer again.\n\n`+
+      `Everything else keeps working normally.`;
+  }
+  if(m==='QUOTA'){
+    return `**The AI has used up its free Google quota for the moment.**\n\n`+
+      `The Gemini key is on Google's free tier, which allows only a few requests a minute. Wait a minute and ask again. `+
+      `Turning on billing for the key in Google AI Studio lifts the limit for good.\n\n`+
       `Everything else keeps working normally.`;
   }
   if(m==='TOO_LARGE'){
