@@ -22,7 +22,9 @@ const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
    pinning a version just means it quietly 404s the day it is retired.
    gemini-2.0-flash was retired (Google now answers 404 and names
    gemini-3.6-flash as its replacement). */
-const DEFAULT_MODELS = ['gemini-flash-latest', 'gemini-3.6-flash', 'gemini-2.5-flash'];
+/* gemini-2.5-flash is closed to new users (Google now answers 404 and names
+   gemini-3.8-flash as its replacement), as 2.0-flash was before it. */
+const DEFAULT_MODELS = ['gemini-flash-latest', 'gemini-3.8-flash', 'gemini-3.6-flash'];
 const MODELS = (process.env.GEMINI_MODEL ? [process.env.GEMINI_MODEL] : [])
   .concat(DEFAULT_MODELS.filter(m => m !== process.env.GEMINI_MODEL));
 
@@ -224,6 +226,7 @@ async function handle(req, res) {
 
   let lastErr = null;
   const tried = [];   // every model's outcome, for the log: only the last reached it before
+  let busy = false;   // any model overloaded or unreachable: worth retrying
   for (const model of MODELS) {
     let r, text;
     /* One quick retry per model. Capacity spikes are usually seconds
@@ -247,7 +250,7 @@ async function handle(req, res) {
       attempt++;
       await new Promise(ok => setTimeout(ok, 700));
     }
-    if (!r) { tried.push(model + ':network'); continue; }
+    if (!r) { busy = true; tried.push(model + ':network'); continue; }
     if (!r.ok) tried.push(model + ':' + r.status + ' ' + String(text || '').slice(0, 200).replace(/\s+/g, ' '));
 
     /* Anything transient means "try the next model", not "give up".
@@ -255,6 +258,7 @@ async function handle(req, res) {
        returned 503 to the user while two perfectly healthy fallbacks
        sat untried — which is what "the AI stopped answering" was. */
     if (RETRYABLE.has(r.status)) {
+      busy = true;
       lastErr = { status: r.status, body: text, model };
       continue;
     }
@@ -298,10 +302,14 @@ async function handle(req, res) {
 
   if (lastErr) console.error('[api/chat] no model accepted the request', lastErr.status,
     lastErr.model, lastErr.body && String(lastErr.body).slice(0, 2000), '| tried:', tried.join(' || '));
-  res.status(lastErr ? lastErr.status : 502).json({
-    error: { message: lastErr && RETRYABLE.has(lastErr.status)
+  /* Never pass a model's 404 through: the page reads 404 as "this copy has
+     no /api/chat", which sent the owner looking for a missing endpoint
+     when the models were only busy. Busy anywhere means try again (503);
+     every model gone means the list needs updating (502). */
+  res.status(busy ? 503 : 502).json({
+    error: { message: busy
       ? 'Every model is busy right now. This is usually brief — try again in a moment.'
-      : 'No available model accepted the request. Try again in a moment.' }
+      : 'None of the AI models answered. They may have been retired; the model list needs updating.' }
   });
 }
 
